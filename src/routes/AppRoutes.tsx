@@ -22,6 +22,8 @@ import QuarterDetailsManagement from '@/pages/admin/QuarterDetailsManagement';
 import QuarterRentManagement from '@/pages/admin/QuarterRentManagement';
 import QuarterTypeManagement from '@/pages/admin/QuarterTypeManagement';
 import Dashboard from '@/pages/user/Dashboard';
+import UserRoleMapping from '@/pages/Roles/UserRoleMapping';
+import ManageRoles from '@/pages/Roles/ManageRoles';
 
 const AppRoutes = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -56,6 +58,8 @@ const AppRoutes = () => {
             <Route path="/quarter-details-management" element={<QuarterDetailsManagement />} />
             <Route path="/quarter-rent-management" element={<QuarterRentManagement />} />
             <Route path="/quarter-type-management" element={<QuarterTypeManagement />} />
+            <Route path="/user-role-mapping" element={<UserRoleMapping />} />
+            <Route path="/manage-roles" element={<ManageRoles />} />
           </Route>
         </Route>
         <Route element={<AppLayout isAdmin={true} />}>

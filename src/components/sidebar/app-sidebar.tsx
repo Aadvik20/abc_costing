@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { ChevronLeft, ChevronRight, LogOut, Hotel, Grid2X2Icon } from 'lucide-react';
+import { ChevronLeft, ChevronRight, LogOut, Hotel, Grid2X2Icon, Origami } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import { NavMain } from '@/components/nav-main';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarMenu, SidebarMenuButton, SidebarRail, SidebarSeparator, useSidebar } from '@/components/ui/sidebar';
@@ -50,6 +50,18 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
       title: 'Quarter Allocation',
       url: '/employee-quarter-allocation',
       icon: Users,
+      roles: ['user'],
+    },
+    {
+      title: 'User Role Mapping',
+      url: '/user-role-mapping',
+      icon: Users,
+      roles: ['user'],
+    },
+    {
+      title: 'Manage Roles',
+      url: '/manage-roles',
+      icon: Origami,
       roles: ['user'],
     },
   ];
