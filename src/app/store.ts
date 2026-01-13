@@ -12,6 +12,8 @@ import employeeListReducer from '../features/quarter/employeeListSlice';
 import quarterEmployeeMapReducer from '../features/quarter/quarterEmployeeMapSlice';
 import quarterRentReducer from '../features/quarter/quarterRentSlice';
 import quarterTypeGradeReducer from '../features/quarter/quarterTypeGradeSlice';
+import userRoleReducer from '../features/userRole/userRoles';
+import masterRolesReducer from '../features/userRole/masterRoles';
 
 const persistConfig = {
   key: 'root',
@@ -30,6 +32,8 @@ const rootReducer = combineReducers({
   quarterEmployeeMapList: quarterEmployeeMapReducer,
   quarterRentList: quarterRentReducer,
   quarterTypeGradeList: quarterTypeGradeReducer,
+  userRoles: userRoleReducer,
+  masterRoles: masterRolesReducer
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);
