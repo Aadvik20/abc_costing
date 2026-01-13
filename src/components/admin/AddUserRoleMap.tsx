@@ -17,7 +17,6 @@ const AddUserMapRole = ({
   onRoleChange,
   onSubmit,
 }) => {
-console.log({roles})
     const filterEmployees = employees.filter((emp)=>emp?.location?.toLowerCase() === selectedUnit?.unitName?.toLowerCase());
   return (
     <Dialog open={open} onOpenChange={onClose}>

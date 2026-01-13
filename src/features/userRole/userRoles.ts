@@ -70,7 +70,7 @@ export const fetchEmpRoleList = createAsyncThunk<
 >('empRole/getEmpRoleList', async (_, { rejectWithValue }) => {
   try {
     const response = await axiosInstance.get('/User/GetEmpRoleList');
-    return response.data;
+    return response.data.data;
   } catch (err: any) {
     const errorMessage =
       err.response?.data?.message || 'Failed to fetch employee role list';
@@ -119,14 +119,14 @@ export const editEmpRole = createAsyncThunk<
 /** 4️⃣ Delete Employee Role Assignment */
 export const deleteEmpRoleAssignment = createAsyncThunk<
   number,
-  { mappingId: number },
+  { empCode: number },
   { rejectValue: string }
->('empRole/deleteEmpRoleAssignment', async ({ mappingId }, { rejectWithValue }) => {
+>('empRole/deleteEmpRoleAssignment', async ({ empCode }, { rejectWithValue }) => {
   try {
     await axiosInstance.delete(
-      `/User/DeleteEMPRoleAssignment?MappingId=${mappingId}`
+      `/User/DeleteEMPRoleAssignment?EmpCode=${empCode}`
     );
-    return mappingId;
+    return empCode;
   } catch (err: any) {
     const errorMessage =
       err.response?.data?.message || 'Failed to delete role assignment';

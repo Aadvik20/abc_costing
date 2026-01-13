@@ -34,11 +34,10 @@ const UserRoleMapping = () => {
 
   const masterRoleList = useAppSelector((state: RootState) => state.masterRoles.roles);
   const { units: masterUnits } = useAppSelector((state: RootState) => state.masterData);
-  const { employees:employeesList} = useAppSelector((state: RootState) => state.employeeList);
+  const { employees: employeesList } = useAppSelector((state: RootState) => state.employeeList);
 
   // const { employees: employeesList} = useAppSelector((state: RootState) => state.employee);
-  const { empRoles:userList, loading: isUserListLoading } = useAppSelector((state: RootState) => state.userRoles);
-  console.log(userList);
+  const { empRoles: userList, loading: isUserListLoading } = useAppSelector((state: RootState) => state.userRoles);
   useEffect(() => {
     dispatch(fetchEmpRoleList());
     dispatch(fetchMasterRole());
@@ -48,7 +47,7 @@ const UserRoleMapping = () => {
     if (selectedUnit) {
       dispatch(fetchEmployeeList({ location: selectedUnit?.name }));
     } else if (!isEditing) {
-    //   dispatch(clearEmployees());
+      //   dispatch(clearEmployees());
     }
   }, [selectedUnit, dispatch]);
 
@@ -79,17 +78,20 @@ const UserRoleMapping = () => {
     const endpoint = isEditing ? '/User/EditRoleAssignment' : '/User/AddUserRoleMapping';
     const method = isEditing ? 'put' : 'post';
 
+    const roleIds = selectedRoles.map((role: any) => {
+      return { roleId: role.id };
+    });
     const payload =
       isEditing && currentRole
         ? {
             assignmentId: currentRole?.id,
             newUnitId: empUnit,
-            newRoleId: selectedRoles.roleId,
+            newRoleId: roleIds,
           }
         : {
-            comployeeCode,
-            unitId: empUnit,
-            roleId: selectedRoles.roleId,
+            empCode: comployeeCode,
+            empUnitId: empUnit,
+            userRoles: roleIds,
           };
 
     setLoading(true);
@@ -120,76 +122,85 @@ const UserRoleMapping = () => {
         header: 'Sr. No.',
         cell: ({ row }: any) => row.index + 1,
       },
-      { accessorKey: 'employee.employeeCode', header: 'Employee Code' },
-      { accessorKey: 'employee.userName', header: 'Employee Name' },
-      { accessorKey: 'employee.post', header: 'Designation' },
-      { accessorKey: 'employee.unitName', header: 'Unit' },
-      { accessorKey: 'roleName', header: 'Role(s)', cell: ({ row }: any) =>{
-        return (
-          row.original.roles.map((item)=> <div className='flex items-center gap-2 flex-col'><Badge variant="secondary">{item.roleName}</Badge></div>)
-        )
-      } },
+      { accessorKey: 'empCode', header: 'Employee Code' },
+      { accessorKey: 'userName', header: 'Employee Name' },
+      { accessorKey: 'post', header: 'Designation' },
+      { accessorKey: 'location', header: 'Unit' },
       {
-        accessorKey: 'action',
-        header: 'Action',
+        accessorKey: 'roleName',
+        header: 'Role(s)',
         cell: ({ row }: any) => {
-          const rowData = row.original;
-          return (
-            <div className="flex gap-2 items-center justify-center">
-              <Button
-                size="sm"
-                className="bg-blue-600 text-white hover:bg-blue-700"
-                onClick={() => {
-                  const unit = masterUnits.find((u) => u.unitId === rowData.unitId);
-                  setSelectedUnit(unit || null);
-
-                  setSelectedEmployee({
-                    employeeId: rowData?.employeeDetails?.employeeMasterAutoId,
-                    employeeCode: rowData?.employeeDetails?.empCode,
-                    employeeName: rowData?.employeeDetails?.userName,
-                    designation: rowData?.employeeDetails?.post,
-                    unitId: rowData.empUnitId,
-                    location: rowData?.employeeMasterAutoId?.location,
-                  });
-
-                  const rolesFromUser = userList.find((u) => u?.employeeDetails?.employeeMasterAutoId === rowData?.employeeDetails?.employeeMasterAutoId);
-                  const matchedRoles = masterRoleList.find((m) => m.roleName.toLowerCase() === rolesFromUser.roleName.toLowerCase());
-                  const result = matchedRoles ? { ...matchedRoles, ...rolesFromUser } : null;
-
-                  setCurrentRole(result);
-                  setSelectedRoles(result);
-                  setIsEditing(true);
-                  setIsAddOpen(true);
-                }}
-              >
-                Edit
-              </Button>
-              <Button
-                variant="destructive"
-                size="sm"
-                onClick={() => {
-                  setRowToDeleteId(row.original.id);
-                  setIsDeleteOpen(true);
-                }}
-              >
-                <Trash2Icon />
-              </Button>
+          return row.original.roles.map((item) => (
+            <div className="flex items-center gap-2 flex-col">
+              <Badge variant="secondary">{item.roleName}</Badge>
             </div>
-          );
+          ));
         },
       },
+    //   {
+    //     accessorKey: 'action',
+    //     header: 'Action',
+    //     cell: ({ row }: any) => {
+    //       const rowData = row.original;
+    //       return (
+    //         <div className="flex gap-2 items-center justify-center">
+    //           <Button
+    //             size="sm"
+    //             className="bg-blue-600 text-white hover:bg-blue-700"
+    //             onClick={() => {
+    //               const rowData = row.original;
+
+    //               /* ---------- UNIT ---------- */
+    //               const unit = masterUnits.find((u) => u.unitId === rowData.unit);
+    //               setSelectedUnit(unit || null);
+
+    //               /* ---------- EMPLOYEE ---------- */
+    //               setSelectedEmployee({
+    //                 employeeCode: rowData.empCode,
+    //                 employeeName: rowData.userName,
+    //                 designation: rowData.post,
+    //                 location: rowData.location,
+    //                 department: rowData.deptDFCCIL,
+    //                 employeeId: rowData.empCode, // fallback
+    //               });
+
+    //               /* ---------- ROLES (ARRAY ✅) ---------- */
+    //               const preSelectedRoles = rowData.roles.map((r: any) => masterRoleList.find((m) => m.id === r.roleId)).filter(Boolean);
+
+    //               setSelectedRoles(preSelectedRoles);
+
+    //               setIsEditing(true);
+    //               setIsAddOpen(true);
+    //             }}
+    //           >
+    //             Edit
+    //           </Button>
+    //           <Button
+    //             variant="destructive"
+    //             size="sm"
+    //             onClick={() => {
+    //               setRowToDeleteId(row.original.id);
+    //               setIsDeleteOpen(true);
+    //             }}
+    //           >
+    //             <Trash2Icon />
+    //           </Button>
+    //         </div>
+    //       );
+    //     },
+    //   },
     ],
     [masterUnits, userList, masterRoleList]
   );
 
   const handleConfirmDelete = async () => {
     if (!rowToDeleteId) return;
-    const response = await dispatch(deleteEmpRoleAssignment({ mappingId: rowToDeleteId })).unwrap();
-    if(response?.statusCode===200){
-      toast.success("User Role deleted successfully");
+    const response = await dispatch(deleteEmpRoleAssignment({ empCode: rowToDeleteId })).unwrap();
+    if (response?.statusCode === 200) {
+      toast.success('User Role deleted successfully');
       dispatch(fetchEmpRoleList());
-    }else{
-      toast.error("Something Went Wrong!")
+    } else {
+      toast.error('Something Went Wrong!');
     }
     setRowToDeleteId(null);
     setIsDeleteOpen(false);
