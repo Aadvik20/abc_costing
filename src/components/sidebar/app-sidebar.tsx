@@ -58,12 +58,12 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
       icon: Users,
       roles: ['user'],
     },
-    {
-      title: 'Manage Roles',
-      url: '/manage-roles',
-      icon: Origami,
-      roles: ['user'],
-    },
+    // {
+    //   title: 'Manage Roles',
+    //   url: '/manage-roles',
+    //   icon: Origami,
+    //   roles: ['user'],
+    // },
   ];
 
   const navMainItems = allNavItems.filter((item) => item.roles.some((role) => Roles.includes(role)));
