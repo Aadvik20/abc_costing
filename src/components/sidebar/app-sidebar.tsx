@@ -28,12 +28,12 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
       icon: Home,
       roles: ['user'],
     },
-    {
-      title: 'Position Grade Mapping',
-      url: '/grade-position-mapping',
-      icon: Link,
-      roles: ['user'],
-    },
+    // {
+    //   title: 'Position Grade Mapping',
+    //   url: '/grade-position-mapping',
+    //   icon: Link,
+    //   roles: ['user'],
+    // },
     {
       title: 'Quarter Details',
       url: '/quarter-details-management',

@@ -1,8 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { MapPin, Calendar, CheckCircle, Eye, Home, DollarSign, FileText, Plus, Edit, Trash2 } from 'lucide-react';
+import { Calendar, Plus, Edit, Trash2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { QuarterRentModal } from '@/components/dailogs/QuarterRentModal';
 import { Button } from '@/components/ui/button';
 import { useAppSelector } from '@/app/hooks';
@@ -19,7 +17,6 @@ import ConfirmDialog from '@/components/common/ConfirmDialog';
 const QuarterRentManagement = () => {
   const [showModal, setShowModal] = useState(false);
   const dispatch = useDispatch<AppDispatch>();
-  const [selectedType, setSelectedType] = useState(null);
   const [mode, setMode] = React.useState('add'); // 'add' | 'edit'
   const [selectedRow, setSelectedRow] = React.useState(null);
   const [saving, setSaving] = React.useState(false);
@@ -31,29 +28,6 @@ const QuarterRentManagement = () => {
     }
   }, [dispatch, quarterTypes.length, rentRates.length]);
 
-  // const stats = [
-  //   {
-  //     title: 'Total Rent Records',
-  //     value: rentRates.length.toString(),
-  //     icon: FileText,
-  //     bgColor: 'bg-blue-50',
-  //     iconColor: 'text-blue-600',
-  //   },
-  //   {
-  //     title: 'Average Rent',
-  //     value: `₹${Math.round(rentRates.reduce((sum, r) => sum + r.rentPerMonth, 0) / rentRates.length).toLocaleString()}`,
-  //     icon: DollarSign,
-  //     bgColor: 'bg-green-50',
-  //     iconColor: 'text-green-600',
-  //   },
-  //   {
-  //     title: 'Total Monthly Collection',
-  //     value: `₹${rentRates.reduce((sum, r) => sum + r.rentPerMonth, 0).toLocaleString()}`,
-  //     icon: DollarSign,
-  //     bgColor: 'bg-purple-50',
-  //     iconColor: 'text-purple-600',
-  //   },
-  // ];
   const onSave = async (payload) => {
     setSaving(true);
 
@@ -110,35 +84,6 @@ const QuarterRentManagement = () => {
             Add Rent Rate
           </Button>
         </div>
-
-        {/* <Alert className="border-green-200 bg-green-50">
-          <DollarSign className="h-4 w-4 text-green-600" />
-          <AlertDescription className="text-green-800">
-            All rent rates are applicable from January 1, 2024. Rates are reviewed annually and updated based on location and amenities.
-          </AlertDescription>
-        </Alert> */}
-
-        {/* <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {stats.map((stat, index) => {
-            const Icon = stat.icon;
-            return (
-              <Card key={index} className="border-0 shadow-md hover:shadow-lg transition-shadow">
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-gray-600">{stat.title}</p>
-                      <p className="text-3xl font-bold text-gray-900 mt-2">{stat.value}</p>
-                    </div>
-                    <div className={`${stat.bgColor} p-3 rounded-lg`}>
-                      <Icon className={`w-6 h-6 ${stat.iconColor}`} />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div> */}
-
         <Card className="border-0 shadow-lg">
           <CardHeader>
             <CardTitle className="text-xl font-semibold">Rent Rate Schedule</CardTitle>
@@ -152,8 +97,6 @@ const QuarterRentManagement = () => {
                     <th className="px-4 py-3 text-left text-sm font-semibold text-white">Quarter Type</th>
                     <th className="px-4 py-3 text-left text-sm font-semibold text-white">Rent</th>
                     <th className="px-1 py-3 text-left text-sm font-semibold text-white">Applicable From</th>
-                    <th className="px-1 py-3 text-left text-sm font-semibold text-white">Created By</th>
-                    <th className="px-1 py-3 text-left text-sm font-semibold text-white">Updated By</th>
                     <th className="px-4 py-3 text-left text-sm font-semibold text-white">Actions</th>
                   </tr>
                 </thead>
@@ -176,26 +119,6 @@ const QuarterRentManagement = () => {
                           <span className="text-sm text-gray-700">{formatDate(rate.applicableFrom)}</span>
                         </div>
                       </td>
-                      <td className="px-1 py-3">
-                        <div className="flex items-center gap-2">
-                          <Calendar className="w-4 h-4 text-green-600" />
-                          <span className="text-sm text-gray-700">{`${rate.createdByName}-${rate.createBy}-${formatDateTime(rate.createDate)}`}</span>
-                        </div>
-                      </td>
-
-                      <td className="px-1 py-3">
-                        <div className="flex items-center gap-2">
-                          {rate.modifyByName ? (
-                            <>
-                              <Calendar className="w-4 h-4 text-purple-700" />
-                              <span className="text-sm text-gray-700">{`${rate.modifyByName}-${rate.modifyBy}-${formatDateTime(rate.modifyDate)}`}</span>
-                            </>
-                          ) : (
-                            '-'
-                          )}
-                        </div>
-                      </td>
-
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">
                           <button

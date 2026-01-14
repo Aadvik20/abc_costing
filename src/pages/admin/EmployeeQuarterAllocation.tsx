@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { CheckCircle, XCircle, Users, DollarSign, FileText, Plus, Trash2, Edit } from 'lucide-react';
+import { Plus, Trash2, Edit } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { QMapEmpModal } from '@/components/dailogs/QMapEmpModal';
 import { Button } from '@/components/ui/button';
 import axiosInstance from '@/services/axiosInstance';
@@ -18,7 +17,6 @@ import ConfirmDialog from '@/components/common/ConfirmDialog';
 import TableList from '@/components/ui/data-table';
 
 const EmployeeQuarterAllocation = () => {
-  const [filterStatus, setFilterStatus] = useState('all');
   const [showModal, setShowModal] = useState(false);
   const [mode, setMode] = React.useState('add'); // 'add' | 'edit'
   const [selectedRow, setSelectedRow] = React.useState(null);
@@ -121,16 +119,16 @@ const EmployeeQuarterAllocation = () => {
       cell: ({ row }) => <div className="px-2">{row.original.vacanteDate ? formatDate(row.original.vacanteDate) : '-'}</div>,
     },
 
-    {
-      accessorKey: 'createdByNameAndDate',
-      header: 'Created By',
-      cell: ({ row }) => <div className="px-2">{`${row.original.createdByNameAndDate}`}</div>,
-    },
-    {
-      accessorKey: 'madifyByNameAndDate',
-      header: 'Updated By',
-      cell: ({ row }) => <div className="px-2">{row.original.madifyByNameAndDate || '-'}</div>,
-    },
+    // {
+    //   accessorKey: 'createdByNameAndDate',
+    //   header: 'Created By',
+    //   cell: ({ row }) => <div className="px-2">{`${row.original.createdByNameAndDate}`}</div>,
+    // },
+    // {
+    //   accessorKey: 'madifyByNameAndDate',
+    //   header: 'Updated By',
+    //   cell: ({ row }) => <div className="px-2">{row.original.madifyByNameAndDate || '-'}</div>,
+    // },
     {
       accessorKey: 'action',
       header: 'Action',

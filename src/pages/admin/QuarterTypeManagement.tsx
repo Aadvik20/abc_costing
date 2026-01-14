@@ -11,6 +11,7 @@ import ConfirmDialog from '@/components/common/ConfirmDialog';
 import { Input } from '@/components/ui/input';
 import { useAppDispatch, useAppSelector } from '@/app/hooks';
 import { fetchQuarterTypes } from '@/features/quarter/QuarterTypeSlice';
+import { RootState } from '@/app/store';
 
 const QuarterTypeManagement = () => {
   const [showModal, setShowModal] = useState(false);
@@ -19,6 +20,8 @@ const QuarterTypeManagement = () => {
   const [saving, setSaving] = React.useState(false);
   const [search, setSearch] = React.useState('');
   const dispatch = useAppDispatch();
+  const { positionGrades, units } = useAppSelector((state: RootState) => state.masterData);
+
   const { quarterTypes, loading, error } = useAppSelector((state) => state.quarterTypes);
   useEffect(() => {
     if (!quarterTypes.length) {
@@ -147,7 +150,16 @@ const QuarterTypeManagement = () => {
           </CardContent>
         </Card>
       </div>
-      <QuarterTypeModal open={showModal} onOpenChange={setShowModal} mode={mode} initialData={selectedRow} onSave={onSave} saving={saving} />
+      <QuarterTypeModal
+        open={showModal}
+        units={units}
+        positionGrades={positionGrades}
+        onOpenChange={setShowModal}
+        mode={mode}
+        initialData={selectedRow}
+        onSave={onSave}
+        saving={saving}
+      />
     </div>
   );
 };

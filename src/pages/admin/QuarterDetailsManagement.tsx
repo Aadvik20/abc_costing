@@ -55,7 +55,7 @@ const QuarterDetailsManagement = () => {
       setSaving(false);
     }
   };
-  
+
   const handleDelete = async (id) => {
     setSaving(true);
     try {
@@ -78,14 +78,14 @@ const QuarterDetailsManagement = () => {
   };
   const columns = [
     {
+      accessorKey: 'Type',
+      header: 'Quarter Type',
+      cell: ({ row }) => <div className="px-2 w-[120px]">{row.original?.qType}</div>,
+    },
+    {
       accessorKey: 'qNumber',
       header: 'Quarter No',
       cell: ({ row }) => <div className="px-2">{`${row.original?.qNumber}`}</div>,
-    },
-    {
-      accessorKey: 'Type',
-      header: 'Quarter Type',
-      cell: ({ row }) => <div className="px-2 w-[120px]">{row.original?.fkQTypeId}</div>,
     },
     {
       accessorKey: 'city',
