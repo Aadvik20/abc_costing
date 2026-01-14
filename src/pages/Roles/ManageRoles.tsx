@@ -7,6 +7,7 @@ import { fetchMasterRole } from "@/features/userRole/masterRoles";
 import { useAppDispatch, useAppSelector } from "@/app/hooks";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
 import { formatDateTime } from "@/lib/helperFunction";
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface FormState {
   roleName: string;
@@ -111,14 +112,20 @@ const ManageRoles = () => {
 
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Manage Roles</h1>
-        <Button onClick={handleAdd}>
+        <Button onClick={() => {
+                      setShowModal(true);
+                      handleAdd();
+                    }}>
           <Plus className="w-4 h-4" />
           Add New Role
         </Button>
       </div>
-
-
-      <div className="bg-white shadow rounded">
+      <Card className="border-0 shadow-lg">
+          <CardHeader>
+            <CardTitle className="text-xl font-semibold">Roles</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="bg-white shadow rounded">
         <table className="w-full">
           <thead className="bg-primary text-white">
             <tr>
@@ -137,10 +144,12 @@ const ManageRoles = () => {
                 <td className="p-3">{role.description}</td>
                 <td className="p-3 flex gap-2">
                   <button
-                    onClick={() => openEdit(role)}
-                    className="p-2 hover:bg-green-50 rounded-lg transition-colors"
+                    onClick={() => 
+                      openEdit(role)
+                    }
+                    className="rounded-lg border p-1 text-gray-600 hover:bg-gray-100"
                   >
-                    <Edit className="w-4 h-4 text-gray-600" />
+                    <Edit className="w-4 h-4" />
                   </button>
 
                   <ConfirmDialog
@@ -167,6 +176,9 @@ const ManageRoles = () => {
           </tbody>
         </table>
       </div>
+      </CardContent>
+      </Card>
+
 
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center">
