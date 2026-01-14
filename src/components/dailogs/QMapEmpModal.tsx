@@ -136,7 +136,6 @@ export function QMapEmpModal({
       return hay.includes(q);
     });
   }, [quarterDetailsOptions, quarterSearch]);
-  console.log('filteredQuarters', filteredQuarters);
 
   const selectedQuarterId = toStr(form.fkQDetailId);
 
