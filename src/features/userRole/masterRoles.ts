@@ -3,7 +3,14 @@ import axiosInstance from '@/services/axiosInstance';
 
 export interface Role {
   id: number;
-  value: string;
+  roleName: string;
+  description: string;
+  createdBy: number;
+  createdDate: string;
+  updatedBy: number | null;
+  updatedDate: string | null;
+  isActive: boolean;
+  userRoleMappings: any [];
 }
 export interface Unit {
   unitId: number;
