@@ -101,8 +101,6 @@ const QuarterTypeManagement = () => {
                     <tr>
                       <th className="px-4 py-3 text-left text-sm font-semibold text-white">S.No.</th>
                       <th className="px-4 py-3 text-left text-sm font-semibold text-white">Quarter Type</th>
-                      <th className="px-4 py-3 text-left text-sm font-semibold text-white">Created By</th>
-                      <th className="px-4 py-3 text-left text-sm font-semibold text-white">Updated By</th>
                       <th className="px-4 py-3 text-left text-sm font-semibold text-white">Actions</th>
                     </tr>
                   </thead>
@@ -116,20 +114,6 @@ const QuarterTypeManagement = () => {
                           </div>
                         </td>
 
-                        <td className="px-4 py-3 text-sm text-gray-700">
-                          <span className="text-sm text-gray-700">{`${mapping.createdByName} - ${mapping.createBy} at ${formatDateTime(
-                            mapping.createDate
-                          )}`}</span>
-                        </td>
-                        <td className="px-4 py-3 text-sm text-gray-700">
-                          {mapping?.modifyByName ? (
-                            <span className="text-sm text-gray-700">
-                              {`${mapping.modifyByName} - ${mapping.modifyBy} at ${formatDateTime(mapping.modifyDate)}`}
-                            </span>
-                          ) : (
-                            '-'
-                          )}
-                        </td>
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-2">
                             <button

@@ -54,10 +54,10 @@ const AppRoutes = () => {
             <Route path="/" element={<HomePage />} />
             <Route path="/employee-quarter-allocation" element={<EmployeeQuarterAllocation />} />
             <Route path="/grade-position-mapping" element={<GradePositionMapping />} />
-            <Route path="/dashboard" element={<Dashboard />} />
+            {/* <Route path="/dashboard" element={<Dashboard />} /> */}
             <Route path="/quarter-details-management" element={<QuarterDetailsManagement />} />
             <Route path="/quarter-rent-management" element={<QuarterRentManagement />} />
-            <Route path="/quarter-type-management" element={<QuarterTypeManagement />} />
+            <Route path="/dashboard" element={<QuarterTypeManagement />} />
             <Route path="/user-role-mapping" element={<UserRoleMapping />} />
             <Route path="/manage-roles" element={<ManageRoles />} />
           </Route>
