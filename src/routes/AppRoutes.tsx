@@ -24,6 +24,7 @@ import QuarterTypeManagement from '@/pages/admin/QuarterTypeManagement';
 import Dashboard from '@/pages/user/Dashboard';
 import UserRoleMapping from '@/pages/Roles/UserRoleMapping';
 import ManageRoles from '@/pages/Roles/ManageRoles';
+import ElectricityBill from '@/pages/admin/ElectricityBill';
 
 const AppRoutes = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -60,6 +61,7 @@ const AppRoutes = () => {
             <Route path="/dashboard" element={<QuarterTypeManagement />} />
             <Route path="/user-role-mapping" element={<UserRoleMapping />} />
             <Route path="/manage-roles" element={<ManageRoles />} />
+            <Route path="/electricity-bill" element={<ElectricityBill />} />
           </Route>
         </Route>
         <Route element={<AppLayout isAdmin={true} />}>

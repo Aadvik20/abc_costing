@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { ChevronLeft, ChevronRight, LogOut, Hotel, Grid2X2Icon, Origami } from 'lucide-react';
+import { ChevronLeft, ChevronRight, LogOut, Hotel, Grid2X2Icon, Origami, Zap } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import { NavMain } from '@/components/nav-main';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarMenu, SidebarMenuButton, SidebarRail, SidebarSeparator, useSidebar } from '@/components/ui/sidebar';
@@ -62,6 +62,12 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
       title: 'Manage Roles',
       url: '/manage-roles',
       icon: Origami,
+      roles: ['user'],
+    },
+    {
+      title: 'Electricity Bill',
+      url: '/electricity-bill',
+      icon: Zap,
       roles: ['user'],
     },
   ];
