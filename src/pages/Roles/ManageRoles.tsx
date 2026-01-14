@@ -125,8 +125,6 @@ const ManageRoles = () => {
               <th className="p-3 text-left">S.No.</th>
               <th className="p-3 text-left">Role Name</th>
               <th className="p-3 text-left">Description</th>
-              <th className="p-3 text-left">Created Date</th>
-              <th className="p-3 text-left">Created By</th>
               <th className="p-3 text-left">Actions</th>
             </tr>
           </thead>
@@ -137,10 +135,6 @@ const ManageRoles = () => {
                 <td className="p-3">{index + 1}</td>
                 <td className="p-3">{role.roleName}</td>
                 <td className="p-3">{role.description}</td>
-                <td className="p-3">
-                  {formatDateTime(role.createdDate)}
-                </td>
-                <td className="p-3">{role.createdBy}</td>
                 <td className="p-3 flex gap-2">
                   <button
                     onClick={() => openEdit(role)}

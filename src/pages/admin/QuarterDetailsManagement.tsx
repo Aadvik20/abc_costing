@@ -55,36 +55,7 @@ const QuarterDetailsManagement = () => {
       setSaving(false);
     }
   };
-  const stats = [
-    {
-      title: 'Total Quarters',
-      value: quarters.length.toString(),
-      icon: Home,
-      bgColor: 'bg-blue-50',
-      iconColor: 'text-blue-600',
-    },
-    {
-      title: 'Vacant Quarters',
-      value: quarters.filter((q) => q.isVacant).length.toString(),
-      icon: Key,
-      bgColor: 'bg-green-50',
-      iconColor: 'text-green-600',
-    },
-    {
-      title: 'Occupied Quarters',
-      value: quarters.filter((q) => !q.isVacant).length.toString(),
-      icon: Users,
-      bgColor: 'bg-purple-50',
-      iconColor: 'text-purple-600',
-    },
-    {
-      title: 'With Garage',
-      value: quarters.filter((q) => q.isGarage).length.toString(),
-      icon: Building2,
-      bgColor: 'bg-orange-50',
-      iconColor: 'text-orange-600',
-    },
-  ];
+  
   const handleDelete = async (id) => {
     setSaving(true);
     try {
@@ -202,7 +173,7 @@ const QuarterDetailsManagement = () => {
             Add New Quarter
           </Button>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {stats.map((stat, index) => {
             const Icon = stat.icon;
             return (
@@ -221,7 +192,7 @@ const QuarterDetailsManagement = () => {
               </Card>
             );
           })}
-        </div>
+        </div> */}
         <Card className="border-0 shadow-lg">
           <CardHeader className="border-b-2">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">

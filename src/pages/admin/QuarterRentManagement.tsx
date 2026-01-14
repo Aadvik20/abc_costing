@@ -31,29 +31,29 @@ const QuarterRentManagement = () => {
     }
   }, [dispatch, quarterTypes.length, rentRates.length]);
 
-  const stats = [
-    {
-      title: 'Total Rent Records',
-      value: rentRates.length.toString(),
-      icon: FileText,
-      bgColor: 'bg-blue-50',
-      iconColor: 'text-blue-600',
-    },
-    {
-      title: 'Average Rent',
-      value: `₹${Math.round(rentRates.reduce((sum, r) => sum + r.rentPerMonth, 0) / rentRates.length).toLocaleString()}`,
-      icon: DollarSign,
-      bgColor: 'bg-green-50',
-      iconColor: 'text-green-600',
-    },
-    {
-      title: 'Total Monthly Collection',
-      value: `₹${rentRates.reduce((sum, r) => sum + r.rentPerMonth, 0).toLocaleString()}`,
-      icon: DollarSign,
-      bgColor: 'bg-purple-50',
-      iconColor: 'text-purple-600',
-    },
-  ];
+  // const stats = [
+  //   {
+  //     title: 'Total Rent Records',
+  //     value: rentRates.length.toString(),
+  //     icon: FileText,
+  //     bgColor: 'bg-blue-50',
+  //     iconColor: 'text-blue-600',
+  //   },
+  //   {
+  //     title: 'Average Rent',
+  //     value: `₹${Math.round(rentRates.reduce((sum, r) => sum + r.rentPerMonth, 0) / rentRates.length).toLocaleString()}`,
+  //     icon: DollarSign,
+  //     bgColor: 'bg-green-50',
+  //     iconColor: 'text-green-600',
+  //   },
+  //   {
+  //     title: 'Total Monthly Collection',
+  //     value: `₹${rentRates.reduce((sum, r) => sum + r.rentPerMonth, 0).toLocaleString()}`,
+  //     icon: DollarSign,
+  //     bgColor: 'bg-purple-50',
+  //     iconColor: 'text-purple-600',
+  //   },
+  // ];
   const onSave = async (payload) => {
     setSaving(true);
 
@@ -111,14 +111,14 @@ const QuarterRentManagement = () => {
           </Button>
         </div>
 
-        <Alert className="border-green-200 bg-green-50">
+        {/* <Alert className="border-green-200 bg-green-50">
           <DollarSign className="h-4 w-4 text-green-600" />
           <AlertDescription className="text-green-800">
             All rent rates are applicable from January 1, 2024. Rates are reviewed annually and updated based on location and amenities.
           </AlertDescription>
-        </Alert>
+        </Alert> */}
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {stats.map((stat, index) => {
             const Icon = stat.icon;
             return (
@@ -137,7 +137,7 @@ const QuarterRentManagement = () => {
               </Card>
             );
           })}
-        </div>
+        </div> */}
 
         <Card className="border-0 shadow-lg">
           <CardHeader>

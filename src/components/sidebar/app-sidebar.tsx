@@ -16,15 +16,15 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   const { Roles } = useAppSelector((state: RootState) => state.user);
   const canAccessAdminDashboard = true;
   const allNavItems: NavItem[] = [
-    {
-      title: 'Dashboard',
-      url: '/dashboard',
-      icon: Grid2X2Icon,
-      roles: ['user'],
-    },
+    // {
+    //   title: 'Dashboard',
+    //   url: '/dashboard',
+    //   icon: Grid2X2Icon,
+    //   roles: ['user'],
+    // },
     {
       title: 'Quarter Types',
-      url: '/quarter-type-management',
+      url: '/dashboard',
       icon: Home,
       roles: ['user'],
     },

@@ -91,7 +91,6 @@ const GradePositionMapping = () => {
                   <th className="px-4 py-3 text-left text-sm font-semibold text-white">S.No.</th>
                   <th className="px-4 py-3 text-left text-sm font-semibold text-white">Quarter Type</th>
                   <th className="px-4 py-3 text-left text-sm font-semibold text-white">Position Grade</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-white">Created Date</th>
                   <th className="px-4 py-3 text-left text-sm font-semibold text-white">Actions</th>
                 </tr>
               </thead>
@@ -109,9 +108,6 @@ const GradePositionMapping = () => {
                       <div className="flex items-center gap-2">
                         <span className="text-sm font-medium text-gray-900">{mapping.positionGrade}</span>
                       </div>
-                    </td>
-                    <td className="px-4 py-3 text-sm text-gray-700">
-                      <span className="text-sm text-gray-700">{`${mapping.createdByName}-${mapping.createBy}-${formatDateTime(mapping.createDate)}`}</span>
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
