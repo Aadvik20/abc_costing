@@ -33,6 +33,9 @@ export function QMapEmpModal({
         empName: '',
         label: '',
         value: '',
+        // NOTE: unitId intentionally optional (depends on your employeeOptions)
+        unitId: '',
+        unitName: '',
       },
       allotmentDate: '',
       vacanteDate: '',
@@ -50,38 +53,66 @@ export function QMapEmpModal({
         designation: emp.post,
         positionGrade: emp.positionGrade,
         department: emp.deptDFCCIL,
-        dob: emp.dob,
-        dojdfccil: emp.dojdfccil,
-        doretirement: emp.doretirement,
+
+        // ✅ add these if your API has it (safe)
+        unitId: emp.fkUnitId ?? emp.unitId ?? '',
+        unitName: emp.unitName ?? emp.unitNameDFCCIL ?? '',
       })),
     [employeeOptions]
   );
 
   const [form, setForm] = React.useState(empty);
   const [errors, setErrors] = React.useState({});
-
-  // --- NEW: quarter search state ---
   const [quarterSearch, setQuarterSearch] = React.useState('');
+
+  // ✅ helper: get quarterId from initialData in a robust way
+  const getInitialQuarterId = (data) => {
+    if (!data) return '';
+    // try common paths
+    return toStr(
+      data?.fkQDetailId ??
+        data?.quaterDetaisl?.fkQDetailId ??
+        data?.quaterDetaisl?.pkQDetailId ??
+        data?.quarterDetails?.pkQDetailId ??
+        data?.quarterDetails?.fkQDetailId ??
+        data?.quaterDetaisl?.pkQDetailId
+    );
+  };
 
   React.useEffect(() => {
     if (!open) return;
 
     if (mode === 'edit' && initialData) {
-      setForm({
-        fkQDetailId: toStr(initialData.quaterDetaisl.fkQDetailId),
-        fkEmpId: {
-          department: initialData.employeeDetails.department,
-          empCode: initialData.employeeDetails.employeeCode,
-          empName: initialData.employeeDetails.userName,
-          label: initialData.employeeDetails.userName,
-          value: initialData.employeeDetails.empId,
-          post: initialData.employeeDetails.post,
-        },
-        allotmentDate: toStr(initialData.allotmentDate.split('T')[0]),
-        vacanteDate: toStr(initialData.vacanteDate.split('T')[0]),
-      });
-    } else setForm(empty);
+      const quarterId = getInitialQuarterId(initialData);
 
+      setForm({
+        ...empty,
+        fkQDetailId: quarterId,
+
+        fkEmpId: {
+          department: initialData?.employeeDetails?.department ?? '',
+          empCode: initialData?.employeeDetails?.employeeCode ?? '',
+          empName: initialData?.employeeDetails?.userName ?? '',
+          label: initialData?.employeeDetails?.userName ?? '',
+
+          // ✅ IMPORTANT FIX: match react-select value with employeeOptionsList.value
+          // employeeOptionsList.value = employeeMasterAutoId
+          // initialData has fkEmpId: 17
+          value: toStr(initialData?.employeeDetails?.fkEmpId ?? ''),
+
+          post: initialData?.employeeDetails?.post ?? '',
+          positionGrade: initialData?.employeeDetails?.positionGrade ?? '',
+
+          unitId: initialData?.employeeDetails?.fkUnitId ?? initialData?.employeeDetails?.unitId ?? '',
+          unitName: initialData?.employeeDetails?.unitName ?? initialData?.employeeDetails?.location ?? '',
+        },
+
+        allotmentDate: toStr(initialData?.allotmentDate?.split?.('T')?.[0] ?? ''),
+        vacanteDate: toStr(initialData?.vacanteDate?.split?.('T')?.[0] ?? ''),
+      });
+    } else {
+      setForm(empty);
+    }
     setErrors({});
     setQuarterSearch('');
   }, [open, mode, initialData, empty]);
@@ -89,7 +120,7 @@ export function QMapEmpModal({
   const validate = () => {
     const e = {};
     if (isEmpty(form.fkQDetailId)) e.fkQDetailId = 'Quarter is required';
-    if (isEmpty(form.fkEmpId)) e.fkEmpId = 'Employee is required';
+    if (isEmpty(form.fkEmpId) || isEmpty(form.fkEmpId?.value)) e.fkEmpId = 'Employee is required';
     if (!isValidDate(form.allotmentDate)) e.allotmentDate = 'Allotment Date is required';
     if (!isValidDate(form.vacanteDate)) e.vacanteDate = 'Vacante Date Date is required';
 
@@ -112,36 +143,39 @@ export function QMapEmpModal({
       allotmentDate: form.allotmentDate,
       vacanteDate: form.vacanteDate || '',
     };
+
     await onSave?.(payload);
   };
 
-  // --- NEW: quarter filtered list ---
+  // ✅ show quarter section only after employee is selected
+  const hasEmployee = !!form?.fkEmpId?.value;
+
+  // ✅ filter quarters by employee unit (safe fallback: if no unit found, show all)
+  const employeeUnitId = toStr(form?.fkEmpId?.unitId);
+  const unitFilteredQuarters = useMemo(() => {
+    if (!hasEmployee) return [];
+    if (isEmpty(employeeUnitId)) return quarterDetailsOptions || [];
+
+    return (quarterDetailsOptions || []).filter((q) => toStr(q?.fkUnitId ?? q?.unitId) === employeeUnitId);
+  }, [quarterDetailsOptions, employeeUnitId, hasEmployee]);
+
+  // ✅ search filter after unit filter
   const filteredQuarters = useMemo(() => {
     const q = quarterSearch.trim().toLowerCase();
-    if (!q) return quarterDetailsOptions;
+    if (!q) return unitFilteredQuarters;
 
-    return (quarterDetailsOptions || []).filter((row) => {
-      const hay = [
-        row?.qType,
-        row?.qNumber,
-        row?.unitName,
-        row?.city,
-        row?.qAddress,
-        String(row?.pkQDetailId ?? ''),
-      ]
-        .filter(Boolean)
-        .join(' ')
-        .toLowerCase();
+    return (unitFilteredQuarters || []).filter((row) => {
+      const hay = [row?.qType, row?.qNumber, row?.unitName, row?.city, row?.qAddress, String(row?.pkQDetailId ?? '')].filter(Boolean).join(' ').toLowerCase();
 
       return hay.includes(q);
     });
-  }, [quarterDetailsOptions, quarterSearch]);
+  }, [unitFilteredQuarters, quarterSearch]);
 
   const selectedQuarterId = toStr(form.fkQDetailId);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl">
+      <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{mode === 'edit' ? 'Edit Quarter Employee Mapping' : 'Quarter Employee Mapping'}</DialogTitle>
         </DialogHeader>
@@ -153,7 +187,14 @@ export function QMapEmpModal({
               <p className="text-sm font-medium">Employee</p>
               <Select
                 onChange={(v) => {
-                  setForm((p) => ({ ...p, fkEmpId: v }));
+                  // ✅ when employee changes: reset quarter + search
+                  setForm((p) => ({
+                    ...p,
+                    fkEmpId: v,
+                    fkQDetailId: '',
+                  }));
+                  setQuarterSearch('');
+                  setErrors((prev) => ({ ...prev, fkEmpId: '', fkQDetailId: '' }));
                 }}
                 className="min-w-[120px] mt-1"
                 placeholder="Select employee"
@@ -189,96 +230,103 @@ export function QMapEmpModal({
             <div>
               <p className="text-sm font-medium">Quarter</p>
 
-              <Card className="mt-1">
-                <CardHeader className="pb-3">
-                  <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-3">
-                    <div className="flex-1">
-                      <Input
-                        placeholder="Search quarter by Type / Number / Unit / City / Address"
-                        value={quarterSearch}
-                        onChange={(e) => setQuarterSearch(e.target.value)}
-                      />
+              {/* ✅ placeholder when employee not selected */}
+              {!hasEmployee ? (
+                <div className="mt-2 border border-dashed rounded-lg p-4 text-sm text-gray-500 bg-gray-50">
+                  Please select an <span className="font-medium text-gray-700">Employee</span> first to view and choose a quarter.
+                </div>
+              ) : (
+                <Card className="mt-1">
+                  <CardHeader className="pb-3">
+                    <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-3">
+                      <div className="flex-1">
+                        <Input
+                          placeholder="Tip: Click any row to select a quarter (only one selectable)"
+                          value={quarterSearch}
+                          onChange={(e) => setQuarterSearch(e.target.value)}
+                        />
+                      </div>
+
+                      <div className="text-xs text-gray-500">
+                        Showing <span className="font-medium text-gray-700">{filteredQuarters?.length || 0}</span> rows
+                      </div>
                     </div>
 
-                    <div className="text-xs text-gray-500">
-                      Showing <span className="font-medium text-gray-700">{filteredQuarters?.length || 0}</span> rows
-                    </div>
-                  </div>
-                </CardHeader>
+                    {/* ✅ subtle helper text */}
+                    <div className="text-xs text-green-700 mt-2">Selectable table: click a row or radio button to choose. Selected row will be highlighted.</div>
+                  </CardHeader>
 
-                <CardContent className="pt-0">
-                  <div className="border rounded-md overflow-hidden">
-                    <div className="max-h-64 overflow-auto">
-                      <table className="w-full text-sm">
-                        <thead className="sticky text-white top-0 bg-primary uppercase">
-                          <tr className="text-left">
-                            <th className="w-10 px-3 py-2 border-b"></th>
-                            <th className="px-3 py-2 border-b">Type</th>
-                            <th className="px-3 py-2 border-b">Quarter No</th>
-                            <th className="px-3 py-2 border-b">Unit</th>
-                            <th className="px-3 py-2 border-b">City</th>
-                            <th className="px-3 py-2 border-b">Is Vacant</th>
-                            <th className="px-3 py-2 border-b">Is Garage</th>
-                            <th className="px-3 py-2 border-b text-right">Area</th>
-                          </tr>
-                        </thead>
-
-                        <tbody>
-                          {(filteredQuarters || []).length === 0 ? (
-                            <tr>
-                              <td colSpan={7} className="px-3 py-6 text-center text-gray-500">
-                                No quarters found.
-                              </td>
+                  <CardContent className="pt-0">
+                    <div className="border rounded-md overflow-hidden">
+                      <div className="max-h-64 overflow-auto">
+                        <table className="w-full text-sm">
+                          <thead className="sticky text-white top-0 bg-primary uppercase">
+                            <tr className="text-left">
+                              <th className="w-10 px-3 py-2 border-b"></th>
+                              <th className="px-3 py-2 border-b">Type</th>
+                              <th className="px-3 py-2 border-b">Quarter No</th>
+                              <th className="px-3 py-2 border-b">Unit</th>
+                              <th className="px-3 py-2 border-b">City</th>
+                              <th className="px-3 py-2 border-b">Is Vacant</th>
+                              <th className="px-3 py-2 border-b">Is Garage</th>
+                              <th className="px-3 py-2 border-b text-right">Area</th>
                             </tr>
-                          ) : (
-                            filteredQuarters.map((row) => {
-                              const id = toStr(row?.pkQDetailId);
-                              const checked = id === selectedQuarterId;
-                              return (
-                                <tr
-                                  key={id}
-                                  className={`border-b last:border-b-0 cursor-pointer ${
-                                    checked ? 'bg-blue-50' : 'hover:bg-gray-50'
-                                  }`}
-                                  onClick={() => {
-                                    setForm((p) => ({ ...p, fkQDetailId: id }));
-                                    // clear error instantly when selected
-                                    setErrors((prev) => ({ ...prev, fkQDetailId: '' }));
-                                  }}
-                                >
-                                  <td className="px-3 py-2">
-                                    {/* radio: only one selectable */}
-                                    <input
-                                      type="radio"
-                                      name="quarterSelect"
-                                      checked={checked}
-                                      onChange={() => {
-                                        setForm((p) => ({ ...p, fkQDetailId: id }));
-                                        setErrors((prev) => ({ ...prev, fkQDetailId: '' }));
-                                      }}
-                                    />
-                                  </td>
-                                  <td className="px-3 py-2">{row?.qType || '-'}</td>
-                                  <td className="px-3 py-2">{row?.qNumber || '-'}</td>
-                                  <td className="px-3 py-2">{row?.unitName || '-'}</td>
-                                  <td className="px-3 py-2">{row?.city || '-'}</td>
-                                  <td className="px-3 py-2">
-                                    <div className="line-clamp-1">{row?.isVacant ? 'Yes' : 'No'}</div>
-                                  </td>
-                                  <td className="px-3 py-2">{row?.isGarage ? 'Yes' : 'No'}</td>
-                                  <td className="px-3 py-2 text-right">{row?.area ?? '-'}</td>
-                                </tr>
-                              );
-                            })
-                          )}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
+                          </thead>
 
-                  <ErrorLine msg={errors.fkQDetailId} />
-                </CardContent>
-              </Card>
+                          <tbody>
+                            {(filteredQuarters || []).length === 0 ? (
+                              <tr>
+                                <td colSpan={8} className="px-3 py-6 text-center text-gray-500">
+                                  No quarters found for this employee / unit.
+                                </td>
+                              </tr>
+                            ) : (
+                              filteredQuarters.map((row) => {
+                                const id = toStr(row?.pkQDetailId);
+                                const checked = id === selectedQuarterId;
+
+                                return (
+                                  <tr
+                                    key={id}
+                                    className={`border-b last:border-b-0 cursor-pointer transition ${
+                                      checked ? 'bg-green-100 ring-1 ring-green-300' : 'hover:bg-gray-50'
+                                    }`}
+                                    onClick={() => {
+                                      setForm((p) => ({ ...p, fkQDetailId: id }));
+                                      setErrors((prev) => ({ ...prev, fkQDetailId: '' }));
+                                    }}
+                                  >
+                                    <td className="px-3 py-2">
+                                      <input
+                                        type="radio"
+                                        name="quarterSelect"
+                                        checked={checked}
+                                        onChange={() => {
+                                          setForm((p) => ({ ...p, fkQDetailId: id }));
+                                          setErrors((prev) => ({ ...prev, fkQDetailId: '' }));
+                                        }}
+                                      />
+                                    </td>
+                                    <td className="px-3 py-2">{row?.qType || '-'}</td>
+                                    <td className="px-3 py-2">{row?.qNumber || '-'}</td>
+                                    <td className="px-3 py-2">{row?.unitName || '-'}</td>
+                                    <td className="px-3 py-2">{row?.city || '-'}</td>
+                                    <td className="px-3 py-2">{row?.isVacant ? 'Yes' : 'No'}</td>
+                                    <td className="px-3 py-2">{row?.isGarage ? 'Yes' : 'No'}</td>
+                                    <td className="px-3 py-2 text-right">{row?.area ?? '-'}</td>
+                                  </tr>
+                                );
+                              })
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+
+                    <ErrorLine msg={errors.fkQDetailId} />
+                  </CardContent>
+                </Card>
+              )}
             </div>
           </div>
 
