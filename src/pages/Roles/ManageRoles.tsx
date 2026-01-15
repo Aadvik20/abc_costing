@@ -10,24 +10,22 @@ import { fetchMasterRole } from "@/features/userRole/masterRoles";
 import RoleModal from "@/components/dailogs/RoleModal";
 
 const ManageRoles = () => {
-  const dispatch = useAppDispatch();
-const { roles, loading } = useAppSelector(
-    (state) => state.masterRoles
-  );
 
-  const [showModal, setShowModal] = useState(false);
-  const [mode, setMode] = useState<"add" | "edit">("add");
-  const [selectedRow, setSelectedRow] = useState<any>(null);
-  const [saving, setSaving] = useState(false);
+const dispatch = useAppDispatch();
+const { roles, loading } = useAppSelector((state) => state.masterRoles);
+const [showModal, setShowModal] = useState(false);
+const [mode, setMode] = useState<"add" | "edit">("add");
+const [selectedRow, setSelectedRow] = useState<any>(null);  
+const [saving, setSaving] = useState(false);
   
-  useEffect(() => {
-    dispatch(fetchMasterRole());
-  }, [dispatch]);
+useEffect(() => {
+  dispatch(fetchMasterRole());
+}, [dispatch]);
 
 
-  const onSave = async (payload: any) => {
-    setSaving(true);
-    try {
+const onSave = async (payload: any) => {
+  setSaving(true);
+  try {
       const response =
         mode === "add"
           ? await axiosInstance.post("/User/AddNewRole", payload)
@@ -44,31 +42,32 @@ const { roles, loading } = useAppSelector(
       } else {
         toast.error(response.data.message);
       }
-    } catch (err: any) {
+    } 
+    catch (err: any) {
       toast.error(err.response?.data?.message || "Something went wrong");
-    } finally {
+    } 
+    finally {
       setSaving(false);
     }
-  };
+};
 
-
-  const handleDelete = async (id: number) => {
-    try {
+const handleDelete = async (id: number) => {
+  try {
       const response = await axiosInstance.delete(`/User/DeleteRole?roleId=${id}`);
 
       if (response.data.statusCode === 200) {
         toast.success("Role deleted successfully");
         dispatch(fetchMasterRole());
       }
-    } catch {
+    } 
+    catch {
       toast.error("Delete failed");
     }
-  };
+};
 
-  return (
+return (
     <div className="min-h-screen p-4 md:p-8">
-      <div className="max-w-[1600px] mx-auto space-y-6">
-   
+      <div className="max-w-[1600px] mx-auto space-y-6">   
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Manage Roles</h1>
@@ -87,14 +86,12 @@ const { roles, loading } = useAppSelector(
           </Button>
         </div>
 
-
         <Card className="border-0 shadow-lg">
           <CardHeader>
             <CardTitle className="text-xl font-semibold">
               Roles
             </CardTitle>
           </CardHeader>
-
           <CardContent>
           <div className="overflow-x-auto">
             <table className="w-full">

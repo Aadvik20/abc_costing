@@ -19,7 +19,8 @@ const RoleModal: React.FC<Props> = ({
   initialData,
   onSave,
   saving
-}) => {
+  }) => {
+    
   const [formData, setFormData] = useState({
     roleName: "",
     description: ""
@@ -41,26 +42,28 @@ const RoleModal: React.FC<Props> = ({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="max-w-xl">
-            <DialogHeader>
-             <DialogTitle>{mode === 'edit' ? 'Edit Role' : 'Add Role'}</DialogTitle>
-            </DialogHeader>
-     <div className="gap-3 grid grid-cols-2">
-      <div>
-       <Input
-        className="mt-1"
-        placeholder="Role Name"
-        value={formData.roleName}
-        onChange={(e) =>
+          <DialogHeader>
+            <DialogTitle>{mode === 'edit' ? 'Edit Role' : 'Add Role'}</DialogTitle>
+          </DialogHeader>
+        <div className="gap-3 grid grid-cols-2">
+        <div>
+         <p className="text-sm font-medium">Role Name</p> 
+         <Input
+         className="mt-1"
+         placeholder="Role Name"
+         value={formData.roleName}
+         onChange={(e) =>
           setFormData({
             ...formData,
             roleName: e.target.value
           })
-        }
-      />
-      </div>
+          }
+        />
+        </div>
 
-      <div>
-      <Input
+        <div>
+        <p className="text-sm font-medium">Role Description</p>
+        <Input
         className="mt-1"
         placeholder="Description"
         value={formData.description}
@@ -69,20 +72,20 @@ const RoleModal: React.FC<Props> = ({
             ...formData,
             description: e.target.value
           })
-        }
-      />
-      </div>
-      </div>
-       <DialogFooter className="gap-2">
-          <Button
+         }
+        />
+        </div>
+        </div>
+          <DialogFooter className="gap-2">
+            <Button
             variant="outline"
             type='button'
             onClick={() => onOpenChange(false)}
-          >
+            >
             Cancel
-          </Button>
+            </Button>
 
-          <Button
+            <Button
             type='button'
             disabled={saving}
             onClick={() =>
@@ -91,14 +94,13 @@ const RoleModal: React.FC<Props> = ({
                   ? { ...formData, id: initialData.id }
                   : formData
               )
-            }
-          >
-            {saving ? "Saving..." : "Save"}
-          </Button>
+              }
+            >
+              {saving ? "Saving..." : "Save"}
+            </Button>
           </DialogFooter>
-    </DialogContent>
+        </DialogContent>
     </Dialog>
-
   );
 };
 
