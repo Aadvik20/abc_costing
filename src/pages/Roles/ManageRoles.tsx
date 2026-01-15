@@ -1,236 +1,163 @@
 import React, { useEffect, useState } from "react";
 import { Plus, Edit, Trash2 } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import axiosInstance from "@/services/axiosInstance";
-import toast from "react-hot-toast";
-import { fetchMasterRole } from "@/features/userRole/masterRoles";
-import { useAppDispatch, useAppSelector } from "@/app/hooks";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
-import { formatDateTime } from "@/lib/helperFunction";
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-
-interface FormState {
-  roleName: string;
-  description: string;
-}
+import toast from "react-hot-toast";
+import axiosInstance from "@/services/axiosInstance";
+import { useAppDispatch, useAppSelector } from "@/app/hooks";
+import { fetchMasterRole } from "@/features/userRole/masterRoles";
+import RoleModal from "@/components/dailogs/RoleModal";
 
 const ManageRoles = () => {
-  const dispatch = useAppDispatch();
-  const { roles, loading } = useAppSelector(
-    (state) => state.masterRoles
-  );
 
-  const [showModal, setShowModal] = useState(false);
-  const [isEdit, setIsEdit] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [selectedRoleId, setSelectedRoleId] = useState<number | null>(null);
+const dispatch = useAppDispatch();
+const { roles, loading } = useAppSelector((state) => state.masterRoles);
+const [showModal, setShowModal] = useState(false);
+const [mode, setMode] = useState<"add" | "edit">("add");
+const [selectedRow, setSelectedRow] = useState<any>(null);  
+const [saving, setSaving] = useState(false);
+  
+useEffect(() => {
+  dispatch(fetchMasterRole());
+}, [dispatch]);
 
-  const [formData, setFormData] = useState<FormState>({
-    roleName: "",
-    description: ""
-  });
 
-  useEffect(() => {
-    dispatch(fetchMasterRole());
-  }, [dispatch]);
-
- 
-  const handleAdd = () => {
-    setIsEdit(false);
-    setSelectedRoleId(null);
-    setFormData({ roleName: "", description: "" });
-    setShowModal(true);
-  };
-
-  const onSave = async () => {
-    if (!formData.roleName) {
-      toast.error("Role name is required");
-      return;
-    }
-
-    setSaving(true);
-    try {
-      const response = await axiosInstance.post("/User/AddNewRole",formData);
+const onSave = async (payload: any) => {
+  setSaving(true);
+  try {
+      const response =
+        mode === "add"
+          ? await axiosInstance.post("/User/AddNewRole", payload)
+          : await axiosInstance.put(`/User/UpdateRole?roleId=${payload.id}`,payload);
 
       if (response.data.statusCode === 200) {
-        toast.success("Role added successfully");
+        toast.success(
+          mode === "add"
+            ? "Role added successfully"
+            : "Role updated successfully"
+        );
         dispatch(fetchMasterRole());
         setShowModal(false);
+      } else {
+        toast.error(response.data.message);
       }
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || "Add failed");
-    } finally {
+    } 
+    catch (err: any) {
+      toast.error(err.response?.data?.message || "Something went wrong");
+    } 
+    finally {
       setSaving(false);
     }
-  };
+};
 
-
-  const openEdit = (role: any) => {
-    setIsEdit(true);
-    setSelectedRoleId(role.id);
-    setFormData({
-      roleName: role.roleName,
-      description: role.description
-    });
-    setShowModal(true);
-  };
-
-  const handleUpdate = async () => {
-    if (!selectedRoleId) return;
-
-    setSaving(true);
-    try {
-      const response = await axiosInstance.put(`/User/UpdateRole?roleId=${selectedRoleId}`,formData);
-
-      if (response.data.statusCode === 200) {
-        toast.success("Role updated successfully");
-        dispatch(fetchMasterRole());
-        setShowModal(false);
-      }
-    } catch (err) {
-      toast.error("Update failed");
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const handleDelete = async (id: number) => {
-    try {
+const handleDelete = async (id: number) => {
+  try {
       const response = await axiosInstance.delete(`/User/DeleteRole?roleId=${id}`);
 
       if (response.data.statusCode === 200) {
         toast.success("Role deleted successfully");
         dispatch(fetchMasterRole());
       }
-    } catch (err) {
+    } 
+    catch {
       toast.error("Delete failed");
     }
-  };
+};
 
-  return (
-    <div className="p-6">
+return (
+    <div className="min-h-screen p-4 md:p-8">
+      <div className="max-w-[1600px] mx-auto space-y-6">   
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Manage Roles</h1>
+            <p className="text-gray-600 mt-1">List of roles</p>
+          </div>
 
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Manage Roles</h1>
-        <Button onClick={() => {
-                      setShowModal(true);
-                      handleAdd();
-                    }}>
-          <Plus className="w-4 h-4" />
-          Add New Role
-        </Button>
-      </div>
-      <Card className="border-0 shadow-lg">
+          <Button
+            onClick={() => {
+              setMode("add");
+              setSelectedRow(null);
+              setShowModal(true);
+            }}
+            className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            <Plus size={16} /> Add New Role
+          </Button>
+        </div>
+
+        <Card className="border-0 shadow-lg">
           <CardHeader>
-            <CardTitle className="text-xl font-semibold">Roles</CardTitle>
+            <CardTitle className="text-xl font-semibold">
+              Roles
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="bg-white shadow rounded">
-        <table className="w-full">
-          <thead className="bg-primary text-white">
-            <tr>
-              <th className="p-3 text-left">S.No.</th>
-              <th className="p-3 text-left">Role Name</th>
-              <th className="p-3 text-left">Description</th>
-              <th className="p-3 text-left">Actions</th>
-            </tr>
-          </thead>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-primary">
+                <tr>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-white">S.No.</th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-white">Role Name</th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-white">Description</th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-white">Actions</th>
+                </tr>
+              </thead>
 
-          <tbody>
-            {roles.map((role, index) => (
-              <tr key={role.id} className="border-b">
-                <td className="p-3">{index + 1}</td>
-                <td className="p-3">{role.roleName}</td>
-                <td className="p-3">{role.description}</td>
-                <td className="p-3 flex gap-2">
-                  <button
-                    onClick={() => 
-                      openEdit(role)
-                    }
-                    className="rounded-lg border p-1 text-gray-600 hover:bg-gray-100"
-                  >
-                    <Edit className="w-4 h-4" />
-                  </button>
+              <tbody className="divide-y divide-gray-200">
+                {roles.map((role, index) => (
+                  <tr key={role.id} className="hover:bg-gray-50">
+                    <td className="px-4 py-3 text-sm text-gray-700">{index + 1}</td>
+                    <td className="p-3">{role.roleName}</td>
+                    <td className="p-3">{role.description}</td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => {
+                          setMode("edit");
+                          setSelectedRow(role);
+                          setShowModal(true);
+                        }}
+                        className="p-2 hover:bg-green-50 rounded-lg transition-colors"
+                      >
+                        <Edit className="w-4 h-4 text-gray-600" />
+                      </button>
 
-                  <ConfirmDialog
-                   triggerClassName={'bg-red-500 px-1 h-6'}
-                              triggerLabel=""
-                              onConfirm={() => {
-                                handleDelete(role.id);
-                              }}
-                   icon={<Trash2 size={16} />}
-                   description="Are you sure to delete role? This action can not be undone"
-                   title="Deleting Role"           
-                  />
-                </td>
-              </tr>
-            ))}
+                      <ConfirmDialog
+                        triggerClassName={'bg-red-500 px-1 h-6'}
+                        triggerLabel=""
+                        icon={<Trash2 size={16} />}
+                        title="Delete Role"
+                        description="Are you sure you want to delete this role?"
+                        onConfirm={() => handleDelete(role.id)}
+                      />
+                      </div>
+                    </td>
+                  </tr>
+                ))}
 
-            {!loading && roles.length === 0 && (
-              <tr>
-                <td colSpan={5} className="p-4 text-center">
-                  No roles found
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
-      </CardContent>
-      </Card>
-
-
-      {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center">
-          <div className="bg-white p-6 rounded w-[400px]">
-            <h2 className="text-lg font-semibold mb-4">
-              {isEdit ? "Edit Role" : "Add Role"}
-            </h2>
-
-            <input
-              type="text"
-              placeholder="Role Name"
-              className="border p-2 w-full mb-3"
-              value={formData.roleName}
-              onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  roleName: e.target.value
-                })
-              }
-            />
-
-            <input
-              type="text"
-              placeholder="Description"
-              className="border p-2 w-full mb-4"
-              value={formData.description}
-              onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  description: e.target.value
-                })
-              }
-            />
-
-            <div className="flex justify-end gap-2">
-              <Button
-                variant="outline"
-                onClick={() => setShowModal(false)}
-              >
-                Cancel
-              </Button>
-
-              <Button
-                onClick={isEdit ? handleUpdate : onSave}
-                disabled={saving}
-              >
-                {saving ? "Saving..." : "Save"}
-              </Button>
+                {!loading && roles.length === 0 && (
+                  <tr>
+                    <td colSpan={4} className="p-4 text-center">
+                      No roles found
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
             </div>
-          </div>
-        </div>
-      )}
+          </CardContent>
+        </Card>
+      </div>
+
+      <RoleModal
+        open={showModal}
+        onOpenChange={setShowModal}
+        mode={mode}
+        initialData={selectedRow}
+        onSave={onSave}
+        saving={saving}
+      />
     </div>
   );
 };
