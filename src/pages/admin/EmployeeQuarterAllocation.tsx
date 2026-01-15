@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Plus, Trash2, Edit } from 'lucide-react';
+import { Plus, Trash2, Edit, RefreshCw } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { QMapEmpModal } from '@/components/dailogs/QMapEmpModal';
 import { Button } from '@/components/ui/button';
@@ -15,6 +15,7 @@ import { fetchQuarterEmployeeMapping } from '@/features/quarter/quarterEmployeeM
 import { formatDate, formatDateTime } from '@/lib/helperFunction';
 import ConfirmDialog from '@/components/common/ConfirmDialog';
 import TableList from '@/components/ui/data-table';
+import AdminTable from '@/components/admin/AdminTable';
 
 const EmployeeQuarterAllocation = () => {
   const [showModal, setShowModal] = useState(false);
@@ -171,17 +172,6 @@ const EmployeeQuarterAllocation = () => {
             <h1 className="text-3xl font-bold text-gray-900">Employee Quarter Allocation</h1>
             <p className="text-gray-600 mt-1">Track and manage quarter assignments to employees</p>
           </div>
-          <Button
-            onClick={() => {
-              setShowModal(true);
-              setSelectedRow(null);
-              dispatch(fetchQuarterDetails());
-            }}
-            className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            <Plus className="w-4 h-4" />
-            New Allocation
-          </Button>
         </div>
         <Card className="border-0 shadow-lg">
           <CardHeader>
@@ -191,26 +181,33 @@ const EmployeeQuarterAllocation = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              <TableList
-                onRefresh={() => {
-                  dispatch(fetchQuarterEmployeeMapping({}));
-                }}
-                showRefresh
-                onRowClick={(e) => {}}
+              <AdminTable
                 data={filteredAllocations}
                 columns={columns}
                 rightElements={
                   <>
                     <div className="flex gap-3">
-                      {/* <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} className="px-3 py-2 border rounded-lg text-sm w-48">
-                        <option value="all">All Status</option>
-                        <option value="active">Active Only</option>
-                        <option value="vacated">Vacated Only</option>
-                      </select> */}
+                      <Button
+                        onClick={() => {
+                          dispatch(fetchQuarterEmployeeMapping({}));
+                        }}
+                      >
+                        <RefreshCw />
+                      </Button>
+                      <Button
+                        onClick={() => {
+                          setShowModal(true);
+                          setSelectedRow(null);
+                          dispatch(fetchQuarterDetails());
+                        }}
+                        className="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                      >
+                        <Plus className="w-4 h-4" />
+                        New Allocation
+                      </Button>
                     </div>
                   </>
                 }
-                showFilter={false}
               />
             </div>
           </CardContent>

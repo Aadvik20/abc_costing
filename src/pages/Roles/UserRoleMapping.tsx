@@ -9,7 +9,7 @@ import { deleteEmpRoleAssignment, fetchEmpRoleList } from '@/features/userRole/u
 import toast from 'react-hot-toast';
 import axiosInstance from '@/services/axiosInstance';
 import { Badge } from '@/components/ui/badge';
-import { Trash2Icon } from 'lucide-react';
+import { Plus, Trash2Icon } from 'lucide-react';
 import ConfirmDialog from '@/components/common/ConfirmDialog';
 import { Employee, fetchEmployeeList } from '@/features/quarter/employeeListSlice';
 import { fetchMasterRole } from '@/features/userRole/masterRoles';
@@ -137,58 +137,58 @@ const UserRoleMapping = () => {
           ));
         },
       },
-    //   {
-    //     accessorKey: 'action',
-    //     header: 'Action',
-    //     cell: ({ row }: any) => {
-    //       const rowData = row.original;
-    //       return (
-    //         <div className="flex gap-2 items-center justify-center">
-    //           <Button
-    //             size="sm"
-    //             className="bg-blue-600 text-white hover:bg-blue-700"
-    //             onClick={() => {
-    //               const rowData = row.original;
+      //   {
+      //     accessorKey: 'action',
+      //     header: 'Action',
+      //     cell: ({ row }: any) => {
+      //       const rowData = row.original;
+      //       return (
+      //         <div className="flex gap-2 items-center justify-center">
+      //           <Button
+      //             size="sm"
+      //             className="bg-blue-600 text-white hover:bg-blue-700"
+      //             onClick={() => {
+      //               const rowData = row.original;
 
-    //               /* ---------- UNIT ---------- */
-    //               const unit = masterUnits.find((u) => u.unitId === rowData.unit);
-    //               setSelectedUnit(unit || null);
+      //               /* ---------- UNIT ---------- */
+      //               const unit = masterUnits.find((u) => u.unitId === rowData.unit);
+      //               setSelectedUnit(unit || null);
 
-    //               /* ---------- EMPLOYEE ---------- */
-    //               setSelectedEmployee({
-    //                 employeeCode: rowData.empCode,
-    //                 employeeName: rowData.userName,
-    //                 designation: rowData.post,
-    //                 location: rowData.location,
-    //                 department: rowData.deptDFCCIL,
-    //                 employeeId: rowData.empCode, // fallback
-    //               });
+      //               /* ---------- EMPLOYEE ---------- */
+      //               setSelectedEmployee({
+      //                 employeeCode: rowData.empCode,
+      //                 employeeName: rowData.userName,
+      //                 designation: rowData.post,
+      //                 location: rowData.location,
+      //                 department: rowData.deptDFCCIL,
+      //                 employeeId: rowData.empCode, // fallback
+      //               });
 
-    //               /* ---------- ROLES (ARRAY ✅) ---------- */
-    //               const preSelectedRoles = rowData.roles.map((r: any) => masterRoleList.find((m) => m.id === r.roleId)).filter(Boolean);
+      //               /* ---------- ROLES (ARRAY ✅) ---------- */
+      //               const preSelectedRoles = rowData.roles.map((r: any) => masterRoleList.find((m) => m.id === r.roleId)).filter(Boolean);
 
-    //               setSelectedRoles(preSelectedRoles);
+      //               setSelectedRoles(preSelectedRoles);
 
-    //               setIsEditing(true);
-    //               setIsAddOpen(true);
-    //             }}
-    //           >
-    //             Edit
-    //           </Button>
-    //           <Button
-    //             variant="destructive"
-    //             size="sm"
-    //             onClick={() => {
-    //               setRowToDeleteId(row.original.id);
-    //               setIsDeleteOpen(true);
-    //             }}
-    //           >
-    //             <Trash2Icon />
-    //           </Button>
-    //         </div>
-    //       );
-    //     },
-    //   },
+      //               setIsEditing(true);
+      //               setIsAddOpen(true);
+      //             }}
+      //           >
+      //             Edit
+      //           </Button>
+      //           <Button
+      //             variant="destructive"
+      //             size="sm"
+      //             onClick={() => {
+      //               setRowToDeleteId(row.original.id);
+      //               setIsDeleteOpen(true);
+      //             }}
+      //           >
+      //             <Trash2Icon />
+      //           </Button>
+      //         </div>
+      //       );
+      //     },
+      //   },
     ],
     [masterUnits, userList, masterRoleList]
   );
@@ -216,10 +216,18 @@ const UserRoleMapping = () => {
         <AdminTable
           data={userList}
           columns={columns}
-          onAddClick={() => {
-            resetForm();
-            setIsAddOpen(true);
-          }}
+          rightElements={
+            <>
+              <Button
+                onClick={() => {
+                  resetForm();
+                  setIsAddOpen(true);
+                }}
+              >
+                <Plus /> New Role Map
+              </Button>
+            </>
+          }
           inputPlaceholder="Search by name or designation"
         />
 

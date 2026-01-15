@@ -26,7 +26,7 @@ const QuarterDetailsManagement = () => {
   const [selectedRow, setSelectedRow] = React.useState(null);
   const [saving, setSaving] = React.useState(false);
   const { quarterTypes, loading } = useAppSelector((state) => state.quarterTypes);
-  const { units } = useAppSelector((state: RootState) => state.masterData);
+  const { units, positionGrades } = useAppSelector((state: RootState) => state.masterData);
   const { quarterDetails: quarters, loading: quarteDetailsLoading } = useAppSelector((state: RootState) => state.quarterDetails);
 
   useEffect(() => {
@@ -282,6 +282,7 @@ const QuarterDetailsManagement = () => {
         saving={saving}
         quarterTypeOptions={quarterTypes}
         unitOptions={units}
+        positionGrades={positionGrades}
       />
     </div>
   );

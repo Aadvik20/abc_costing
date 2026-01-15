@@ -7,7 +7,7 @@ const DFCCIL_UAT = {
   clientId: '5078739144764161bd53673c98c7023f',
   postLogout: 'https://uatlogin.dfccil.com/signout',
   redirectPath: 'dashboard',
-  applicationId: 84,
+  applicationId: 73,
 };
 
 const DFCCIL_PROD = {
