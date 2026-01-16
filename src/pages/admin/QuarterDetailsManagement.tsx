@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Building2, Home, Users, Plus, Edit, Key, Eye, Trash2 } from 'lucide-react';
+import { Building2, Home, Users, Plus, Edit, Key, Eye, Trash2, RefreshCcw } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { QuarterDetailsModal } from '@/components/dailogs/QuarterDetailsModal';
 import { Button } from '@/components/ui/button';
@@ -15,6 +15,7 @@ import Select from 'react-select';
 import { Label } from '@/components/ui/label';
 import ConfirmDialog from '@/components/common/ConfirmDialog';
 import TableList from '@/components/ui/data-table';
+import AdminTable from '@/components/admin/AdminTable';
 const QuarterDetailsManagement = () => {
   const dispatch = useDispatch<AppDispatch>();
   const [showModal, setShowModal] = useState(false);
@@ -173,49 +174,18 @@ const QuarterDetailsManagement = () => {
             Add New Quarter
           </Button>
         </div>
-        {/* <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {stats.map((stat, index) => {
-            const Icon = stat.icon;
-            return (
-              <Card key={index} className="border-0 shadow-md hover:shadow-lg transition-shadow">
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-gray-600">{stat.title}</p>
-                      <p className="text-3xl font-bold text-gray-900 mt-2">{stat.value}</p>
-                    </div>
-                    <div className={`${stat.bgColor} p-3 rounded-lg`}>
-                      <Icon className={`w-6 h-6 ${stat.iconColor}`} />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div> */}
         <Card className="border-0 shadow-lg">
-          <CardHeader className="border-b-2">
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-              <CardTitle className="text-xl font-semibold">Quarter Inventory</CardTitle>
-            </div>
-          </CardHeader>
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <CardTitle className="text-xl font-semibold">Quarter Inventory</CardTitle>
+          </div>
           <CardContent>
-            <TableList
-              onRefresh={() => {
-                dispatch(
-                  fetchQuarterDetails({
-                    qTypeId: selectedFilter.qTypeId,
-                    unitId: selectedFilter.unitId,
-                  })
-                );
-              }}
-              showRefresh
-              onRowClick={(e) => {}}
+            <AdminTable
+              inputPlaceholder
               data={quarters}
               columns={columns}
               rightElements={
                 <>
-                  <div className="flex gap-3">
+                  <div className="flex items-end gap-3">
                     <div>
                       <Label>Select Unit</Label>
                       <Select
@@ -234,7 +204,7 @@ const QuarterDetailsManagement = () => {
                             }))
                             .find((opt) => opt.value === selectedFilter.unitId) || null
                         }
-                        className="min-w-[120px] mt-1"
+                        className="min-w-[220px] mt-1"
                         placeholder="Select unit"
                         options={units.map((ele) => ({ label: ele.unitName, value: ele.unitid }))}
                       />
@@ -249,7 +219,7 @@ const QuarterDetailsManagement = () => {
                             qTypeId: e?.value,
                           }));
                         }}
-                        className="min-w-[120px] mt-1"
+                        className="min-w-[220px] mt-1"
                         placeholder="Quarter type"
                         options={quarterTypes.map((ele) => ({
                           label: ele.qType,
@@ -265,10 +235,21 @@ const QuarterDetailsManagement = () => {
                         }
                       />
                     </div>
+                    <Button
+                      onClick={() => {
+                        dispatch(
+                          fetchQuarterDetails({
+                            qTypeId: selectedFilter.qTypeId,
+                            unitId: selectedFilter.unitId,
+                          })
+                        );
+                      }}
+                    >
+                      <RefreshCcw />
+                    </Button>
                   </div>
                 </>
               }
-              showFilter={false}
             />
           </CardContent>
         </Card>
