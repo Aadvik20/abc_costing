@@ -16,34 +16,16 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   const { Roles } = useAppSelector((state: RootState) => state.user);
   const canAccessAdminDashboard = true;
   const allNavItems: NavItem[] = [
-    // {
-    //   title: 'Dashboard',
-    //   url: '/dashboard',
-    //   icon: Grid2X2Icon,
-    //   roles: ['user'],
-    // },
     {
       title: 'Quarter Types',
       url: '/dashboard',
       icon: Home,
       roles: ['user'],
     },
-    // {
-    //   title: 'Position Grade Mapping',
-    //   url: '/grade-position-mapping',
-    //   icon: Link,
-    //   roles: ['user'],
-    // },
     {
       title: 'Quarter Details',
       url: '/quarter-details-management',
       icon: Building,
-      roles: ['user'],
-    },
-    {
-      title: 'Quarter Rent',
-      url: '/quarter-rent-management',
-      icon: IndianRupee,
       roles: ['user'],
     },
     {

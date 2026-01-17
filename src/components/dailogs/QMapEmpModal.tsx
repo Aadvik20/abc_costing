@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import Select from 'react-select';
 import { Card, CardContent, CardHeader } from '../ui/card';
+import EnhancedDatePicker from '../EnhancedDatePicker';
 
 const isEmpty = (v) => v === null || v === undefined || String(v).trim() === '';
 const toStr = (v) => (v === null || v === undefined ? '' : String(v));
@@ -33,7 +34,6 @@ export function QMapEmpModal({
         empName: '',
         label: '',
         value: '',
-        // NOTE: unitId intentionally optional (depends on your employeeOptions)
         unitId: '',
         unitName: '',
       },
@@ -53,8 +53,6 @@ export function QMapEmpModal({
         designation: emp.post,
         positionGrade: emp.positionGrade,
         department: emp.deptDFCCIL,
-
-        // ✅ add these if your API has it (safe)
         unitId: emp.fkUnitId ?? emp.unitId ?? '',
         unitName: emp.unitName ?? emp.unitNameDFCCIL ?? '',
       })),
@@ -64,11 +62,8 @@ export function QMapEmpModal({
   const [form, setForm] = React.useState(empty);
   const [errors, setErrors] = React.useState({});
   const [quarterSearch, setQuarterSearch] = React.useState('');
-
-  // ✅ helper: get quarterId from initialData in a robust way
   const getInitialQuarterId = (data) => {
     if (!data) return '';
-    // try common paths
     return toStr(
       data?.fkQDetailId ??
         data?.quaterDetaisl?.fkQDetailId ??
@@ -84,25 +79,17 @@ export function QMapEmpModal({
 
     if (mode === 'edit' && initialData) {
       const quarterId = getInitialQuarterId(initialData);
-
       setForm({
         ...empty,
         fkQDetailId: quarterId,
-
         fkEmpId: {
           department: initialData?.employeeDetails?.department ?? '',
           empCode: initialData?.employeeDetails?.employeeCode ?? '',
           empName: initialData?.employeeDetails?.userName ?? '',
           label: initialData?.employeeDetails?.userName ?? '',
-
-          // ✅ IMPORTANT FIX: match react-select value with employeeOptionsList.value
-          // employeeOptionsList.value = employeeMasterAutoId
-          // initialData has fkEmpId: 17
           value: toStr(initialData?.employeeDetails?.fkEmpId ?? ''),
-
           post: initialData?.employeeDetails?.post ?? '',
           positionGrade: initialData?.employeeDetails?.positionGrade ?? '',
-
           unitId: initialData?.employeeDetails?.fkUnitId ?? initialData?.employeeDetails?.unitId ?? '',
           unitName: initialData?.employeeDetails?.unitName ?? initialData?.employeeDetails?.location ?? '',
         },
@@ -118,7 +105,7 @@ export function QMapEmpModal({
   }, [open, mode, initialData, empty]);
 
   const validate = () => {
-    const e = {};
+    const e: any = {};
     if (isEmpty(form.fkQDetailId)) e.fkQDetailId = 'Quarter is required';
     if (isEmpty(form.fkEmpId) || isEmpty(form.fkEmpId?.value)) e.fkEmpId = 'Employee is required';
     if (!isValidDate(form.allotmentDate)) e.allotmentDate = 'Allotment Date is required';
@@ -147,10 +134,8 @@ export function QMapEmpModal({
     await onSave?.(payload);
   };
 
-  // ✅ show quarter section only after employee is selected
   const hasEmployee = !!form?.fkEmpId?.value;
 
-  // ✅ filter quarters by employee unit (safe fallback: if no unit found, show all)
   const employeeUnitId = toStr(form?.fkEmpId?.unitId);
   const unitFilteredQuarters = useMemo(() => {
     if (!hasEmployee) return [];
@@ -159,7 +144,6 @@ export function QMapEmpModal({
     return (quarterDetailsOptions || []).filter((q) => toStr(q?.fkUnitId ?? q?.unitId) === employeeUnitId);
   }, [quarterDetailsOptions, employeeUnitId, hasEmployee]);
 
-  // ✅ search filter after unit filter
   const filteredQuarters = useMemo(() => {
     const q = quarterSearch.trim().toLowerCase();
     if (!q) return unitFilteredQuarters;
@@ -180,14 +164,12 @@ export function QMapEmpModal({
           <DialogTitle>{mode === 'edit' ? 'Edit Quarter Employee Mapping' : 'Quarter Employee Mapping'}</DialogTitle>
         </DialogHeader>
 
-        <div className="flex flex-col gap-5">
+        <div className="flex flex-col gap-5 max-h-[50vh] overflow-y-auto">
           <div className="flex flex-col gap-5">
-            {/* Employee */}
             <div>
-              <p className="text-sm font-medium">Employee</p>
+              <p className="text-sm font-medium">Select Employee</p>
               <Select
                 onChange={(v) => {
-                  // ✅ when employee changes: reset quarter + search
                   setForm((p) => ({
                     ...p,
                     fkEmpId: v,
@@ -228,7 +210,7 @@ export function QMapEmpModal({
 
             {/* Quarter */}
             <div>
-              <p className="text-sm font-medium">Quarter</p>
+              <p className="text-sm font-medium">Select Quarter</p>
 
               {/* ✅ placeholder when employee not selected */}
               {!hasEmployee ? (
@@ -236,96 +218,93 @@ export function QMapEmpModal({
                   Please select an <span className="font-medium text-gray-700">Employee</span> first to view and choose a quarter.
                 </div>
               ) : (
-                <Card className="mt-1">
-                  <CardHeader className="pb-3">
-                    <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-3">
-                      <div className="flex-1">
-                        <Input
-                          placeholder="Tip: Click any row to select a quarter (only one selectable)"
-                          value={quarterSearch}
-                          onChange={(e) => setQuarterSearch(e.target.value)}
-                        />
-                      </div>
-
-                      <div className="text-xs text-gray-500">
-                        Showing <span className="font-medium text-gray-700">{filteredQuarters?.length || 0}</span> rows
-                      </div>
+                <>
+                  <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-3">
+                    <div className="flex-1">
+                      <Input
+                        placeholder="Tip: Click any row to select a quarter (only one selectable)"
+                        value={quarterSearch}
+                        onChange={(e) => setQuarterSearch(e.target.value)}
+                      />
                     </div>
 
-                    {/* ✅ subtle helper text */}
-                    <div className="text-xs text-green-700 mt-2">Selectable table: click a row or radio button to choose. Selected row will be highlighted.</div>
-                  </CardHeader>
+                    <div className="text-xs text-gray-500">
+                      Showing <span className="font-medium text-gray-700">{filteredQuarters?.length || 0}</span> rows
+                    </div>
+                  </div>
 
-                  <CardContent className="pt-0">
-                    <div className="border rounded-md overflow-hidden">
-                      <div className="max-h-64 overflow-auto">
-                        <table className="w-full text-sm">
-                          <thead className="sticky text-white top-0 bg-primary uppercase">
-                            <tr className="text-left">
-                              <th className="w-10 px-3 py-2 border-b"></th>
-                              <th className="px-3 py-2 border-b">Type</th>
-                              <th className="px-3 py-2 border-b">Quarter No</th>
-                              <th className="px-3 py-2 border-b">Unit</th>
-                              <th className="px-3 py-2 border-b">City</th>
-                              <th className="px-3 py-2 border-b">Is Vacant</th>
-                              <th className="px-3 py-2 border-b">Is Garage</th>
-                              <th className="px-3 py-2 border-b text-right">Area</th>
+                  {/* ✅ subtle helper text */}
+                  <div className="text-xs text-green-700 my-2">Selectable table: click a row or radio button to choose. Selected row will be highlighted.</div>
+                  <div className="border rounded-md overflow-hidden">
+                    <div className=" overflow-auto">
+                      <table className="w-full text-sm">
+                        <thead className="sticky text-white top-0 bg-primary uppercase">
+                          <tr className="text-left">
+                            <th className="w-10 px-3 py-2 border-b"></th>
+                            <th className="px-3 py-2 border-b">Type</th>
+                            <th className="px-3 py-2 border-b">Quarter No</th>
+                            <th className="px-3 py-2 border-b">Unit Name</th>
+                            <th className="px-3 py-2 border-b">City</th>
+                            <th className="px-3 py-2 border-b">Is Vacant</th>
+                            <th className="px-3 py-2 border-b">Is Garage</th>
+                            <th className="px-3 py-2 border-b text-right">Area</th>
+                            <th className="px-3 py-2 border-b text-right">Rent</th>
+                          </tr>
+                        </thead>
+
+                        <tbody>
+                          {(filteredQuarters || []).length === 0 ? (
+                            <tr>
+                              <td colSpan={8} className="px-3 py-6 text-center text-gray-500">
+                                No quarters found for this employee / unit.
+                              </td>
                             </tr>
-                          </thead>
+                          ) : (
+                            filteredQuarters.map((row) => {
+                              const id = toStr(row?.pkQDetailId);
+                              const checked = id === selectedQuarterId;
 
-                          <tbody>
-                            {(filteredQuarters || []).length === 0 ? (
-                              <tr>
-                                <td colSpan={8} className="px-3 py-6 text-center text-gray-500">
-                                  No quarters found for this employee / unit.
-                                </td>
-                              </tr>
-                            ) : (
-                              filteredQuarters.map((row) => {
-                                const id = toStr(row?.pkQDetailId);
-                                const checked = id === selectedQuarterId;
-
-                                return (
-                                  <tr
-                                    key={id}
-                                    className={`border-b last:border-b-0 cursor-pointer transition ${
-                                      checked ? 'bg-green-100 ring-1 ring-green-300' : 'hover:bg-gray-50'
-                                    }`}
-                                    onClick={() => {
-                                      setForm((p) => ({ ...p, fkQDetailId: id }));
-                                      setErrors((prev) => ({ ...prev, fkQDetailId: '' }));
-                                    }}
-                                  >
-                                    <td className="px-3 py-2">
-                                      <input
-                                        type="radio"
-                                        name="quarterSelect"
-                                        checked={checked}
-                                        onChange={() => {
-                                          setForm((p) => ({ ...p, fkQDetailId: id }));
-                                          setErrors((prev) => ({ ...prev, fkQDetailId: '' }));
-                                        }}
-                                      />
-                                    </td>
-                                    <td className="px-3 py-2">{row?.qType || '-'}</td>
-                                    <td className="px-3 py-2">{row?.qNumber || '-'}</td>
-                                    <td className="px-3 py-2">{row?.unitName || '-'}</td>
-                                    <td className="px-3 py-2">{row?.city || '-'}</td>
-                                    <td className="px-3 py-2">{row?.isVacant ? 'Yes' : 'No'}</td>
-                                    <td className="px-3 py-2">{row?.isGarage ? 'Yes' : 'No'}</td>
-                                    <td className="px-3 py-2 text-right">{row?.area ?? '-'}</td>
-                                  </tr>
-                                );
-                              })
-                            )}
-                          </tbody>
-                        </table>
-                      </div>
+                              return (
+                                <tr
+                                  key={id}
+                                  className={`border-b last:border-b-0 cursor-pointer transition ${
+                                    checked ? 'bg-green-100 ring-1 ring-green-300' : 'hover:bg-gray-50'
+                                  }`}
+                                  onClick={() => {
+                                    setForm((p) => ({ ...p, fkQDetailId: id }));
+                                    setErrors((prev) => ({ ...prev, fkQDetailId: '' }));
+                                  }}
+                                >
+                                  <td className="px-3 py-2">
+                                    <input
+                                      type="radio"
+                                      name="quarterSelect"
+                                      checked={checked}
+                                      onChange={() => {
+                                        setForm((p) => ({ ...p, fkQDetailId: id }));
+                                        setErrors((prev) => ({ ...prev, fkQDetailId: '' }));
+                                      }}
+                                    />
+                                  </td>
+                                  <td className="px-3 py-2">{row?.quarterType || '-'}</td>
+                                  <td className="px-3 py-2">{row?.qNumber || '-'}</td>
+                                  <td className="px-3 py-2">{row?.unitName || '-'}</td>
+                                  <td className="px-3 py-2">{row?.city || '-'}</td>
+                                  <td className="px-3 py-2">{row?.isVacant ? 'Yes' : 'No'}</td>
+                                  <td className="px-3 py-2">{row?.isGarage ? 'Yes' : 'No'}</td>
+                                  <td className="px-3 py-2 text-right">{row?.area ?? '-'}</td>
+                                  <td className="px-3 py-2 text-right">{row?.rentPerMonth ?? '-'}</td>
+                                </tr>
+                              );
+                            })
+                          )}
+                        </tbody>
+                      </table>
                     </div>
+                  </div>
 
-                    <ErrorLine msg={errors.fkQDetailId} />
-                  </CardContent>
-                </Card>
+                  <ErrorLine msg={errors.fkQDetailId} />
+                </>
               )}
             </div>
           </div>
@@ -334,23 +313,29 @@ export function QMapEmpModal({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <p className="text-sm font-medium">Allotment Date</p>
-              <Input
-                min={new Date().toISOString().split('T')[0]}
-                type="date"
-                value={form.allotmentDate || ''}
-                onChange={(e) => setForm((p) => ({ ...p, allotmentDate: e.target.value }))}
+              <EnhancedDatePicker
+                className="mt-1"
+                onChange={(e) => {
+                  setForm((p) => ({ ...p, allotmentDate: e }));
+                }}
+                selectedDate={form.allotmentDate || null}
+                minDate={new Date()}
               />
+
               <ErrorLine msg={errors.allotmentDate} />
             </div>
 
             <div>
               <p className="text-sm font-medium">Vacant Date</p>
-              <Input
-                min={new Date().toISOString().split('T')[0]}
-                type="date"
-                value={form.vacanteDate || ''}
-                onChange={(e) => setForm((p) => ({ ...p, vacanteDate: e.target.value }))}
+              <EnhancedDatePicker
+                className="mt-1"
+                onChange={(e) => {
+                  setForm((p) => ({ ...p, vacanteDate: e }));
+                }}
+                selectedDate={form.vacanteDate || null}
+                minDate={form.allotmentDate ? form.allotmentDate : new Date()}
               />
+
               <ErrorLine msg={errors.vacanteDate} />
             </div>
           </div>

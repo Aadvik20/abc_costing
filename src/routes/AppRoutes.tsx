@@ -17,11 +17,8 @@ import { useAuth } from 'react-oidc-context';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchMasterData } from '@/features/masterData/masterSlice';
 import EmployeeQuarterAllocation from '@/pages/admin/EmployeeQuarterAllocation';
-import GradePositionMapping from '@/pages/admin/GradePositionMapping';
 import QuarterDetailsManagement from '@/pages/admin/QuarterDetailsManagement';
-import QuarterRentManagement from '@/pages/admin/QuarterRentManagement';
 import QuarterTypeManagement from '@/pages/admin/QuarterTypeManagement';
-import Dashboard from '@/pages/user/Dashboard';
 import UserRoleMapping from '@/pages/Roles/UserRoleMapping';
 import ManageRoles from '@/pages/Roles/ManageRoles';
 import ElectricityBill from '@/pages/admin/ElectricityBill';
@@ -54,10 +51,7 @@ const AppRoutes = () => {
           <Route element={<PrivateRoute allowedRoles={['user']} />}>
             <Route path="/" element={<HomePage />} />
             <Route path="/employee-quarter-allocation" element={<EmployeeQuarterAllocation />} />
-            <Route path="/grade-position-mapping" element={<GradePositionMapping />} />
-            {/* <Route path="/dashboard" element={<Dashboard />} /> */}
             <Route path="/quarter-details-management" element={<QuarterDetailsManagement />} />
-            <Route path="/quarter-rent-management" element={<QuarterRentManagement />} />
             <Route path="/dashboard" element={<QuarterTypeManagement />} />
             <Route path="/user-role-mapping" element={<UserRoleMapping />} />
             <Route path="/manage-roles" element={<ManageRoles />} />

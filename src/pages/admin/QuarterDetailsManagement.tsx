@@ -16,6 +16,7 @@ import { Label } from '@/components/ui/label';
 import ConfirmDialog from '@/components/common/ConfirmDialog';
 import TableList from '@/components/ui/data-table';
 import AdminTable from '@/components/admin/AdminTable';
+import { formatDate } from '@/lib/helperFunction';
 const QuarterDetailsManagement = () => {
   const dispatch = useDispatch<AppDispatch>();
   const [showModal, setShowModal] = useState(false);
@@ -79,9 +80,9 @@ const QuarterDetailsManagement = () => {
   };
   const columns = [
     {
-      accessorKey: 'Type',
+      accessorKey: 'quarterType',
       header: 'Quarter Type',
-      cell: ({ row }) => <div className="px-2 w-[120px]">{row.original?.qType}</div>,
+      cell: ({ row }) => <div className="px-2 w-[120px]">{row.original?.quarterType}</div>,
     },
     {
       accessorKey: 'qNumber',
@@ -89,15 +90,16 @@ const QuarterDetailsManagement = () => {
       cell: ({ row }) => <div className="px-2">{`${row.original?.qNumber}`}</div>,
     },
     {
+      accessorKey: 'unitName',
+      header: 'Unit Name',
+      cell: ({ row }) => <div className="w-[140px] px-2">{row.original.unitName}</div>,
+    },
+    {
       accessorKey: 'city',
       header: 'City',
       cell: ({ row }) => <div className="w-[140px] px-2">{row.original.city}</div>,
     },
-    {
-      accessorKey: 'area',
-      header: 'Area',
-      cell: ({ row }) => <div className="px-2">{row?.original?.area}</div>,
-    },
+
     {
       accessorKey: 'qAddress',
       header: 'Address',
@@ -109,6 +111,16 @@ const QuarterDetailsManagement = () => {
     },
 
     {
+      accessorKey: 'area',
+      header: 'Area',
+      cell: ({ row }) => <div className="px-2">{row?.original?.area}</div>,
+    },
+    {
+      accessorKey: 'rentPerMonth',
+      header: 'Rent',
+      cell: ({ row }) => <div className="px-2">{row?.original?.rentPerMonth}</div>,
+    },
+    {
       accessorKey: 'Garage Available',
       header: 'Garage Available',
       cell: ({ row }) => <div className="px-2">{row?.original.isGarage ? 'Yes' : 'No'}</div>,
@@ -118,7 +130,11 @@ const QuarterDetailsManagement = () => {
       header: 'Servant Quarter',
       cell: ({ row }) => <div className="px-2">{row.original.isServentQuarter ? 'Yes' : 'No'}</div>,
     },
-
+    {
+      accessorKey: 'rentApplicableFrom',
+      header: 'Applicable From',
+      cell: ({ row }) => <div className="px-2">{formatDate(row?.original?.rentApplicableFrom)}</div>,
+    },
     {
       accessorKey: 'Action',
       header: 'Action',
@@ -127,7 +143,18 @@ const QuarterDetailsManagement = () => {
           <div className="flex items-center gap-2">
             <button
               onClick={() => {
-                setSelectedRow(row.original);
+                setSelectedRow({
+                  ...row.original,
+                  quartersList: [
+                    {
+                      quarterNumber: row.original.qNumber,
+                      qAddress: row.original.qAddress,
+                      city: row.original.city,
+                      isServentQuarter: row.original.isServentQuarter,
+                      isGarage: row.original.isGarage,
+                    },
+                  ],
+                });
                 setMode('edit');
                 setShowModal(true);
               }}
@@ -174,85 +201,83 @@ const QuarterDetailsManagement = () => {
             Add New Quarter
           </Button>
         </div>
-        <Card className="border-0 shadow-lg">
+        <div className="border-0 ">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <CardTitle className="text-xl font-semibold">Quarter Inventory</CardTitle>
           </div>
-          <CardContent>
-            <AdminTable
-              inputPlaceholder
-              data={quarters}
-              columns={columns}
-              rightElements={
-                <>
-                  <div className="flex items-end gap-3">
-                    <div>
-                      <Label>Select Unit</Label>
-                      <Select
-                        isClearable
-                        onChange={(e) => {
-                          setSelectedFilter((pre) => ({
-                            ...pre,
-                            unitId: e?.value,
-                          }));
-                        }}
-                        value={
-                          units
-                            .map((ele) => ({
-                              label: ele.unitName,
-                              value: ele.unitid,
-                            }))
-                            .find((opt) => opt.value === selectedFilter.unitId) || null
-                        }
-                        className="min-w-[220px] mt-1"
-                        placeholder="Select unit"
-                        options={units.map((ele) => ({ label: ele.unitName, value: ele.unitid }))}
-                      />
-                    </div>
-                    <div>
-                      <Label>Select Quarter Type</Label>
-                      <Select
-                        isClearable
-                        onChange={(e) => {
-                          setSelectedFilter((pre) => ({
-                            ...pre,
-                            qTypeId: e?.value,
-                          }));
-                        }}
-                        className="min-w-[220px] mt-1"
-                        placeholder="Quarter type"
-                        options={quarterTypes.map((ele) => ({
-                          label: ele.qType,
-                          value: ele.pkQTypeId,
-                        }))}
-                        value={
-                          quarterTypes
-                            .map((ele) => ({
-                              label: ele.qType,
-                              value: ele.pkQTypeId,
-                            }))
-                            .find((opt) => opt.value === selectedFilter.qTypeId) || null
-                        }
-                      />
-                    </div>
-                    <Button
-                      onClick={() => {
-                        dispatch(
-                          fetchQuarterDetails({
-                            qTypeId: selectedFilter.qTypeId,
-                            unitId: selectedFilter.unitId,
-                          })
-                        );
+          <AdminTable
+            inputPlaceholder="Search..."
+            data={quarters}
+            columns={columns}
+            rightElements={
+              <>
+                <div className="flex items-end gap-3">
+                  <div>
+                    <Label>Select Unit</Label>
+                    <Select
+                      isClearable
+                      onChange={(e) => {
+                        setSelectedFilter((pre) => ({
+                          ...pre,
+                          unitId: e?.value,
+                        }));
                       }}
-                    >
-                      <RefreshCcw />
-                    </Button>
+                      value={
+                        units
+                          .map((ele) => ({
+                            label: ele.unitName,
+                            value: ele.unitid,
+                          }))
+                          .find((opt) => opt.value === selectedFilter.unitId) || null
+                      }
+                      className="min-w-[220px] mt-1"
+                      placeholder="Select unit"
+                      options={units.map((ele) => ({ label: ele.unitName, value: ele.unitid }))}
+                    />
                   </div>
-                </>
-              }
-            />
-          </CardContent>
-        </Card>
+                  <div>
+                    <Label>Select Quarter Type</Label>
+                    <Select
+                      isClearable
+                      onChange={(e) => {
+                        setSelectedFilter((pre) => ({
+                          ...pre,
+                          qTypeId: e?.value,
+                        }));
+                      }}
+                      className="min-w-[220px] mt-1"
+                      placeholder="Quarter type"
+                      options={quarterTypes.map((ele) => ({
+                        label: ele.qType,
+                        value: ele.pkQTypeId,
+                      }))}
+                      value={
+                        quarterTypes
+                          .map((ele) => ({
+                            label: ele.qType,
+                            value: ele.pkQTypeId,
+                          }))
+                          .find((opt) => opt.value === selectedFilter.qTypeId) || null
+                      }
+                    />
+                  </div>
+                  <Button
+                    onClick={() => {
+                      dispatch(
+                        fetchQuarterDetails({
+                          qTypeId: selectedFilter.qTypeId,
+                          unitId: selectedFilter.unitId,
+                        })
+                      );
+                    }}
+                  >
+                    <RefreshCcw />
+                  </Button>
+                </div>
+              </>
+            }
+          />
+        </div>
       </div>
       <QuarterDetailsModal
         open={showModal}

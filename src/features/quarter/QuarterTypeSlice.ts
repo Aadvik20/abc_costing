@@ -26,7 +26,7 @@ const initialState: QuarterTypesState = {
 
 export const fetchQuarterTypes = createAsyncThunk<QuarterType[], void, { rejectValue: string }>('quarterTypes/fetchQuarterTypes', async (_, thunkAPI) => {
   try {
-    const response = await axiosInstance.get(`/QuarterManage/quarter-type`);
+    const response = await axiosInstance.get(`/QuarterManage/GetQuarteTypeWithRent`);
     if (response.data.statusCode === 200) {
       return response.data.data as QuarterType[];
     }

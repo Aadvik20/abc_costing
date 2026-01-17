@@ -77,33 +77,44 @@ const EmployeeQuarterAllocation = () => {
   };
   const columns = [
     {
-      accessorKey: 'quaterDetaisl.qType',
+      accessorKey: 'quarterDetails.quarterType',
       header: 'Quarter Type',
-      cell: ({ row }) => <div className="px-2 font-semibold">{row.original.quaterDetaisl.qType}</div>,
+      cell: ({ row }) => <div className="px-2 font-semibold">{row.original.quarterDetails.quarterType}</div>,
     },
+    {
+      accessorKey: 'areaWithRent.area',
+      header: 'Area',
+      cell: ({ row }) => <div className="px-2 font-semibold">{row.original.areaWithRent.area}</div>,
+    },
+    {
+      accessorKey: 'areaWithRent.rentPerMonth',
+      header: 'Rent',
+      cell: ({ row }) => <div className="px-2 font-semibold">{row.original.areaWithRent.rentPerMonth}</div>,
+    },
+
     {
       accessorKey: 'employeeDetails.userName',
       header: 'Employee Name',
       cell: ({ row }) => <div className="px-2 font-semibold">{row.original.employeeDetails.userName}</div>,
     },
     {
-      accessorKey: 'employeeCode',
+      accessorKey: 'employeeDetails.employeeCode',
       header: 'Employee Code',
       cell: ({ row }) => <div className="px-2 ">{row.original.employeeDetails.employeeCode}</div>,
     },
     {
-      accessorKey: 'post',
+      accessorKey: 'employeeDetails.post',
       header: 'Post',
       cell: ({ row }) => <div className="px-2">{row.original.employeeDetails.post}</div>,
     },
 
     {
-      accessorKey: 'department',
+      accessorKey: 'employeeDetails.department',
       header: 'Department',
       cell: ({ row }) => <div className="px-2">{row.original.employeeDetails.department}</div>,
     },
     {
-      accessorKey: 'location',
+      accessorKey: 'employeeDetails.location',
       header: 'Location',
       cell: ({ row }) => <div className="px-2">{row.original.employeeDetails.location}</div>,
     },

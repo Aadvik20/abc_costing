@@ -31,7 +31,7 @@ const UserRoleMapping = () => {
   const [loading, setLoading] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [rowToDeleteId, setRowToDeleteId] = useState(null);
-
+  console.log(selectedEmployee, 'selectedEmployee');
   const masterRoleList = useAppSelector((state: RootState) => state.masterRoles.roles);
   const { units: masterUnits } = useAppSelector((state: RootState) => state.masterData);
   const { employees: employeesList } = useAppSelector((state: RootState) => state.employeeList);
@@ -137,58 +137,6 @@ const UserRoleMapping = () => {
           ));
         },
       },
-      //   {
-      //     accessorKey: 'action',
-      //     header: 'Action',
-      //     cell: ({ row }: any) => {
-      //       const rowData = row.original;
-      //       return (
-      //         <div className="flex gap-2 items-center justify-center">
-      //           <Button
-      //             size="sm"
-      //             className="bg-blue-600 text-white hover:bg-blue-700"
-      //             onClick={() => {
-      //               const rowData = row.original;
-
-      //               /* ---------- UNIT ---------- */
-      //               const unit = masterUnits.find((u) => u.unitId === rowData.unit);
-      //               setSelectedUnit(unit || null);
-
-      //               /* ---------- EMPLOYEE ---------- */
-      //               setSelectedEmployee({
-      //                 employeeCode: rowData.empCode,
-      //                 employeeName: rowData.userName,
-      //                 designation: rowData.post,
-      //                 location: rowData.location,
-      //                 department: rowData.deptDFCCIL,
-      //                 employeeId: rowData.empCode, // fallback
-      //               });
-
-      //               /* ---------- ROLES (ARRAY ✅) ---------- */
-      //               const preSelectedRoles = rowData.roles.map((r: any) => masterRoleList.find((m) => m.id === r.roleId)).filter(Boolean);
-
-      //               setSelectedRoles(preSelectedRoles);
-
-      //               setIsEditing(true);
-      //               setIsAddOpen(true);
-      //             }}
-      //           >
-      //             Edit
-      //           </Button>
-      //           <Button
-      //             variant="destructive"
-      //             size="sm"
-      //             onClick={() => {
-      //               setRowToDeleteId(row.original.id);
-      //               setIsDeleteOpen(true);
-      //             }}
-      //           >
-      //             <Trash2Icon />
-      //           </Button>
-      //         </div>
-      //       );
-      //     },
-      //   },
     ],
     [masterUnits, userList, masterRoleList]
   );
@@ -245,17 +193,6 @@ const UserRoleMapping = () => {
           onRoleChange={setSelectedRoles}
           onSubmit={handleSubmit}
         />
-        {/* Delete row confirm */}
-        {/* <ConfirmDialog
-          open={isDeleteOpen}
-          onOpenChange={setIsDeleteOpen}
-          title="Delete Role?"
-          description="Are you sure want to delete this role?"
-          confirmLabel="Delete"
-          variant="destructive"
-          onConfirm={handleConfirmDelete}
-          loading={loading}
-        /> */}
       </div>
     </div>
   );

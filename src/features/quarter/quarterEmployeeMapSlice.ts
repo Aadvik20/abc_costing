@@ -1,7 +1,6 @@
 import axiosInstance from '@/services/axiosInstance';
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 
-
 export type QuarterEmployeeMap = {
   pkQMapEmpId: number;
   fkQDetailId: number;

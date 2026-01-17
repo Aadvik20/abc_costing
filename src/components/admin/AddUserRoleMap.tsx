@@ -17,7 +17,8 @@ const AddUserMapRole = ({
   onRoleChange,
   onSubmit,
 }) => {
-    const filterEmployees = employees.filter((emp)=>emp?.location?.toLowerCase() === selectedUnit?.unitName?.toLowerCase());
+    const filterEmployees = employees?.filter((emp)=>emp?.location?.toLowerCase() === selectedUnit?.unitName?.toLowerCase());
+    console.log(filterEmployees,"filterEmployees")
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-lg">
@@ -52,9 +53,7 @@ const AddUserMapRole = ({
               value={selectedEmployee}
               onChange={onEmployeeChange}
               placeholder="Select an Employee"
-              isSearchable
-              isClearable
-              isMulti={false}
+              // isClearable
               formatOptionLabel={(option) => {
                 return(
                 <div className="flex items-center gap-3">

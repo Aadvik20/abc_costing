@@ -2,6 +2,8 @@ import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Trash2 } from 'lucide-react';
+import EnhancedDatePicker from '../EnhancedDatePicker';
 
 const isEmpty = (v) => v === null || v === undefined || String(v).trim() === '';
 const toStr = (v) => (v === null || v === undefined ? '' : String(v));
@@ -15,6 +17,7 @@ export function QuarterTypeModal({ open, onOpenChange, mode = 'add', initialData
   const empty = React.useMemo(
     () => ({
       QType: '',
+      applicableFrom: '',
       details: [{ area: '', rent: '' }],
     }),
     []
@@ -22,19 +25,19 @@ export function QuarterTypeModal({ open, onOpenChange, mode = 'add', initialData
 
   const [form, setForm] = React.useState(empty);
   const [errors, setErrors] = React.useState({});
-
-  /** Prefill on edit */
+  console.log(form, 'form');
   React.useEffect(() => {
     if (!open) return;
 
     if (mode === 'edit' && initialData) {
       setForm({
-        QType: toStr(initialData.QType),
+        QType: toStr(initialData.qType),
+        applicableFrom: initialData?.applicableFrom,
         details:
-          initialData.details?.length > 0
-            ? initialData.details.map((d) => ({
+          initialData.areas?.length > 0
+            ? initialData.areas.map((d) => ({
                 area: toStr(d.area),
-                rent: toStr(d.rent),
+                rent: toStr(d.rentPerMonth),
               }))
             : [{ area: '', rent: '' }],
       });
@@ -43,8 +46,6 @@ export function QuarterTypeModal({ open, onOpenChange, mode = 'add', initialData
     }
     setErrors({});
   }, [open, mode, initialData, empty]);
-
-  /** Row handlers */
   const addRow = () => {
     setForm((p) => ({
       ...p,
@@ -66,28 +67,23 @@ export function QuarterTypeModal({ open, onOpenChange, mode = 'add', initialData
     }));
   };
 
-  /** Validation */
   const validate = () => {
     const e = {};
 
     if (isEmpty(form.QType)) e.QType = 'Quarter Type is required';
-
-    if (!form.details.length) {
-      e.details = 'At least one Area & Rent row is required';
-    }
+    if (!form.details.length) e.details = 'At least one Area & Rent row is required';
 
     setErrors(e);
     return Object.keys(e).length === 0;
   };
 
-  /** Submit */
   const submit = async () => {
     if (!validate()) return;
-
     const payload = {
       ...(mode === 'edit' ? { pkQTypeId: initialData?.pkQTypeId } : {}),
-      QType: form.QType.trim(),
-      details: form.details.map((d) => ({
+      qType: form.QType.trim(),
+      applicableFrom: form.applicableFrom,
+      areawithRent: form.details.map((d) => ({
         area: d.area,
         rent: d.rent,
       })),
@@ -98,16 +94,30 @@ export function QuarterTypeModal({ open, onOpenChange, mode = 'add', initialData
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent onPointerDownOutside={(e) => e.preventDefault()} onEscapeKeyDown={(e) => e.preventDefault()} className="max-w-4xl">
+      <DialogContent onPointerDownOutside={(e) => e.preventDefault()} onEscapeKeyDown={(e) => e.preventDefault()} className="max-w-2xl">
         <DialogHeader>
           <DialogTitle>{mode === 'edit' ? 'Edit Quarter Type & Area-Rent' : 'Add Quarter Type & Area-Rent'}</DialogTitle>
         </DialogHeader>
 
         {/* Quarter Type */}
-        <div>
-          <p className="text-sm font-medium">Quarter Type</p>
-          <Input className="mt-1" value={form.QType} onChange={(e) => setForm((p) => ({ ...p, QType: e.target.value }))} placeholder="Enter quarter type" />
-          <ErrorLine msg={errors.QType} />
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <p className="text-sm font-medium">Quarter Type</p>
+            <Input className="mt-1" value={form.QType} onChange={(e) => setForm((p) => ({ ...p, QType: e.target.value }))} placeholder="Enter quarter type" />
+            <ErrorLine msg={errors.QType} />
+          </div>
+          <div>
+            <p className="text-sm font-medium">Applicable From Date</p>
+            <EnhancedDatePicker
+              minDate={new Date()}
+              selectedDate={form.applicableFrom ? new Date(form.applicableFrom) : null}
+              onChange={(date: any) => {
+                setForm((p) => ({ ...p, applicableFrom: date }));
+              }}
+              className={`flex items-center py-1 mt-1 pl-3 rounded-md`}
+            />
+            <ErrorLine msg={errors.applicableFrom} />
+          </div>
         </div>
 
         {/* Add Row */}
@@ -116,28 +126,36 @@ export function QuarterTypeModal({ open, onOpenChange, mode = 'add', initialData
             + Add Row
           </Button>
         </div>
-
-        {/* Area & Rent Rows */}
-        <div className="space-y-3">
-          {form.details.map((row, idx) => (
-            <div key={idx} className="grid grid-cols-5 gap-3 items-end border p-3 rounded-lg">
-              <div className="col-span-2">
-                <p className="text-sm font-medium">Quarter Area</p>
-                <Input className="mt-1" value={row.area} onChange={(e) => updateRow(idx, 'area', e.target.value)} placeholder="Area" />
-              </div>
-
-              <div className="col-span-2">
-                <p className="text-sm font-medium">Quarter Rent</p>
-                <Input className="mt-1" value={row.rent} onChange={(e) => updateRow(idx, 'rent', e.target.value)} placeholder="Rent" />
-              </div>
-
-              <div>
-                <Button type="button" variant="destructive" onClick={() => removeRow(idx)} disabled={form.details.length === 1}>
-                  Delete
-                </Button>
-              </div>
-            </div>
-          ))}
+        {/* Table */}
+        <div className="border rounded-lg max-h-[300px] overflow-y-auto ">
+          <table className="w-full text-sm">
+            <thead className="bg-gray-100">
+              <tr>
+                <th className="px-3 py-2 text-left">#</th>
+                <th className="px-3 py-2 text-left">Quarter Area</th>
+                <th className="px-3 py-2 text-left">Quarter Rent</th>
+                <th className="px-3 py-2 text-center">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {form.details.map((row, idx) => (
+                <tr key={idx} className="border-t">
+                  <td className="px-3 py-2">{idx + 1}</td>
+                  <td className="px-3 py-2">
+                    <Input type="number" value={row.area} onChange={(e) => updateRow(idx, 'area', e.target.value)} placeholder="Area" />
+                  </td>
+                  <td className="px-3 py-2">
+                    <Input type="number" value={row.rent} onChange={(e) => updateRow(idx, 'rent', e.target.value)} placeholder="Rent" />
+                  </td>
+                  <td className="px-3 py-2 text-center">
+                    <Button type="button" variant="destructive" size="sm" onClick={() => removeRow(idx)} disabled={form.details.length === 1}>
+                      <Trash2 />
+                    </Button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
 
         <ErrorLine msg={errors.details} />

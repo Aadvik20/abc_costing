@@ -1,25 +1,14 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import Select from 'react-select';
 import { PlusCircle, Trash2 } from 'lucide-react';
-import axiosInstance from '@/services/axiosInstance';
-interface Area {
-  pkAreaId: number;
-  area: string;
-  rentId: number;
-  rentPerMonth: number;
-}
-interface QuarterTypeDetails {
-  pkQTypeId: number;
-  qType: string;
-  applicableFrom: string; // ISO date string
-  areas: Area[];
-}
+
 const isEmpty = (v) => v === null || v === undefined || String(v).trim() === '';
 const toStr = (v) => (v === null || v === undefined ? '' : String(v));
+const isValidDate = (s) => !isEmpty(s) && !Number.isNaN(Date.parse(s));
 
 function ErrorLine({ msg }) {
   if (!msg) return null;
@@ -39,54 +28,75 @@ export function QuarterDetailsModal({
   onSave,
   saving = false,
   unitOptions = [],
+  positionGrades = [],
   quarterTypeOptions = [],
 }) {
   const empty = React.useMemo(
     () => ({
       fkQTypeId: '',
       fkUnitId: '',
-      quarterType: '',
+      area: '',
+      isServentQuarter: false,
+      isGarage: false,
+      numberOfQuarters: '1',
+      qAddress: '',
       rent: '',
-      area: {},
+      isVacant: false,
+      vacantDate: '',
       unit: [],
-      quartersList: [{ quarterNumber: '', qAddress: '', city: '', isServentQuarter: false, isGarage: false }],
+      grades: [],
+      quartersList: [{ quarterNo: '', quarterAddress: '', meterNumber: '' }],
     }),
     []
   );
-
+  //  "quarterNumber": "string",
+  //     "isServentQuarter": true,
+  //     "isGarage": true,
+  //     "qAddress": "string",
+  //     "city": "string",
+  //     "isVacant": true,
+  //     "vacantDate": "2026-01-17T04:53:43.315Z"
   const [form, setForm] = React.useState(empty);
-  const [selectedTypeDetails, setSelectedTypeDetails] = React.useState<QuarterTypeDetails | null>(null);
   const [errors, setErrors] = React.useState({});
   const setField = (key, value) => setForm((p) => ({ ...p, [key]: value }));
-  const makeQuarterRow = () => ({ quarterNumber: '', qAddress: '', city: '', isServentQuarter: false, isGarage: false });
-  console.log(initialData, 'initialData');
+  const makeQuarterRow = () => ({ quarterNo: '', quarterAddress: '', meterNumber: '' });
+  const resizeQuartersList = React.useCallback((count) => {
+    const n = Math.max(0, Number(count) || 0);
+    setForm((p) => {
+      const prev = Array.isArray(p.quartersList) ? p.quartersList : [];
+      if (prev.length === n) return p;
+      if (prev.length < n) {
+        const add = Array.from({ length: n - prev.length }, () => makeQuarterRow());
+        return { ...p, quartersList: [...prev, ...add] };
+      }
+      return { ...p, quartersList: prev.slice(0, n) };
+    });
+  }, []);
+
   React.useEffect(() => {
     if (!open) return;
+
     if (mode === 'edit' && initialData) {
       const count = Number(initialData.numberOfQuarters ?? 1) || 1;
       setForm({
-        fkQTypeId: toStr(initialData.pkQTypeId),
+        fkQTypeId: toStr(initialData.fkQTypeId),
         fkUnitId: toStr(initialData.fkUnitId),
-        quarterType: toStr(initialData.quarterType),
-        rent: toStr(initialData.rentPerMonth),
-        unit: [
-          {
-            label: initialData.unitName,
-            value: initialData.fkUnitId,
-          },
-        ],
-        area: {
-          label: initialData.area,
-          value: initialData.pkAreaId,
-        },
+        area: toStr(initialData.area),
+        isServentQuarter: Boolean(initialData.isServentQuarter),
+        isGarage: Boolean(initialData.isGarage),
+        numberOfQuarters: toStr(count),
+        qAddress: toStr(initialData.qAddress),
+        rent: toStr(initialData.rent),
+        isVacant: Boolean(initialData.isVacant),
+        vacantDate: toStr(initialData.vacantDate),
+        unit: Array.isArray(initialData.unit) ? initialData.unit : [],
+        grades: Array.isArray(initialData.grades) ? initialData.grades : [],
         quartersList:
           Array.isArray(initialData.quartersList) && initialData.quartersList.length
             ? initialData.quartersList.map((q) => ({
-                quarterNumber: toStr(q.quarterNumber),
-                qAddress: toStr(q.qAddress),
-                city: toStr(q.city),
-                isServentQuarter: q.isServentQuarter,
-                isGarage: q.isGarage,
+                quarterNo: toStr(q.quarterNo),
+                quarterAddress: toStr(q.quarterAddress),
+                meterNumber: toStr(q.meterNumber),
               }))
             : Array.from({ length: count }, () => makeQuarterRow()),
       });
@@ -95,35 +105,33 @@ export function QuarterDetailsModal({
     }
     setErrors({});
   }, [open, mode, initialData, empty]);
-  const getQuarterTypeDetsils = async (type) => {
-    try {
-      const response = await axiosInstance.get(`/QuarterManage/GetQuarteTypeWithRent?QType=${type}`);
-      console.log(response.data);
-      if (response.data?.data?.length) {
-        setSelectedTypeDetails(response.data.data[0]);
-      }
-    } catch (err) {
-      console.log(err);
-    }
-  };
-  console.log(form, 'form');
 
-  useEffect(() => {
-    if (form?.quarterType) {
-      getQuarterTypeDetsils(form.quarterType);
-    }
-  }, [form.quarterType]);
+  React.useEffect(() => {
+    if (!open) return;
+    resizeQuartersList(form.numberOfQuarters);
+  }, [open, form.numberOfQuarters, resizeQuartersList]);
+
   const validate = () => {
-    const e: any = {};
+    const e = {};
     if (isEmpty(form.area)) e.area = 'Area is required';
+    if (isEmpty(form.numberOfQuarters) || Number(form.numberOfQuarters) <= 0) e.numberOfQuarters = 'Number of quarters must be > 0';
+    if (!form.grades?.length) e.positionGrade = 'Position grade is required';
+    if (!form.unit?.length) e.unitId = 'Unit is required';
     if (isEmpty(form.rent)) e.rent = ' Quarter rent is required';
+    if (form.isVacant) {
+      if (isEmpty(form.vacantDate)) e.vacantDate = 'Vacant Date is required';
+      else if (!isValidDate(form.vacantDate)) e.vacantDate = 'Invalid Vacant Date';
+    }
+
+    // validate each quarter row
     const list = form.quartersList || [];
-    const rowErrors: any[] = [];
+    const rowErrors = [];
     list.forEach((q, idx) => {
-      const re: Record<string, any> = {};
-      if (isEmpty(q.quarterNumber)) re.quarterNumber = 'Quarter No is required';
-      if (isEmpty(q.qAddress)) re.qAddress = 'Quarter Address is required';
-      if (isEmpty(q.city)) re.city = 'City is required';
+      const re = {};
+      if (isEmpty(q.quarterNo)) re.quarterNo = 'Quarter No is required';
+      // address/meter can be optional; make required if you want:
+      // if (isEmpty(q.quarterAddress)) re.quarterAddress = 'Quarter Address is required';
+      // if (isEmpty(q.meterNumber)) re.meterNumber = 'Meter Number is required';
       if (Object.keys(re).length) rowErrors[idx] = re;
     });
     if (rowErrors.length) e.quartersList = rowErrors;
@@ -134,19 +142,21 @@ export function QuarterDetailsModal({
 
   React.useEffect(() => {
     setErrors((prev) => {
-      const updated: any = { ...prev };
+      const updated = { ...prev };
+
       if (!isEmpty(form.area)) delete updated.area;
+      if (!isEmpty(form.numberOfQuarters) && Number(form.numberOfQuarters) > 0) delete updated.numberOfQuarters;
+      if (form.grades?.length) delete updated.positionGrade;
+      if (form.unit?.length) delete updated.unitId;
       if (!isEmpty(form.rent)) delete updated.rent;
+      if (!form.isVacant) {
+        delete updated.vacantDate;
+      } else {
+        if (!isEmpty(form.vacantDate) && isValidDate(form.vacantDate)) delete updated.vacantDate;
+      }
       return updated;
     });
-  }, []);
-  useEffect(() => {
-    if (form.fkQTypeId && form.area?.value) {
-      setField('rent', selectedTypeDetails?.areas?.find((ele) => ele.pkAreaId === form.area.value)?.rentPerMonth);
-    } else {
-      setField('rent', 0);
-    }
-  }, [form.area?.value, form.fkQTypeId]);
+  }, [form.area, form.numberOfQuarters, form.grades, form.unit, form.rent, form.isVacant, form.vacantDate]);
 
   const updateQuarterRow = (index, key, value) => {
     setForm((p) => {
@@ -155,7 +165,7 @@ export function QuarterDetailsModal({
       return { ...p, quartersList: next };
     });
     setErrors((prev) => {
-      const next: Record<string, any> = { ...prev };
+      const next = { ...prev };
       if (Array.isArray(next.quartersList) && next.quartersList[index]) {
         const row = { ...next.quartersList[index] };
         delete row[key];
@@ -186,7 +196,7 @@ export function QuarterDetailsModal({
     });
 
     setErrors((prev) => {
-      const next: Record<string, any> = { ...prev };
+      const next = { ...prev };
       if (Array.isArray(next.quartersList)) {
         const rows = [...next.quartersList];
         rows.splice(index, 1);
@@ -203,16 +213,21 @@ export function QuarterDetailsModal({
     const payload = {
       ...(mode === 'edit' ? { pkQDetailId: initialData?.pkQDetailId } : {}),
       fkQTypeId: form.fkQTypeId,
-      fkUnitId: form.unit[0]?.value,
-      fkAreaId: form?.area?.value,
-      quarters: (form.quartersList || []).map((q) => ({
-        quarterNumber: q.quarterNumber?.trim?.() || '',
-        qAddress: q.qAddress?.trim?.() || '',
-        city: q.city?.trim?.() || '',
-        isServentQuarter: q.isServentQuarter,
-        isGarage: q.isGarage,
-        isVacant: true,
-        vacantDate: '2026-01-17T05:15:13.986Z',
+      fkUnitId: form.fkUnitId,
+      unitIds: (form.unit || []).map((x) => x.value),
+      positionGrades: (form.grades || []).map((x) => x.value),
+      area: String(form.area).trim(),
+      isServentQuarter: Boolean(form.isServentQuarter),
+      isGarage: Boolean(form.isGarage),
+      numberOfQuarters: String(form.numberOfQuarters).trim(),
+      qAddress: form.qAddress?.trim?.() || '',
+      rent: String(form.rent).trim(),
+      isVacant: Boolean(form.isVacant),
+      vacantDate: form.isVacant ? form.vacantDate : '',
+      quartersList: (form.quartersList || []).map((q) => ({
+        quarterNo: q.quarterNo?.trim?.() || '',
+        quarterAddress: q.quarterAddress?.trim?.() || '',
+        meterNumber: q.meterNumber?.trim?.() || '',
       })),
     };
 
@@ -235,13 +250,14 @@ export function QuarterDetailsModal({
       })),
     [quarterTypeOptions]
   );
-  const quarterAreaSelectOptions = React.useMemo(
+
+  const gradeSelectOptions = React.useMemo(
     () =>
-      selectedTypeDetails?.areas?.map((ele) => ({
-        label: ele.area,
-        value: ele.pkAreaId,
-      })) ?? [],
-    [selectedTypeDetails]
+      (positionGrades || []).map((ele) => ({
+        label: ele.positionGrade,
+        value: ele.positionGrade,
+      })),
+    [positionGrades]
   );
 
   return (
@@ -257,16 +273,10 @@ export function QuarterDetailsModal({
                 Quarter Type <span className="text-red-500">*</span>
               </p>
               <Select
-                value={quarterSelectOptions?.find((ele) => Number(ele.value) === Number(form.fkQTypeId)) || null}
-                onChange={(e) => {
-                  setField('fkQTypeId', e.value);
-                  setField('quarterType', e.label);
-                  setField('area', {
-                    label: '',
-                    value: '',
-                  });
-                }}
+                value={quarterSelectOptions.find((ele) => Number(ele.value) === Number(form.fkQTypeId)) || null}
+                onChange={(e) => setField('fkQTypeId', e.value)}
                 className="mt-1"
+                isClearable
                 options={quarterSelectOptions}
               />
               <ErrorLine msg={errors.quarterType} />
@@ -275,26 +285,31 @@ export function QuarterDetailsModal({
               <p className="text-sm font-medium">
                 Area <span className="text-red-500">*</span>
               </p>
-              <Select
-                className="mt-1"
-                onChange={(e) => {
-                  setField('area', e);
-                }}
-                isDisabled={!form.fkQTypeId}
-                value={quarterAreaSelectOptions.find((ele) => Number(ele.value) === Number(form?.area?.value)) || null}
-                options={selectedTypeDetails?.areas?.map((ele) => ({
-                  label: ele.area,
-                  value: ele.pkAreaId,
-                }))}
-              />
+              <Input className="mt-1" type="number" value={form.area} onChange={(e) => setField('area', e.target.value)} placeholder="e.g., 1200 sqft" />
               <ErrorLine msg={errors.area} />
             </div>
             <div>
               <p className="text-sm font-medium">
                 Quarter Rent <span className="text-red-500">*</span>
               </p>
-              <Input disabled className="mt-1" type="number" value={form.rent} placeholder="Enter rent" />
+              <Input className="mt-1" type="number" value={form.rent} onChange={(e) => setField('rent', e.target.value)} placeholder="Enter rent" />
               <ErrorLine msg={errors.rent} />
+            </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 rounded-lg border p-4">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-sm font-medium">Servant Quarter</p>
+                <p className="text-xs text-muted-foreground">Is servant quarter?</p>
+              </div>
+              <Switch checked={form.isServentQuarter} onCheckedChange={(v) => setField('isServentQuarter', v)} />
+            </div>
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-sm font-medium">Garage</p>
+                <p className="text-xs text-muted-foreground">Has garage?</p>
+              </div>
+              <Switch checked={form.isGarage} onCheckedChange={(v) => setField('isGarage', v)} />
             </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 rounded-lg border p-4">
@@ -312,6 +327,21 @@ export function QuarterDetailsModal({
               />
               <ErrorLine msg={errors.unitId} />
             </div>
+
+            <div>
+              <p className="text-sm font-medium">
+                Position Grade<span className="text-red-500 ml-1">*</span>
+              </p>
+              <Select
+                onChange={(v) => setField('grades', normalizeMultiValue(v))}
+                className="min-w-[120px] mt-1"
+                isMulti
+                placeholder="Select grade"
+                options={gradeSelectOptions}
+                value={form.grades || []}
+              />
+              <ErrorLine msg={errors.positionGrade} />
+            </div>
           </div>
           <div className="rounded-lg border p-4 space-y-3">
             <div className="flex items-center justify-between">
@@ -324,6 +354,7 @@ export function QuarterDetailsModal({
                 <PlusCircle /> Add Row
               </Button>
             </div>
+
             <div className="space-y-3">
               <div className="hidden md:block overflow-x-auto">
                 <table className="w-full border border-gray-200 rounded-md">
@@ -333,9 +364,7 @@ export function QuarterDetailsModal({
                         Quarter No <span className="text-red-500">*</span>
                       </th>
                       <th className="p-2 border">Quarter Address</th>
-                      <th className="p-2 border">City</th>
-                      <th className="p-2 border">Garage</th>
-                      <th className="p-2 border text-nowrap">Servent Quarter</th>
+                      <th className="p-2 border">Meter Number</th>
                       <th className="p-2 border text-center">Action</th>
                     </tr>
                   </thead>
@@ -343,35 +372,25 @@ export function QuarterDetailsModal({
                   <tbody>
                     {(form.quartersList || []).map((q, idx) => {
                       const rowErr = Array.isArray(errors.quartersList) ? errors.quartersList[idx] : null;
+
                       return (
                         <tr key={idx} className="hover:bg-gray-50">
                           {/* Quarter No */}
                           <td className="p-2 border align-top">
-                            <Input value={q.quarterNumber} onChange={(e) => updateQuarterRow(idx, 'quarterNumber', e.target.value)} placeholder="A-12" />
-                            <ErrorLine msg={rowErr?.quarterNumber} />
+                            <Input value={q.quarterNo} onChange={(e) => updateQuarterRow(idx, 'quarterNo', e.target.value)} placeholder="A-12" />
+                            <ErrorLine msg={rowErr?.quarterNo} />
                           </td>
 
                           {/* Quarter Address */}
                           <td className="p-2 border align-top">
-                            <Input value={q.qAddress} onChange={(e) => updateQuarterRow(idx, 'qAddress', e.target.value)} placeholder="Address" />
-                            <ErrorLine msg={rowErr?.qAddress} />
+                            <Input value={q.quarterAddress} onChange={(e) => updateQuarterRow(idx, 'quarterAddress', e.target.value)} placeholder="Address" />
+                            <ErrorLine msg={rowErr?.quarterAddress} />
                           </td>
 
                           {/* Meter Number */}
                           <td className="p-2 border align-top">
-                            <Input value={q.city} onChange={(e) => updateQuarterRow(idx, 'city', e.target.value)} placeholder="City" />
-                            <ErrorLine msg={rowErr?.city} />
-                          </td>
-
-                          <div className="flex items-center justify-center mt-3 gap-3">
-                            <Switch checked={q.isGarage} onCheckedChange={(v) => updateQuarterRow(idx, 'isGarage', v)} />
-                          </div>
-
-                          {/* Meter Number */}
-                          <td className=" border align-top">
-                            <div className="flex items-center justify-center mt-3">
-                              <Switch checked={q.isServentQuarter} onCheckedChange={(v) => updateQuarterRow(idx, 'isServentQuarter', v)} />
-                            </div>
+                            <Input value={q.meterNumber} onChange={(e) => updateQuarterRow(idx, 'meterNumber', e.target.value)} placeholder="Meter No" />
+                            <ErrorLine msg={rowErr?.meterNumber} />
                           </td>
 
                           {/* Action */}
@@ -402,20 +421,20 @@ export function QuarterDetailsModal({
                         <p className="text-sm font-medium">
                           Quarter No <span className="text-red-500">*</span>
                         </p>
-                        <Input value={q.quarterNumber} onChange={(e) => updateQuarterRow(idx, 'quarterNumber', e.target.value)} />
-                        <ErrorLine msg={rowErr?.quarterNumber} />
+                        <Input value={q.quarterNo} onChange={(e) => updateQuarterRow(idx, 'quarterNo', e.target.value)} />
+                        <ErrorLine msg={rowErr?.quarterNo} />
                       </div>
 
                       <div>
                         <p className="text-sm font-medium">Quarter Address</p>
-                        <Input value={q.qAddress} onChange={(e) => updateQuarterRow(idx, 'qAddress', e.target.value)} />
-                        <ErrorLine msg={rowErr?.qAddress} />
+                        <Input value={q.quarterAddress} onChange={(e) => updateQuarterRow(idx, 'quarterAddress', e.target.value)} />
+                        <ErrorLine msg={rowErr?.quarterAddress} />
                       </div>
 
                       <div>
                         <p className="text-sm font-medium">Meter Number</p>
-                        <Input value={q.city} onChange={(e) => updateQuarterRow(idx, 'city', e.target.value)} />
-                        <ErrorLine msg={rowErr?.city} />
+                        <Input value={q.meterNumber} onChange={(e) => updateQuarterRow(idx, 'meterNumber', e.target.value)} />
+                        <ErrorLine msg={rowErr?.meterNumber} />
                       </div>
                       <Button
                         type="button"
