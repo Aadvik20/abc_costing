@@ -15,6 +15,7 @@ import Select from 'react-select';
 import { Label } from '@/components/ui/label';
 import ConfirmDialog from '@/components/common/ConfirmDialog';
 import TableList from '@/components/ui/data-table';
+import { log } from 'console';
 const QuarterDetailsManagement = () => {
   const dispatch = useDispatch<AppDispatch>();
   const [showModal, setShowModal] = useState(false);
@@ -28,7 +29,7 @@ const QuarterDetailsManagement = () => {
   const { quarterTypes, loading } = useAppSelector((state) => state.quarterTypes);
   const { units, positionGrades } = useAppSelector((state: RootState) => state.masterData);
   const { quarterDetails: quarters, loading: quarteDetailsLoading } = useAppSelector((state: RootState) => state.quarterDetails);
-
+  
   useEffect(() => {
     dispatch(
       fetchQuarterDetails({
