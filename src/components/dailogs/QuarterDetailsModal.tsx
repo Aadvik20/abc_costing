@@ -59,7 +59,6 @@ export function QuarterDetailsModal({
   const [errors, setErrors] = React.useState({});
   const setField = (key, value) => setForm((p) => ({ ...p, [key]: value }));
   const makeQuarterRow = () => ({ quarterNumber: '', qAddress: '', city: '', isServentQuarter: false, isGarage: false });
-  console.log(initialData, 'initialData');
   React.useEffect(() => {
     if (!open) return;
     if (mode === 'edit' && initialData) {
@@ -305,8 +304,8 @@ export function QuarterDetailsModal({
                 className="min-w-[120px] mt-1"
                 placeholder="Select unit"
                 options={unitSelectOptions}
-                isMulti
-                value={form.unit || []}
+                isMulti={false}
+                value={form.unit || null}
               />
               <ErrorLine msg={errors.unitId} />
             </div>

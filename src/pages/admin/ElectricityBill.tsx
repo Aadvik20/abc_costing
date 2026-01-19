@@ -1,109 +1,105 @@
-import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
+import React, { useEffect, useState } from 'react';
+
 import { Button } from '@/components/ui/button';
 import AdminTable from '@/components/admin/AdminTable';
 import { FileText, FileSpreadsheet } from 'lucide-react';
-import * as XLSX from 'xlsx';
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
-import { table } from 'console';
-import { useAppSelector } from '@/app/hooks';
+import { useAppDispatch, useAppSelector } from '@/app/hooks';
 import { RootState } from '@/app/store';
+import { ElectricityBillModal } from '@/components/dailogs/ElectricityBillModal';
+import axiosInstance from '@/services/axiosInstance';
+import { fetchQuarterEmployeeBillMap } from '@/features/quarter/quarterEmployeeBillMapSlice';
+import toast from 'react-hot-toast';
 
 const ElectricityBill = () => {
-  const [month, setMonth] = useState('');
-const [allocationData,setAllocationData]= useState([])
+  const [isOpen, setIsOpen] = useState(false);
+  const [mode, setMode] = useState('add');
+  const [selectedRow, setSelectedRow] = useState(null);
+  const [loading, setLoading] = useState(false);
   const [openButton, setOpenButton] = useState(false);
-  const { data: allocations, loading: employeeLoading } = useAppSelector((state: RootState) => state.quarterEmployeeMapList);
+  const dispatch = useAppDispatch();
+
+  const { data: allocations, loading: dataLoading, error } = useAppSelector((state) => state.quarterEmployeeBillMap);
+  console.log(allocations, 'allocations');
+
+  useEffect(() => {
+    if (!allocations.length) {
+      dispatch(fetchQuarterEmployeeBillMap({}));
+    }
+  }, [allocations.length]);
 
   const columns = [
     {
-      accessorKey: 'employeeCode',
+      accessorKey: 'employeeDetails.employeeCode',
       header: 'Employee Code',
-      cell: ({ row }) => <div className="px-2 w-[120px]">{row?.original?.employeeCode}</div>,
+      cell: ({ row }) => <div className="px-2 w-[120px]">{row?.original?.employeeDetails?.employeeCode}</div>,
     },
     {
-      accessorKey: 'employeeName',
+      accessorKey: 'employeeDetails.userName',
       header: 'Employee Name',
-      cell: ({ row }) => <div className="w-[140px] px-2">{row?.original?.employeeName}</div>,
+      cell: ({ row }) => <div className="w-[140px] px-2">{row?.original?.employeeDetails?.userName}</div>,
     },
 
     {
-      accessorKey: 'designation',
+      accessorKey: 'employeeDetails.post',
       header: 'Designation',
-      cell: ({ row }) => <div className="px-2">{row?.original?.designation}</div>,
+      cell: ({ row }) => <div className="px-2">{row?.original?.employeeDetails?.post}</div>,
     },
-
     {
-      accessorKey: 'positionGrade',
+      accessorKey: 'employeeDetails.department',
+      header: 'Department',
+      cell: ({ row }) => <div className="px-2">{row?.original?.employeeDetails?.department}</div>,
+    },
+    {
+      accessorKey: 'employeeDetails.positionGrade',
       header: 'Position Grade',
-      cell: ({ row }) => <div className=" max-w-[240px] px-2 truncate">{row?.original?.positionGrade}</div>,
+      cell: ({ row }) => <div className=" max-w-[240px] px-2 truncate">{row?.original?.employeeDetails?.positionGrade}</div>,
     },
 
     {
-      accessorKey: 'post',
-      header: 'Post',
-      cell: ({ row }) => <div className="px-2">{row?.original?.post}</div>,
+      accessorKey: 'employeeDetails.location',
+      header: 'Location',
+      cell: ({ row }) => <div className="px-2">{row?.original?.employeeDetails?.location}</div>,
     },
 
     {
-      accessorKey: 'unit',
-      header: 'Unit',
-      cell: ({ row }) => <div className="px-2">{row?.original?.unit}</div>,
-    },
-
-    {
-      accessorKey: 'quarterNo',
+      accessorKey: 'quarterDetails.qNumber',
       header: 'Quarter No',
-      cell: ({ row }) => <div className="px-2">{row?.original?.quarterNo}</div>,
+      cell: ({ row }) => <div className="px-2">{row?.original?.quarterDetails?.qNumber}</div>,
     },
 
     {
-      accessorKey: 'rent',
-      header: 'Quater Rent',
+      accessorKey: 'areaWithRent.rentPerMonth',
+      header: 'Rent',
       cell: ({ row }) => (
         <div className="px-2">
-          <span className="text-sm font-semibold text-green-600">₹{row?.original?.rent}</span>
+          <span className="text-sm font-semibold text-green-600">₹{row?.original?.areaWithRent?.rentPerMonth || '-'}</span>
         </div>
       ),
     },
-
     {
-      accessorKey: 'oldReading',
+      accessorKey: 'electricityBillDetails.oldReading',
       header: 'Old Readings',
-      cell: ({ row }) => <div className="px-2">{row?.original?.oldReading}</div>,
+      cell: ({ row }) => <div className="px-2">{row?.original?.quarterDetails?.oldReading}</div>,
     },
     {
-      accessorKey: 'currentReading',
+      accessorKey: 'electricityBillDetails.currentMeterReading',
       header: 'Current Reading',
-      cell: ({ row }) => <div className="px-2">{row?.original?.currentReading}</div>,
+      cell: ({ row }) => <div className="px-2">{row?.original?.electricityBillDetails[0]?.currentMeterReading}</div>,
     },
 
     {
-      accessorKey: 'consumption',
+      accessorKey: 'quarterDetails.consumption',
       header: 'Consumption',
       cell: ({ row }) => {
-        const consumption = row?.original?.currentReading - row?.original?.oldReading;
+        const consumption = row?.original?.quarterDetails?.currentReading - row?.original?.quarterDetails?.oldReading;
         return <div className="px-2">{consumption}</div>;
       },
     },
-
-    {
-      accessorKey: 'ratePerUnit',
-      header: 'Rate Per Unit',
-      cell: ({ row }) => (
-        <div className="px-2">
-          <span className="text-sm font-semibold text-green-600">₹{row?.original?.ratePerUnit}</span>
-        </div>
-      ),
-    },
-
     {
       accessorKey: 'billAmount',
       header: 'Bill Amount',
       cell: ({ row }) => {
-        const billAmount = row?.original?.ratePerUnit * (row?.original?.currentReading - row?.original?.oldReading);
+        const billAmount = row?.original?.quarterDetails?.currentReading;
         return (
           <div className="px-2">
             <span className="text-sm font-semibold text-green-600">₹{billAmount}</span>
@@ -124,166 +120,16 @@ const [allocationData,setAllocationData]= useState([])
         );
       },
     },
-
-    {
-      accessorKey: 'Action',
-      header: 'Action',
-      cell: () => (
-        <div className="px-2 active:scale-90">
-          <Button type="button">Submit</Button>
-        </div>
-      ),
-    },
   ];
-
-  const dummyElectricityData = [
-    {
-      employeeCode: 123,
-      quarterNo: 'Q-101',
-      employeeName: 'Amit Sharma',
-      designation: 'Senior Engineer',
-      positionGrade: 'PG-6',
-      post: 'SR EXEC',
-      unit: 'Corporate Office',
-      oldReading: 1200,
-      currentReading: 1350,
-      ratePerUnit: 6,
-      rent: 4500,
-    },
-    {
-      employeeCode: 456,
-      quarterNo: 'Q-102',
-      employeeName: 'Neha Verma',
-      designation: 'HR Manager',
-      positionGrade: 'PG-7',
-      post: 'DPM',
-      unit: 'Noida',
-      oldReading: 980,
-      currentReading: 1120,
-      ratePerUnit: 6,
-      rent: 5200,
-    },
-    {
-      employeeCode: 789,
-      quarterNo: 'Q-103',
-      employeeName: 'Rahul Singh',
-      designation: 'Accountant',
-      positionGrade: 'PG-5',
-      post: 'DGM',
-      unit: 'Corporate Office',
-      oldReading: 1500,
-      currentReading: 1680,
-      ratePerUnit: 6,
-      rent: 4000,
-    },
-  ];
-
-  const data = dummyElectricityData.map((item) => {
-    const consumption = item.currentReading - item.oldReading;
-    const billAmount = item.ratePerUnit * consumption;
-    const totalRent = item.rent + billAmount;
-    return {
-      'Employee Code': item.employeeCode,
-      'Employee Name': item.employeeName,
-      Designation: item.designation,
-      'Position Grade': item.positionGrade,
-      Post: item.post,
-      Unit: item.unit,
-      'Quarter No': item.quarterNo,
-      'Quarter Rent': `₹${item.rent}`,
-      'Old Reading': item.oldReading,
-      'Current Reading': item.currentReading,
-      Consumption: consumption,
-      'Rate Per Unit': `₹${item.ratePerUnit}`,
-      'Bill Amount': `₹${billAmount}`,
-      'Total Rent': `₹${totalRent}`,
-    };
-  });
-
-  const pdfRows = dummyElectricityData.map((item) => {
-    const consumption = item.currentReading - item.oldReading;
-    const billAmount = item.ratePerUnit * consumption;
-    const totalRent = item.rent + billAmount;
-
-    return [
-      item.employeeCode,
-      item.employeeName,
-      item.designation,
-      item.positionGrade,
-      item.post,
-      item.unit,
-      item.quarterNo,
-      `${item.rent}`,
-      item.oldReading,
-      item.currentReading,
-      consumption,
-      `${item.ratePerUnit}`,
-      `${billAmount}`,
-      `${totalRent}`,
-    ];
-  });
-
-  const pdfHeaders = [
-    'Employee Code',
-    'Employee Name',
-    'Designation',
-    'Position Grade',
-    'Post',
-    'Unit',
-    'Quarter No',
-    'Quarter Rent',
-    'Old Reading',
-    'Current Reading',
-    'Consumption',
-    'Rate Per Unit',
-    'Bill Amount',
-    'Total Rent',
-  ];
-
-  const generateExcel = () => {
-    const worksheet = XLSX.utils.json_to_sheet(data);
-    const workbook = XLSX.utils.book_new();
-
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Report');
-    XLSX.writeFile(workbook, 'report.xlsx');
-    setOpenButton(false);
+  const addEletricBill = async (payload) => {
+    try {
+      const response = await axiosInstance.post('/QuarterManage/add-electricity-bill-to-quarter', payload);
+      console.log(response.data);
+      toast.success('Bill added successfully');
+    } catch (err) {
+      console.log(err);
+    }
   };
-
-  const generatePDF = () => {
-    const doc = new jsPDF({
-      orientation: 'landscape',
-      unit: 'mm',
-      format: 'a4',
-    });
-
-    doc.setFontSize(14);
-
-    doc.text('Report', 14, 15);
-
-    autoTable(doc, {
-      head: [pdfHeaders],
-      body: pdfRows,
-      startY: 28,
-      styles: {
-        fontSize: 8,
-        cellPadding: 2,
-        overflow: 'linebreak',
-      },
-      headStyles: {
-        fillColor: [22, 163, 74],
-        textColor: 255,
-        halign: 'center',
-      },
-      bodyStyles: {
-        halign: 'center',
-      },
-    });
-
-    doc.save('Report.pdf');
-
-    setOpenButton(false);
-  };
-
   return (
     <div className="min-h-screen  p-4 md:p-8">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -292,39 +138,37 @@ const [allocationData,setAllocationData]= useState([])
           <p className="text-gray-600 mt-1">Manage electricity bill for all units</p>
         </div>
       </div>
-      <Card className="border-0 shadow-lg">
-        <CardHeader>
-          <CardTitle className="text-xl font-semibold">Electricity Bill Information</CardTitle>
-        </CardHeader>
-        <CardContent>
+      <div className="mt-6">
+        <div>
           <AdminTable
-            data={dummyElectricityData}
+            data={allocations}
             columns={columns}
             inputPlaceholder="Search"
             rightElements={
               <>
-                <div className="flex items-center gap-2 mb-6">
-                  {/* <div className="px-2">
-                    <p className="text-gray-900 mt-1">Select Month</p>
-                    <Input className="border" type="month" value={month} onChange={(e) => setMonth(e.target.value)} />
-                  </div> */}
-
+                <div className="flex items-center gap-2">
+                  <Button
+                    onClick={() => {
+                      setIsOpen(true);
+                      setMode('add');
+                    }}
+                  >
+                    Add Reading
+                  </Button>
                   <div className="px-2">
-                    <Button type="button" variant="destructive" size="lg" className="mt-6" onClick={() => setOpenButton(true)}>
+                    <Button type="button" variant="destructive" className="" onClick={() => setOpenButton(true)}>
                       Generate Report
                     </Button>
-
                     {openButton && (
                       <>
                         <div className="fixed inset-0 z-40" onClick={() => setOpenButton(false)} />
-
                         <div className="absolute mt-2 w-44 bg-white border rounded-md shadow-lg z-50">
-                          <button onClick={generatePDF} className="flex items-center gap-2 w-full px-4 py-2 text-sm hover:bg-gray-100">
+                          <button className="flex items-center gap-2 w-full px-4 py-2 text-sm hover:bg-gray-100">
                             <FileText className="h-4 w-4 text-red-600" />
                             Generate Pdf
                           </button>
 
-                          <button onClick={generateExcel} className="flex items-center gap-2 w-full px-4 py-2 text-sm hover:bg-gray-100">
+                          <button className="flex items-center gap-2 w-full px-4 py-2 text-sm hover:bg-gray-100">
                             <FileSpreadsheet className="h-4 w-4 text-green-600" />
                             Generate Excel
                           </button>
@@ -332,12 +176,22 @@ const [allocationData,setAllocationData]= useState([])
                       </>
                     )}
                   </div>
+                  <input type="month" className="border rounded-md px-3 py-2 text-sm" />
                 </div>
               </>
             }
           />
-        </CardContent>
-      </Card>
+        </div>
+      </div>
+      <ElectricityBillModal
+        employeeOption={allocations}
+        open={isOpen}
+        onOpenChange={setIsOpen}
+        onSave={addEletricBill}
+        initialData={selectedRow}
+        loading={loading}
+        mode={mode}
+      />
     </div>
   );
 };

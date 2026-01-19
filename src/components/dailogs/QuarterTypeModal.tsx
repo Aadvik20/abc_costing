@@ -164,7 +164,7 @@ export function QuarterTypeModal({ open, onOpenChange, mode = 'add', initialData
                 <tr key={idx} className="border-t">
                   <td className="px-3 py-2">{idx + 1}</td>
                   <td className="px-3 py-2">
-                    <Input type="number" value={row.area} onChange={(e) => updateRow(idx, 'area', e.target.value)} placeholder="Area" />
+                    <Input value={row.area} onChange={(e) => updateRow(idx, 'area', e.target.value)} placeholder="Area" />
                     {errors.details?.[idx]?.area && <ErrorLine msg={errors.details[idx].area} />}
                   </td>
                   <td className="px-3 py-2">
