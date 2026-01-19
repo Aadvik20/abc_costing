@@ -132,18 +132,14 @@ const userSlice = createSlice({
         state.Department = data?.department || '';
         state.Lavel = data?.level || '';
         state.Mobile = data?.mobile || '';
-        // state.personnelSubArea = data?.personnelSubArea || '';
-        // state.reportingOfficer = data?.reportingOfficer || '';
         state.Email = data?.email || '';
         state.employeeMasterAutoId = data?.empId || null;
         const roles = Array.isArray(data.qRoles)
           ? Array.from(
-              new Set(
-                data.qRoles.map((r: any) => (typeof r === 'string' ? r : r?.roleAssigned)).filter((s: any) => typeof s === 'string' && s.trim().length > 0)
-              )
+              new Set(data.qRoles.map((r: any) => (typeof r === 'string' ? r : r?.roleAssign)).filter((s: any) => typeof s === 'string' && s.trim().length > 0))
             )
           : [];
-        state.Roles = roles.length ? [...roles, 'user'] : ['user'];
+        state.Roles = roles.length ? [...roles] : ['user'];
         state.roleAssigned = data.qRoles;
       });
   },

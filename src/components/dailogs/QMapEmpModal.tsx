@@ -3,7 +3,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import Select from 'react-select';
-import { Card, CardContent, CardHeader } from '../ui/card';
 import EnhancedDatePicker from '../EnhancedDatePicker';
 
 const isEmpty = (v) => v === null || v === undefined || String(v).trim() === '';
@@ -36,9 +35,10 @@ export function QMapEmpModal({
         value: '',
         unitId: '',
         unitName: '',
+        post: '',
+        positionGrade: '',
       },
       allotmentDate: '',
-      vacanteDate: '',
     }),
     []
   );
@@ -60,7 +60,7 @@ export function QMapEmpModal({
   );
 
   const [form, setForm] = React.useState(empty);
-  const [errors, setErrors] = React.useState({});
+  const [errors, setErrors] = React.useState<any>({});
   const [quarterSearch, setQuarterSearch] = React.useState('');
   const getInitialQuarterId = (data) => {
     if (!data) return '';
@@ -95,7 +95,6 @@ export function QMapEmpModal({
         },
 
         allotmentDate: toStr(initialData?.allotmentDate?.split?.('T')?.[0] ?? ''),
-        vacanteDate: toStr(initialData?.vacanteDate?.split?.('T')?.[0] ?? ''),
       });
     } else {
       setForm(empty);
@@ -109,12 +108,6 @@ export function QMapEmpModal({
     if (isEmpty(form.fkQDetailId)) e.fkQDetailId = 'Quarter is required';
     if (isEmpty(form.fkEmpId) || isEmpty(form.fkEmpId?.value)) e.fkEmpId = 'Employee is required';
     if (!isValidDate(form.allotmentDate)) e.allotmentDate = 'Allotment Date is required';
-    if (!isValidDate(form.vacanteDate)) e.vacanteDate = 'Vacante Date Date is required';
-
-    if (!isEmpty(form.vacanteDate) && !isValidDate(form.vacanteDate)) {
-      e.vacanteDate = 'Invalid Vacant Date';
-    }
-
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -128,7 +121,6 @@ export function QMapEmpModal({
       fkEmpId: form.fkEmpId.value,
       EmployeeCode: form.fkEmpId.empCode,
       allotmentDate: form.allotmentDate,
-      vacanteDate: form.vacanteDate || '',
     };
 
     await onSave?.(payload);
@@ -164,62 +156,87 @@ export function QMapEmpModal({
           <DialogTitle>{mode === 'edit' ? 'Edit Quarter Employee Mapping' : 'Quarter Employee Mapping'}</DialogTitle>
         </DialogHeader>
 
-        <div className="flex flex-col gap-5 max-h-[50vh] overflow-y-auto">
+        <div className="flex flex-col gap-5 ">
           <div className="flex flex-col gap-5">
-            <div>
-              <p className="text-sm font-medium">Select Employee</p>
-              <Select
-                onChange={(v) => {
-                  setForm((p) => ({
-                    ...p,
-                    fkEmpId: v,
-                    fkQDetailId: '',
-                  }));
-                  setQuarterSearch('');
-                  setErrors((prev) => ({ ...prev, fkEmpId: '', fkQDetailId: '' }));
-                }}
-                className="min-w-[120px] mt-1"
-                placeholder="Select employee"
-                options={employeeOptionsList}
-                value={employeeOptionsList?.find((opt) => Number(opt.value) === Number(form.fkEmpId.value)) || null}
-                formatOptionLabel={(option) => (
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 flex items-center justify-center bg-primary text-white rounded-full font-bold uppercase">
-                      {option?.empName?.[0]}
-                    </div>
-                    <div>
-                      <div className="text-sm font-medium text-gray-800">{option?.empName} </div>
-                      <div className="text-xs text-gray-500">
-                        {option?.empCode} | {option?.designation} | {option?.department} | {option?.positionGrade}
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <p className="text-sm font-medium">Select Employee</p>
+                <Select
+                  onChange={(v) => {
+                    setForm((p) => ({
+                      ...p,
+                      fkEmpId: {
+                        value: v.value,
+                        label: v.label,
+                        empName: v.empName,
+                        empCode: v.empCode,
+                        department: v.department,
+                        unitId: v.unitId,
+                        unitName: v.unitName,
+                        post: v.designation,
+                        positionGrade: v.positionGrade,
+                      },
+                      fkQDetailId: '',
+                    }));
+                    setQuarterSearch('');
+                    setErrors((prev) => ({ ...prev, fkEmpId: '', fkQDetailId: '' }));
+                  }}
+                  className="min-w-[120px] mt-1"
+                  placeholder="Select employee"
+                  options={employeeOptionsList}
+                  value={employeeOptionsList?.find((opt) => Number(opt.value) === Number(form.fkEmpId.value)) || null}
+                  formatOptionLabel={(option) => (
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 flex items-center justify-center bg-primary text-white rounded-full font-bold uppercase">
+                        {option?.empName?.[0]}
+                      </div>
+                      <div>
+                        <div className="text-sm font-medium text-gray-800">{option?.empName} </div>
+                        <div className="text-xs text-gray-500">
+                          {option?.empCode} | {option?.designation} | {option?.department} | {option?.positionGrade}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                )}
-                filterOption={(option, inputValue) => {
-                  const search = inputValue.toLowerCase();
-                  return (
-                    option.data.empName?.toLowerCase().includes(search) ||
-                    option.data.empCode?.toLowerCase().includes(search) ||
-                    option.data.designation?.toLowerCase().includes(search) ||
-                    option.data.department?.toLowerCase().includes(search)
-                  );
-                }}
-              />
-              <ErrorLine msg={errors.fkEmpId} />
-            </div>
+                  )}
+                  filterOption={(option, inputValue) => {
+                    const search = inputValue.toLowerCase();
+                    return (
+                      option.data.empName?.toLowerCase().includes(search) ||
+                      option.data.empCode?.toLowerCase().includes(search) ||
+                      option.data.designation?.toLowerCase().includes(search) ||
+                      option.data.department?.toLowerCase().includes(search)
+                    );
+                  }}
+                />
+                <ErrorLine msg={errors.fkEmpId} />
+              </div>
+              {/* Dates */}
+              <div>
+                <div>
+                  <p className="text-sm font-medium">Allotment Date</p>
+                  <EnhancedDatePicker
+                    className="mt-1"
+                    onChange={(e) => {
+                      setForm((p) => ({ ...p, allotmentDate: e }));
+                    }}
+                    selectedDate={(form.allotmentDate as any) || null}
+                    minDate={new Date()}
+                  />
 
+                  <ErrorLine msg={errors.allotmentDate} />
+                </div>
+              </div>
+            </div>
             {/* Quarter */}
             <div>
               <p className="text-sm font-medium">Select Quarter</p>
-
-              {/* ✅ placeholder when employee not selected */}
               {!hasEmployee ? (
                 <div className="mt-2 border border-dashed rounded-lg p-4 text-sm text-gray-500 bg-gray-50">
                   Please select an <span className="font-medium text-gray-700">Employee</span> first to view and choose a quarter.
                 </div>
               ) : (
                 <>
-                  <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-3">
+                  <div className="flex flex-col md:flex-row md:items-center mt-2 gap-2 md:gap-3">
                     <div className="flex-1">
                       <Input
                         placeholder="Tip: Click any row to select a quarter (only one selectable)"
@@ -245,7 +262,7 @@ export function QMapEmpModal({
                             <th className="px-3 py-2 border-b">Quarter No</th>
                             <th className="px-3 py-2 border-b">Unit Name</th>
                             <th className="px-3 py-2 border-b">City</th>
-                            <th className="px-3 py-2 border-b">Is Vacant</th>
+                            <th className="px-3 py-2 border-b">Is Servent</th>
                             <th className="px-3 py-2 border-b">Is Garage</th>
                             <th className="px-3 py-2 border-b text-right">Area</th>
                             <th className="px-3 py-2 border-b text-right">Rent</th>
@@ -290,7 +307,7 @@ export function QMapEmpModal({
                                   <td className="px-3 py-2">{row?.qNumber || '-'}</td>
                                   <td className="px-3 py-2">{row?.unitName || '-'}</td>
                                   <td className="px-3 py-2">{row?.city || '-'}</td>
-                                  <td className="px-3 py-2">{row?.isVacant ? 'Yes' : 'No'}</td>
+                                  <td className="px-3 py-2">{row?.isServentQuarter ? 'Yes' : 'No'}</td>
                                   <td className="px-3 py-2">{row?.isGarage ? 'Yes' : 'No'}</td>
                                   <td className="px-3 py-2 text-right">{row?.area ?? '-'}</td>
                                   <td className="px-3 py-2 text-right">{row?.rentPerMonth ?? '-'}</td>
@@ -306,37 +323,6 @@ export function QMapEmpModal({
                   <ErrorLine msg={errors.fkQDetailId} />
                 </>
               )}
-            </div>
-          </div>
-
-          {/* Dates */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <p className="text-sm font-medium">Allotment Date</p>
-              <EnhancedDatePicker
-                className="mt-1"
-                onChange={(e) => {
-                  setForm((p) => ({ ...p, allotmentDate: e }));
-                }}
-                selectedDate={form.allotmentDate || null}
-                minDate={new Date()}
-              />
-
-              <ErrorLine msg={errors.allotmentDate} />
-            </div>
-
-            <div>
-              <p className="text-sm font-medium">Vacant Date</p>
-              <EnhancedDatePicker
-                className="mt-1"
-                onChange={(e) => {
-                  setForm((p) => ({ ...p, vacanteDate: e }));
-                }}
-                selectedDate={form.vacanteDate || null}
-                minDate={form.allotmentDate ? form.allotmentDate : new Date()}
-              />
-
-              <ErrorLine msg={errors.vacanteDate} />
             </div>
           </div>
         </div>

@@ -33,11 +33,9 @@ export const fetchEmployeeList = createAsyncThunk<Employee[], { location: string
       const response = await axiosInstance.get('/Account/GetAllActiveEmployee', {
         params: { location },
       });
-
       if (response.data?.statusCode === 200) {
         return response.data.data as Employee[];
       }
-
       return thunkAPI.rejectWithValue('Failed to fetch employee list');
     } catch (error: any) {
       return thunkAPI.rejectWithValue(error.response?.data?.message || 'Failed to fetch employee list');

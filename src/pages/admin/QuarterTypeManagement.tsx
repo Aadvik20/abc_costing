@@ -156,41 +156,37 @@ const QuarterTypeManagement = () => {
             <p className="text-gray-600 mt-1">Manage different types of quarters,area and their rent</p>
           </div>
         </div>
-        <Card className="border-0 shadow-lg">
-          <CardContent>
-            <div className="bg-white">
-              <AdminTable
-                inputPlaceholder={'Search type by name..'}
-                data={fillteredData}
-                columns={columns}
-                rightElements={
-                  <>
-                    <div className="flex gap-3">
-                      <Button
-                        onClick={() => {
-                          dispatch(fetchQuarterTypes());
-                        }}
-                      >
-                        <RefreshCw />
-                      </Button>
-                      <Button
-                        onClick={() => {
-                          setShowModal(true);
-                          setMode('add');
-                          setSelectedRow(null);
-                        }}
-                        className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-                      >
-                        <Plus className="w-4 h-4" />
-                        Add New Type
-                      </Button>
-                    </div>
-                  </>
-                }
-              />
-            </div>
-          </CardContent>
-        </Card>
+        <div className="bg-white">
+          <AdminTable
+            inputPlaceholder={'Search type by name..'}
+            data={fillteredData}
+            columns={columns}
+            rightElements={
+              <>
+                <div className="flex gap-3">
+                  <Button
+                    onClick={() => {
+                      dispatch(fetchQuarterTypes());
+                    }}
+                  >
+                    <RefreshCw />
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      setShowModal(true);
+                      setMode('add');
+                      setSelectedRow(null);
+                    }}
+                    className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Add New Type
+                  </Button>
+                </div>
+              </>
+            }
+          />
+        </div>
       </div>
       <QuarterTypeModal open={showModal} onOpenChange={setShowModal} mode={mode} initialData={selectedRow} onSave={onSave} saving={saving} />
     </div>

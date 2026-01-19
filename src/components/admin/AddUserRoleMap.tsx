@@ -2,6 +2,13 @@ import Select from 'react-select';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
+const selectStyles = {
+  option: (provided, state) => ({
+    ...provided,
+    backgroundColor: state.isFocused ? '#f3f4f6' : 'white',
+    color: '#111827',
+  }),
+};
 
 const AddUserMapRole = ({
   open,
@@ -17,8 +24,8 @@ const AddUserMapRole = ({
   onRoleChange,
   onSubmit,
 }) => {
-    const filterEmployees = employees?.filter((emp)=>emp?.location?.toLowerCase() === selectedUnit?.unitName?.toLowerCase());
-    console.log(filterEmployees,"filterEmployees")
+  const filterEmployees = employees?.filter((emp) => emp?.location?.toLowerCase() === selectedUnit?.unitName?.toLowerCase());
+  console.log(employees, 'employees');
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-lg">
@@ -48,24 +55,40 @@ const AddUserMapRole = ({
               Select Employee <span className="text-red-500">*</span>
             </Label>
             <Select
+              styles={selectStyles}
               className="mt-2"
               options={filterEmployees}
               value={selectedEmployee}
-              onChange={onEmployeeChange}
+              onChange={(e) => {
+                onEmployeeChange(e);
+              }}
               placeholder="Select an Employee"
-              // isClearable
+              isClearable
+              isSearchable
               formatOptionLabel={(option) => {
-                return(
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 flex items-center justify-center bg-primary text-white rounded-full font-bold uppercase">{option.userName?.[0]}</div>
-                  <div>
-                    <div className="text-sm font-medium text-gray-800">{option?.userName}</div>
-                    <div className="text-xs text-gray-500">
-                      {option?.employeeCode} | {option?.post} | {option?.deptDFCCIL}
+                return (
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 flex items-center justify-center bg-primary text-white rounded-full font-bold uppercase">
+                      {option.userName?.[0]}
+                    </div>
+                    <div>
+                      <div className="text-sm font-medium text-gray-800">{option?.userName}</div>
+                      <div className="text-xs text-gray-500">
+                        {option?.employeeCode} | {option?.post} | {option?.deptDFCCIL}
+                      </div>
                     </div>
                   </div>
-                </div>
-              )}}
+                );
+              }}
+              filterOption={(option, inputValue) => {
+                const search = inputValue.toLowerCase();
+                return (
+                  option.data.userName?.toLowerCase().includes(search) ||
+                  option.data.employeeCode?.toLowerCase().includes(search) ||
+                  option.data.post?.toLowerCase().includes(search) ||
+                  option.data.deptDFCCIL?.toLowerCase().includes(search)
+                );
+              }}
             />
           </div>
 

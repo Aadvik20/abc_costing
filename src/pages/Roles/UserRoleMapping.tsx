@@ -57,7 +57,7 @@ const UserRoleMapping = () => {
   //   if (!selectedUnit) return [];
   //   return employeesList.filter((emp) => emp.unitId === selectedUnit.unitId);
   // }, [employeesList, selectedUnit]);
-
+  console.log(employeesList, 'employeesList');
   const resetForm = () => {
     setSelectedEmployee(null);
     setSelectedRoles(null);
@@ -130,11 +130,16 @@ const UserRoleMapping = () => {
         accessorKey: 'roleName',
         header: 'Role(s)',
         cell: ({ row }: any) => {
-          return row.original.roles.map((item) => (
-            <div className="flex items-center gap-2 flex-col">
-              <Badge variant="secondary">{item.roleName}</Badge>
+          const roles = row.original.roles || [];
+          return (
+            <div className="flex flex-wrap gap-1.5 max-w-[220px]">
+              {roles.map((item, idx) => (
+                <Badge key={idx} variant="secondary" className="px-2 py-0.5 text-xs rounded-md">
+                  {item.roleName}
+                </Badge>
+              ))}
             </div>
-          ));
+          );
         },
       },
     ],
@@ -158,9 +163,9 @@ const UserRoleMapping = () => {
 
   return (
     <div className="p-6 font-sans">
-      <div className="bg-white border border-blue-200 shadow-lg rounded-xl p-6 space-y-6">
-        <h1 className="text-2xl font-bold text-blue-800">User Role Mapping</h1>
+      <h1 className="text-3xl font-bold text-gray-900">User Role Mapping</h1>
 
+      <div className="mt-4">
         <AdminTable
           data={userList}
           columns={columns}

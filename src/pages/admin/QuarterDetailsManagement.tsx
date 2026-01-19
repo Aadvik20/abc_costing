@@ -53,6 +53,9 @@ const QuarterDetailsManagement = () => {
           })
         );
       }
+    } catch (err) {
+      toast.error(err.response.data.message);
+      console.log(err);
     } finally {
       setSaving(false);
     }
@@ -73,6 +76,7 @@ const QuarterDetailsManagement = () => {
         setShowModal(false);
       }
     } catch (err) {
+      toast.error(err.response.data.message);
       console.log(err);
     } finally {
       setSaving(false);
@@ -202,9 +206,6 @@ const QuarterDetailsManagement = () => {
           </Button>
         </div>
         <div className="border-0 ">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <CardTitle className="text-xl font-semibold">Quarter Inventory</CardTitle>
-          </div>
           <AdminTable
             inputPlaceholder="Search..."
             data={quarters}

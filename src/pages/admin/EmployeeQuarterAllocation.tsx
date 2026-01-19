@@ -60,10 +60,13 @@ const EmployeeQuarterAllocation = () => {
     }));
   }, [allocations.length]);
 
-  const handleDelete = async (id) => {
+  const handleDelete = async (data, id) => {
     setSaving(true);
     try {
-      const response = await axiosInstance.delete(`/QuarterManage/delete-quarter-map-employee/${id}`);
+      const response = await axiosInstance.put(`/QuarterManage/dealocate-quarter-map-employee/${id}`, {
+        pkQMapEmpId: data?.pkQMapEmpId,
+        employeeCode: data?.employeeDetails?.employeeCode,
+      });
       if (response.data.statusCode === 200) {
         toast.success('Quarter type deleted successfully.');
         dispatch(fetchQuarterEmployeeMapping({}));
@@ -80,6 +83,11 @@ const EmployeeQuarterAllocation = () => {
       accessorKey: 'quarterDetails.quarterType',
       header: 'Quarter Type',
       cell: ({ row }) => <div className="px-2 font-semibold">{row.original.quarterDetails.quarterType}</div>,
+    },
+    {
+      accessorKey: 'quarterDetails.qNumber',
+      header: 'Quarter No.',
+      cell: ({ row }) => <div className="px-2 font-semibold">{row.original.quarterDetails.qNumber}</div>,
     },
     {
       accessorKey: 'areaWithRent.area',
@@ -124,23 +132,6 @@ const EmployeeQuarterAllocation = () => {
       header: 'Allotment Date',
       cell: ({ row }) => <div className="px-2">{row.original.allotmentDate ? formatDate(row.original.allotmentDate) : '-'}</div>,
     },
-
-    {
-      accessorKey: 'vacanteDate',
-      header: 'Vacated Date',
-      cell: ({ row }) => <div className="px-2">{row.original.vacanteDate ? formatDate(row.original.vacanteDate) : '-'}</div>,
-    },
-
-    // {
-    //   accessorKey: 'createdByNameAndDate',
-    //   header: 'Created By',
-    //   cell: ({ row }) => <div className="px-2">{`${row.original.createdByNameAndDate}`}</div>,
-    // },
-    // {
-    //   accessorKey: 'madifyByNameAndDate',
-    //   header: 'Updated By',
-    //   cell: ({ row }) => <div className="px-2">{row.original.madifyByNameAndDate || '-'}</div>,
-    // },
     {
       accessorKey: 'action',
       header: 'Action',
@@ -162,7 +153,7 @@ const EmployeeQuarterAllocation = () => {
               triggerClassName={'bg-red-500 px-1 h-6'}
               triggerLabel=""
               onConfirm={() => {
-                handleDelete(row.original.pkQMapEmpId);
+                handleDelete(row.original, row.original.pkQMapEmpId);
               }}
               icon={<Trash2 size={16} />}
               description="Are you sure to delete this quarter details map? This action can not be undone."
@@ -184,45 +175,37 @@ const EmployeeQuarterAllocation = () => {
             <p className="text-gray-600 mt-1">Track and manage quarter assignments to employees</p>
           </div>
         </div>
-        <Card className="border-0 shadow-lg">
-          <CardHeader>
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-              <CardTitle className="text-xl font-semibold">Allocation Records</CardTitle>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <AdminTable
-                data={filteredAllocations}
-                columns={columns}
-                rightElements={
-                  <>
-                    <div className="flex gap-3">
-                      <Button
-                        onClick={() => {
-                          dispatch(fetchQuarterEmployeeMapping({}));
-                        }}
-                      >
-                        <RefreshCw />
-                      </Button>
-                      <Button
-                        onClick={() => {
-                          setShowModal(true);
-                          setSelectedRow(null);
-                          dispatch(fetchQuarterDetails());
-                        }}
-                        className="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-                      >
-                        <Plus className="w-4 h-4" />
-                        New Allocation
-                      </Button>
-                    </div>
-                  </>
-                }
-              />
-            </div>
-          </CardContent>
-        </Card>
+        <div className="">
+          <AdminTable
+            inputPlaceholder={'Search....'}
+            data={filteredAllocations}
+            columns={columns}
+            rightElements={
+              <>
+                <div className="flex gap-3">
+                  <Button
+                    onClick={() => {
+                      dispatch(fetchQuarterEmployeeMapping({}));
+                    }}
+                  >
+                    <RefreshCw />
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      setShowModal(true);
+                      setSelectedRow(null);
+                      dispatch(fetchQuarterDetails());
+                    }}
+                    className="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                  >
+                    <Plus className="w-4 h-4" />
+                    New Allocation
+                  </Button>
+                </div>
+              </>
+            }
+          />
+        </div>
       </div>
       <QMapEmpModal
         open={showModal}
@@ -231,7 +214,7 @@ const EmployeeQuarterAllocation = () => {
         initialData={selectedRow}
         onSave={onSave}
         saving={saving}
-        quarterDetailsOptions={quarterDetails}
+        quarterDetailsOptions={quarterDetails.filter((ele) => ele.isVacant)}
         employeeOptions={employees}
       />
     </div>

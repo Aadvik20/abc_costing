@@ -115,8 +115,7 @@ export function QuarterDetailsModal({
   }, [form.quarterType]);
   const validate = () => {
     const e: any = {};
-    if (isEmpty(form.area)) e.area = 'Area is required';
-    if (isEmpty(form.rent)) e.rent = ' Quarter rent is required';
+    if (isEmpty(form?.area?.value)) e.area = 'Area is required';
     const list = form.quartersList || [];
     const rowErrors: any[] = [];
     list.forEach((q, idx) => {
@@ -135,7 +134,7 @@ export function QuarterDetailsModal({
   React.useEffect(() => {
     setErrors((prev) => {
       const updated: any = { ...prev };
-      if (!isEmpty(form.area)) delete updated.area;
+      if (!isEmpty(form?.area?.value)) delete updated?.area;
       if (!isEmpty(form.rent)) delete updated.rent;
       return updated;
     });
@@ -201,7 +200,7 @@ export function QuarterDetailsModal({
     if (!validate()) return;
 
     const payload = {
-      ...(mode === 'edit' ? { pkQDetailId: initialData?.pkQDetailId } : {}),
+      ...(mode === 'edit' ? { pkQdetailsId: initialData?.pkQDetailId } : {}),
       fkQTypeId: form.fkQTypeId,
       fkUnitId: form.unit[0]?.value,
       fkAreaId: form?.area?.value,
@@ -212,7 +211,6 @@ export function QuarterDetailsModal({
         isServentQuarter: q.isServentQuarter,
         isGarage: q.isGarage,
         isVacant: true,
-        vacantDate: '2026-01-17T05:15:13.986Z',
       })),
     };
 
@@ -320,7 +318,7 @@ export function QuarterDetailsModal({
                 <p className="text-xs text-muted-foreground">Auto generated based on “Number of quarters”. You can also add/remove rows.</p>
               </div>
 
-              <Button type="button" onClick={addQuarterRow}>
+              <Button disabled={mode === 'edit'} type="button" onClick={addQuarterRow}>
                 <PlusCircle /> Add Row
               </Button>
             </div>
