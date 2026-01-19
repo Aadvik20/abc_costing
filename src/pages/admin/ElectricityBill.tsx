@@ -1,172 +1,344 @@
-import React, { useState } from 'react'
-import { Card, CardContent, CardHeader, CardTitle  } from '@/components/ui/card';
+import React, { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import AdminTable from '@/components/admin/AdminTable';
+import { FileText, FileSpreadsheet } from 'lucide-react';
+import * as XLSX from 'xlsx';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import { table } from 'console';
 
 const ElectricityBill = () => {
 
 const [month, setMonth] = useState('');
 
+const [openButton, setOpenButton] = useState(false);
+
+const columns = [
+    {
+      accessorKey: 'employeeCode',
+      header: 'Employee Code',
+      cell: ({ row }) => <div className="px-2 w-[120px]">{row?.original?.employeeCode}</div>,
+    },
+    {
+      accessorKey: 'employeeName',
+      header: 'Employee Name',
+      cell: ({ row }) => <div className="w-[140px] px-2">{row?.original?.employeeName}</div>,
+    },
+
+    {
+      accessorKey: 'designation',
+      header: 'Designation',
+      cell: ({ row }) => <div className="px-2">{row?.original?.designation}</div>,
+    },
+
+    {
+      accessorKey: 'positionGrade',
+      header: 'Position Grade',
+      cell: ({ row }) => <div className=" max-w-[240px] px-2 truncate">{row?.original?.positionGrade}</div>,
+    },
+
+    {
+      accessorKey: 'post',
+      header: 'Post',
+      cell: ({ row }) => <div className="px-2">{row?.original?.post}</div>,
+    },
+
+    {
+      accessorKey: 'unit',
+      header: 'Unit',
+      cell: ({ row }) => <div className="px-2">{row?.original?.unit}</div>,
+    },
+
+    {
+      accessorKey: 'quarterNo',
+      header: 'Quarter No',
+      cell: ({ row }) => <div className="px-2">{row?.original?.quarterNo}</div>,
+    },
+
+    {
+      accessorKey: 'rent',
+      header: 'Quater Rent',
+      cell: ({ row }) => (
+        <div className="px-2">
+          <span className="text-sm font-semibold text-green-600">₹{row?.original?.rent}</span>
+        </div>
+      ),
+    },
+
+    {
+      accessorKey: 'oldReading',
+      header: 'Old Readings',
+      cell: ({ row }) => <div className="px-2">{row?.original?.oldReading}</div>,
+    },
+    {
+      accessorKey: 'currentReading',
+      header: 'Current Reading',
+      cell: ({ row }) => <div className="px-2">{row?.original?.currentReading}</div>,
+    },
+
+    {
+      accessorKey: 'consumption',
+      header: 'Consumption',
+      cell: ({ row }) => {
+        const consumption = row?.original?.currentReading - row?.original?.oldReading;
+        return <div className="px-2">{consumption}</div>;
+      },
+    },
+
+    {
+      accessorKey: 'ratePerUnit',
+      header: 'Rate Per Unit',
+      cell: ({ row }) => (
+        <div className="px-2">
+          <span className="text-sm font-semibold text-green-600">₹{row?.original?.ratePerUnit}</span>
+        </div>
+      ),
+    },
+
+    {
+      accessorKey: 'billAmount',
+      header: 'Bill Amount',
+      cell: ({ row }) => {
+        const billAmount = row?.original?.ratePerUnit * (row?.original?.currentReading - row?.original?.oldReading);
+        return (
+          <div className="px-2">
+            <span className="text-sm font-semibold text-green-600">₹{billAmount}</span>
+          </div>
+        );
+      },
+    },
+
+    {
+      accessorKey: 'totalRent',
+      header: 'Total Rent',
+      cell: ({ row }) => {
+        const totalRent = row?.original?.rent + row?.original?.ratePerUnit * (row?.original?.currentReading - row?.original?.oldReading);
+        return (
+          <div className="px-2">
+            <span className="text-sm font-semibold text-green-600">₹{totalRent}</span>
+          </div>
+        );
+      },
+    },
+
+    {
+      accessorKey: 'Action',
+      header: 'Action',
+      cell: () => (
+        <div className="px-2 active:scale-90">
+          <Button type="button">Submit</Button>
+        </div>
+      ),
+    },
+  ];
+
 const dummyElectricityData = [
-  {
-    quarterNo: "Q-101",
-    employeeName: "Amit Sharma",
-    designation: "Senior Engineer",
-    positionGrade: "PG-6",
-    unit: "Corporate Office",
-    oldReading: 1200,
-    currentReading: 1350,
-    ratePerUnit: 6,
-    rent: 4500,
-  },
-  {
-    quarterNo: "Q-102",
-    employeeName: "Neha Verma",
-    designation: "HR Manager",
-    positionGrade: "PG-7",
-    unit: "Noida",
-    oldReading: 980,
-    currentReading: 1120,
-    ratePerUnit: 6,
-    rent: 5200,
-  },
-  {
-    quarterNo: "Q-103",
-    employeeName: "Rahul Singh",
-    designation: "Accountant",
-    positionGrade: "PG-5",
-    unit: "Corporate Office",
-    oldReading: 1500,
-    currentReading: 1680,
-    ratePerUnit: 6,
-    rent: 4000,
-  }
-];
+    {
+      employeeCode: 123,
+      quarterNo: 'Q-101',
+      employeeName: 'Amit Sharma',
+      designation: 'Senior Engineer',
+      positionGrade: 'PG-6',
+      post: 'SR EXEC',
+      unit: 'Corporate Office',
+      oldReading: 1200,
+      currentReading: 1350,
+      ratePerUnit: 6,
+      rent: 4500,
+    },
+    {
+      employeeCode: 456,
+      quarterNo: 'Q-102',
+      employeeName: 'Neha Verma',
+      designation: 'HR Manager',
+      positionGrade: 'PG-7',
+      post: 'DPM',
+      unit: 'Noida',
+      oldReading: 980,
+      currentReading: 1120,
+      ratePerUnit: 6,
+      rent: 5200,
+    },
+    {
+      employeeCode: 789,
+      quarterNo: 'Q-103',
+      employeeName: 'Rahul Singh',
+      designation: 'Accountant',
+      positionGrade: 'PG-5',
+      post: 'DGM',
+      unit: 'Corporate Office',
+      oldReading: 1500,
+      currentReading: 1680,
+      ratePerUnit: 6,
+      rent: 4000,
+    },
+  ];
 
+const data = dummyElectricityData.map((item) => {
+    const consumption = item.currentReading - item.oldReading;
+    const billAmount = item.ratePerUnit * consumption;
+    const totalRent = item.rent + billAmount;
+    return {
+      'Employee Code': item.employeeCode,
+      'Employee Name': item.employeeName,
+      'Designation': item.designation,
+      'Position Grade': item.positionGrade,
+      'Post': item.post,
+      'Unit': item.unit,
+      'Quarter No': item.quarterNo,
+      'Quarter Rent': `₹${item.rent}`,
+      'Old Reading': item.oldReading,
+      'Current Reading': item.currentReading,
+      'Consumption': consumption,
+      'Rate Per Unit': `₹${item.ratePerUnit}`,
+      'Bill Amount': `₹${billAmount}`,
+      'Total Rent': `₹${totalRent}`,
+    };
+  });
+  
+const pdfRows = dummyElectricityData.map(item => {
+const consumption = item.currentReading - item.oldReading;
+const billAmount = item.ratePerUnit * consumption;
+const totalRent = item.rent + billAmount;
 
-return (
+  return [
+    item.employeeCode,
+    item.employeeName,
+    item.designation,
+    item.positionGrade,
+    item.post,
+    item.unit,
+    item.quarterNo,
+    `${item.rent}`,
+    item.oldReading,
+    item.currentReading,
+    consumption,
+    `${item.ratePerUnit}`,
+    `${billAmount}`,
+    `${totalRent}`,
+  ];
+});
+
+const pdfHeaders = [
+    'Employee Code',
+    'Employee Name',
+    'Designation',
+    'Position Grade',
+    'Post',
+    'Unit',
+    'Quarter No',
+    'Quarter Rent',
+    'Old Reading',
+    'Current Reading',
+    'Consumption',
+    'Rate Per Unit',
+    'Bill Amount',
+    'Total Rent',
+  ];
+
+  const generateExcel = () => {
+    const worksheet = XLSX.utils.json_to_sheet(data);
+    const workbook = XLSX.utils.book_new();
+
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Report');
+    XLSX.writeFile(workbook, 'report.xlsx');
+    setOpenButton(false);
+  };
+
+  const generatePDF = () => {
+    const doc = new jsPDF({
+    orientation: "landscape",
+    unit: "mm",
+    format: "a4",
+   });
+
+    doc.setFontSize(14);
+
+    doc.text('Report', 14, 15);
+
+    autoTable(doc, {
+      head: [pdfHeaders],
+      body: pdfRows,
+      startY: 28,
+      styles: {
+        fontSize: 8,
+        cellPadding: 2,
+        overflow: "linebreak",
+      },
+      headStyles: {
+        fillColor: [22, 163, 74],
+        textColor: 255,
+        halign:"center"
+      },
+      bodyStyles: {
+      halign: "center",
+      },
+
+    });
+
+    doc.save('Report.pdf');
+
+    setOpenButton(false);
+  };
+
+  return (
     <div className="min-h-screen  p-4 md:p-8">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Electricity Bill</h1>
           <p className="text-gray-600 mt-1">Manage electricity bill for all units</p>
         </div>
-       <div>
-          <p className= "text-gray-900 mt-1">Select Month</p>
-          <input
-            className='border p-2'
-            type="month"
-            value={month}
-            onChange={(e) => setMonth(e.target.value)}
-          />
-       </div>
       </div>
-        <Card className="border-0 shadow-lg">
-          <CardHeader>
-            <CardTitle className="text-xl font-semibold">Electricity Bill Information</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-primary">
-                  <tr>
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-white">Employee Name</th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-white">Designation</th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-white">Position Grade</th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-white">Unit</th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-white">Quater Rent</th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-white">Quater No.</th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-white">Old Readings</th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-white">Current Readings</th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-white">Consumption</th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-white">Rate Per Unit</th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-white">Bill Amount</th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-white">Total Rent</th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-white">Action</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200">
-                 {dummyElectricityData.map((item, index) => {
-                  const consumption = item.currentReading - item.oldReading;
-                  const billAmount = item.ratePerUnit * consumption
-                  const totalRent = item.rent + billAmount
-                return (
-                <tr key={index} className="hover:bg-gray-50">
-   
-                  <td className="px-4 py-3 text-sm text-gray-700">
-                    {item.employeeName}
-                  </td>
+      <Card className="border-0 shadow-lg">
+        <CardHeader>
+          <CardTitle className="text-xl font-semibold">Electricity Bill Information</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <AdminTable
+            data={dummyElectricityData}
+            columns={columns}
+            inputPlaceholder="Search"
+            rightElements={
+              <>
+                <div className="flex items-center gap-2 mb-6">
+                  {/* <div className="px-2">
+                    <p className="text-gray-900 mt-1">Select Month</p>
+                    <Input className="border" type="month" value={month} onChange={(e) => setMonth(e.target.value)} />
+                  </div> */}
 
-                  <td className="px-4 py-3 text-sm text-gray-700">
-                    {item.designation}
-                  </td>
+                  <div className="px-2">
+                    <Button type="button" variant="destructive" size="lg" className="mt-6" onClick={() => setOpenButton(true)}>
+                      Generate Report
+                    </Button>
 
-                  <td className="px-4 py-3 text-sm text-gray-700">
-                    {item.positionGrade}
-                  </td>
+                    {openButton && (
+                      <>
+                        <div className="fixed inset-0 z-40" onClick={() => setOpenButton(false)} />
 
-                  <td className="px-4 py-3 text-sm text-gray-700">
-                    {item.unit}
-                  </td>
+                        <div className="absolute mt-2 w-44 bg-white border rounded-md shadow-lg z-50">
+                          <button onClick={generatePDF} className="flex items-center gap-2 w-full px-4 py-2 text-sm hover:bg-gray-100">
+                            <FileText className="h-4 w-4 text-red-600" />
+                            Generate Pdf
+                          </button>
 
-                  <td className="px-4 py-3 text-sm text-gray-700">
-                     <span className="text-sm font-semibold text-green-600">₹{item.rent}</span>
-                  </td>
-
-                  <td className="px-4 py-3 text-sm text-gray-700">
-                    {item.quarterNo}
-                  </td>
-
-                  <td className="px-4 py-3 text-sm text-gray-700">
-                  {item.oldReading}
-                  </td>
-
-                  <td className="px-4 py-3 text-sm text-gray-700">
-                  {item.currentReading}
-                  </td>
-
-                  <td className="px-4 py-3 text-sm text-gray-700">
-                  {consumption}
-                  </td>
-
-                  <td className="px-4 py-3 text-sm text-gray-700">
-                  <span className="text-sm font-semibold text-green-600">₹{item.ratePerUnit}</span>
-                  </td>
-
-                  <td className="px-4 py-3 text-sm text-gray-700">
-                     <span className="text-sm font-semibold text-green-600">₹{billAmount}</span>
-                  {/* <Input
-                  className='w-1/2'
-                  placeholder='Enter Amount'
-                  type='text'
-                  value={amount}
-                  onChange={(e)=>{
-                    setAmount(e.target.value)
-                  }}
-                  /> */}
-                  </td>
-
-                  <td className="px-4 py-3 text-sm text-gray-700">
-                  <span className="text-sm font-semibold text-green-600">₹{totalRent}</span>
-                  </td>
-
-                  <td className="px-4 py-3 text-sm text-gray-700">
-                  <Button
-                  type='button'
-                  >
-                  Submit
-                  </Button>
-                  </td>
-                </tr>
-                );
-                })}
-              </tbody>
-              </table>
-            </div>
-          </CardContent>
-        </Card>
+                          <button onClick={generateExcel} className="flex items-center gap-2 w-full px-4 py-2 text-sm hover:bg-gray-100">
+                            <FileSpreadsheet className="h-4 w-4 text-green-600" />
+                            Generate Excel
+                          </button>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </>
+            }
+          />
+        </CardContent>
+      </Card>
     </div>
-  )
-}
+  );
+};
 
-export default ElectricityBill
+export default ElectricityBill;

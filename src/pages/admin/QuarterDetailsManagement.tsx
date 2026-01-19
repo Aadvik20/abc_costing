@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Building2, Home, Users, Plus, Edit, Key, Eye, Trash2, RefreshCcw } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Plus, Edit, Trash2, RefreshCcw } from 'lucide-react';
 import { QuarterDetailsModal } from '@/components/dailogs/QuarterDetailsModal';
 import { Button } from '@/components/ui/button';
 import { useAppSelector } from '@/app/hooks';
@@ -14,7 +13,6 @@ import { fetchQuarterDetails } from '@/features/quarter/quarterDetailsSlice';
 import Select from 'react-select';
 import { Label } from '@/components/ui/label';
 import ConfirmDialog from '@/components/common/ConfirmDialog';
-import TableList from '@/components/ui/data-table';
 import AdminTable from '@/components/admin/AdminTable';
 import { formatDate } from '@/lib/helperFunction';
 const QuarterDetailsManagement = () => {
@@ -147,6 +145,7 @@ const QuarterDetailsManagement = () => {
           <div className="flex items-center gap-2">
             <button
               onClick={() => {
+                dispatch(fetchQuarterTypes());
                 setSelectedRow({
                   ...row.original,
                   quartersList: [
