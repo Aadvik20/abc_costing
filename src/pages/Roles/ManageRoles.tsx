@@ -9,6 +9,7 @@ import { useAppDispatch, useAppSelector } from '@/app/hooks';
 import { fetchMasterRole } from '@/features/userRole/masterRoles';
 import RoleModal from '@/components/dailogs/RoleModal';
 
+
 const ManageRoles = () => {
   const dispatch = useAppDispatch();
   const { roles, loading } = useAppSelector((state) => state.masterRoles);
