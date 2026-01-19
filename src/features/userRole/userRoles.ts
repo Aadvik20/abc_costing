@@ -58,81 +58,55 @@ const initialState: EmpRoleState = {
   deleteError: null,
 };
 
-/* ============================
-   THUNKS
-============================ */
-
 /** 1️⃣ Get Employee Role List */
-export const fetchEmpRoleList = createAsyncThunk<
-  any[],
-  void,
-  { rejectValue: string }
->('empRole/getEmpRoleList', async (_, { rejectWithValue }) => {
+export const fetchEmpRoleList = createAsyncThunk<any[], void, { rejectValue: string }>('empRole/getEmpRoleList', async (_, { rejectWithValue }) => {
   try {
     const response = await axiosInstance.get('/User/GetEmpRoleList');
     return response.data.data;
   } catch (err: any) {
-    const errorMessage =
-      err.response?.data?.message || 'Failed to fetch employee role list';
+    const errorMessage = err.response?.data?.message || 'Failed to fetch employee role list';
     return rejectWithValue(errorMessage);
   }
 });
 
 /** 2️⃣ Add User Role Mapping */
-export const addUserRoleMapping = createAsyncThunk<
-  any,
-  EmpRoleMappingPayload,
-  { rejectValue: string }
->('empRole/addUserRoleMapping', async (payload, { rejectWithValue }) => {
-  try {
-    const response = await axiosInstance.post(
-      '/User/AddUserRoleMapping',
-      payload
-    );
-    return response.data;
-  } catch (err: any) {
-    const errorMessage =
-      err.response?.data?.message || 'Failed to add user role mapping';
-    return rejectWithValue(errorMessage);
+export const addUserRoleMapping = createAsyncThunk<any, EmpRoleMappingPayload, { rejectValue: string }>(
+  'empRole/addUserRoleMapping',
+  async (payload, { rejectWithValue }) => {
+    try {
+      const response = await axiosInstance.post('/User/AddUserRoleMapping', payload);
+      return response.data;
+    } catch (err: any) {
+      const errorMessage = err.response?.data?.message || 'Failed to add user role mapping';
+      return rejectWithValue(errorMessage);
+    }
   }
-});
+);
 
 /** 3️⃣ Edit Employee Role */
-export const editEmpRole = createAsyncThunk<
-  any,
-  EditEmpRolePayload,
-  { rejectValue: string }
->('empRole/editEmpRole', async (payload, { rejectWithValue }) => {
+export const editEmpRole = createAsyncThunk<any, EditEmpRolePayload, { rejectValue: string }>('empRole/editEmpRole', async (payload, { rejectWithValue }) => {
   try {
-    const response = await axiosInstance.put(
-      '/User/EditEmpRole',
-      payload
-    );
+    const response = await axiosInstance.put('/User/EditEmpRole', payload);
     return response.data;
   } catch (err: any) {
-    const errorMessage =
-      err.response?.data?.message || 'Failed to edit employee role';
+    const errorMessage = err.response?.data?.message || 'Failed to edit employee role';
     return rejectWithValue(errorMessage);
   }
 });
 
 /** 4️⃣ Delete Employee Role Assignment */
-export const deleteEmpRoleAssignment = createAsyncThunk<
-  number,
-  { empCode: number },
-  { rejectValue: string }
->('empRole/deleteEmpRoleAssignment', async ({ empCode }, { rejectWithValue }) => {
-  try {
-    await axiosInstance.delete(
-      `/User/DeleteEMPRoleAssignment?EmpCode=${empCode}`
-    );
-    return empCode;
-  } catch (err: any) {
-    const errorMessage =
-      err.response?.data?.message || 'Failed to delete role assignment';
-    return rejectWithValue(errorMessage);
+export const deleteEmpRoleAssignment = createAsyncThunk<number, { empCode: number }, { rejectValue: string }>(
+  'empRole/deleteEmpRoleAssignment',
+  async ({ empCode }, { rejectWithValue }) => {
+    try {
+      await axiosInstance.delete(`/User/DeleteEMPRoleAssignment?EmpCode=${empCode}`);
+      return empCode;
+    } catch (err: any) {
+      const errorMessage = err.response?.data?.message || 'Failed to delete role assignment';
+      return rejectWithValue(errorMessage);
+    }
   }
-});
+);
 
 /* ============================
    SLICE

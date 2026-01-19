@@ -23,8 +23,6 @@ const QuarterTypeManagement = () => {
   const [saving, setSaving] = React.useState(false);
   const [search, setSearch] = React.useState('');
   const dispatch = useAppDispatch();
-  const { positionGrades, units } = useAppSelector((state: RootState) => state.masterData);
-
   const { quarterTypes, loading, error } = useAppSelector((state) => state.quarterTypes);
   useEffect(() => {
     if (!quarterTypes.length) {
@@ -80,7 +78,7 @@ const QuarterTypeManagement = () => {
       cell: ({ row }) => <div className="px-2 font-semibold">{formatDate(row.original.applicableFrom)}</div>,
     },
     {
-      accessorKey: 'applicableFrom',
+      accessorKey: 'applicableFromwe',
       header: 'Avaliable Areas',
       cell: ({ row }) => (
         <div className="px-2 font-semibold">

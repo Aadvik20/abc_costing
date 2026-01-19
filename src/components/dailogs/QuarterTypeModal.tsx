@@ -28,7 +28,6 @@ export function QuarterTypeModal({ open, onOpenChange, mode = 'add', initialData
   console.log(form, 'form');
   React.useEffect(() => {
     if (!open) return;
-
     if (mode === 'edit' && initialData) {
       setForm({
         QType: toStr(initialData.qType),
@@ -69,10 +68,33 @@ export function QuarterTypeModal({ open, onOpenChange, mode = 'add', initialData
 
   const validate = () => {
     const e = {};
-
+    const areaSet = new Set();
     if (isEmpty(form.QType)) e.QType = 'Quarter Type is required';
-    if (!form.details.length) e.details = 'At least one Area & Rent row is required';
+    if (isEmpty(form.applicableFrom)) e.applicableFrom = 'Applicable From date is required';
+    if (!form.details.length) {
+      e.details = 'At least one Area & Rent row is required';
+    } else {
+      const detailErrors = [];
+      form.details.forEach((row, index) => {
+        const rowError = {};
+        if (isEmpty(row.area)) rowError.area = 'Area is required';
+        if (isEmpty(row.rent)) rowError.rent = 'Rent is required';
+        if (!isEmpty(row.area)) {
+          if (areaSet.has(row.area)) {
+            rowError.area = 'Area must be unique';
+          } else {
+            areaSet.add(row.area);
+          }
+        }
+        if (Object.keys(rowError).length) {
+          detailErrors[index] = rowError;
+        }
+      });
 
+      if (detailErrors.length) {
+        e.details = detailErrors;
+      }
+    }
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -143,9 +165,11 @@ export function QuarterTypeModal({ open, onOpenChange, mode = 'add', initialData
                   <td className="px-3 py-2">{idx + 1}</td>
                   <td className="px-3 py-2">
                     <Input type="number" value={row.area} onChange={(e) => updateRow(idx, 'area', e.target.value)} placeholder="Area" />
+                    {errors.details?.[idx]?.area && <ErrorLine msg={errors.details[idx].area} />}
                   </td>
                   <td className="px-3 py-2">
                     <Input type="number" value={row.rent} onChange={(e) => updateRow(idx, 'rent', e.target.value)} placeholder="Rent" />
+                    {errors.details?.[idx]?.rent && <ErrorLine msg={errors.details[idx].rent} />}
                   </td>
                   <td className="px-3 py-2 text-center">
                     <Button type="button" variant="destructive" size="sm" onClick={() => removeRow(idx)} disabled={form.details.length === 1}>
@@ -157,8 +181,6 @@ export function QuarterTypeModal({ open, onOpenChange, mode = 'add', initialData
             </tbody>
           </table>
         </div>
-
-        <ErrorLine msg={errors.details} />
 
         <DialogFooter className="gap-2">
           <Button variant="outline" type="button" onClick={() => onOpenChange?.(false)}>

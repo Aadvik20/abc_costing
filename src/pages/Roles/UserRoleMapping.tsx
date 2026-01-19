@@ -37,7 +37,7 @@ const UserRoleMapping = () => {
   const { employees: employeesList } = useAppSelector((state: RootState) => state.employeeList);
 
   // const { employees: employeesList} = useAppSelector((state: RootState) => state.employee);
-  const { empRoles: userList, loading: isUserListLoading } = useAppSelector((state: RootState) => state.userRoles);
+  const { empRoles: userList = [], loading: isUserListLoading } = useAppSelector((state: RootState) => state.userRoles);
   useEffect(() => {
     dispatch(fetchEmpRoleList());
     dispatch(fetchMasterRole());
@@ -51,7 +51,7 @@ const UserRoleMapping = () => {
     }
   }, [selectedUnit, dispatch]);
 
-  const unitOptions = useMemo(() => masterUnits.map((unit) => ({ unitId: unit.unitid, unitName: unit.unitName })), [masterUnits]);
+  const unitOptions = useMemo(() => masterUnits?.map((unit) => ({ unitId: unit.unitid, unitName: unit.unitName })), [masterUnits]);
 
   // const employeesListFiltered = useMemo(() => {
   //   if (!selectedUnit) return [];
@@ -78,7 +78,7 @@ const UserRoleMapping = () => {
     const endpoint = isEditing ? '/User/EditRoleAssignment' : '/User/AddUserRoleMapping';
     const method = isEditing ? 'put' : 'post';
 
-    const roleIds = selectedRoles.map((role: any) => {
+    const roleIds = selectedRoles?.map((role: any) => {
       return { roleId: role.id };
     });
     const payload =
@@ -133,7 +133,7 @@ const UserRoleMapping = () => {
           const roles = row.original.roles || [];
           return (
             <div className="flex flex-wrap gap-1.5 max-w-[220px]">
-              {roles.map((item, idx) => (
+              {roles?.map((item, idx) => (
                 <Badge key={idx} variant="secondary" className="px-2 py-0.5 text-xs rounded-md">
                   {item.roleName}
                 </Badge>
@@ -167,7 +167,7 @@ const UserRoleMapping = () => {
 
       <div className="mt-4">
         <AdminTable
-          data={userList}
+          data={userList || []}
           columns={columns}
           rightElements={
             <>

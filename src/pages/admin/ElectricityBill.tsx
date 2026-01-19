@@ -8,14 +8,16 @@ import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { table } from 'console';
+import { useAppSelector } from '@/app/hooks';
+import { RootState } from '@/app/store';
 
 const ElectricityBill = () => {
+  const [month, setMonth] = useState('');
+const [allocationData,setAllocationData]= useState([])
+  const [openButton, setOpenButton] = useState(false);
+  const { data: allocations, loading: employeeLoading } = useAppSelector((state: RootState) => state.quarterEmployeeMapList);
 
-const [month, setMonth] = useState('');
-
-const [openButton, setOpenButton] = useState(false);
-
-const columns = [
+  const columns = [
     {
       accessorKey: 'employeeCode',
       header: 'Employee Code',
@@ -134,7 +136,7 @@ const columns = [
     },
   ];
 
-const dummyElectricityData = [
+  const dummyElectricityData = [
     {
       employeeCode: 123,
       quarterNo: 'Q-101',
@@ -176,52 +178,52 @@ const dummyElectricityData = [
     },
   ];
 
-const data = dummyElectricityData.map((item) => {
+  const data = dummyElectricityData.map((item) => {
     const consumption = item.currentReading - item.oldReading;
     const billAmount = item.ratePerUnit * consumption;
     const totalRent = item.rent + billAmount;
     return {
       'Employee Code': item.employeeCode,
       'Employee Name': item.employeeName,
-      'Designation': item.designation,
+      Designation: item.designation,
       'Position Grade': item.positionGrade,
-      'Post': item.post,
-      'Unit': item.unit,
+      Post: item.post,
+      Unit: item.unit,
       'Quarter No': item.quarterNo,
       'Quarter Rent': `₹${item.rent}`,
       'Old Reading': item.oldReading,
       'Current Reading': item.currentReading,
-      'Consumption': consumption,
+      Consumption: consumption,
       'Rate Per Unit': `₹${item.ratePerUnit}`,
       'Bill Amount': `₹${billAmount}`,
       'Total Rent': `₹${totalRent}`,
     };
   });
-  
-const pdfRows = dummyElectricityData.map(item => {
-const consumption = item.currentReading - item.oldReading;
-const billAmount = item.ratePerUnit * consumption;
-const totalRent = item.rent + billAmount;
 
-  return [
-    item.employeeCode,
-    item.employeeName,
-    item.designation,
-    item.positionGrade,
-    item.post,
-    item.unit,
-    item.quarterNo,
-    `${item.rent}`,
-    item.oldReading,
-    item.currentReading,
-    consumption,
-    `${item.ratePerUnit}`,
-    `${billAmount}`,
-    `${totalRent}`,
-  ];
-});
+  const pdfRows = dummyElectricityData.map((item) => {
+    const consumption = item.currentReading - item.oldReading;
+    const billAmount = item.ratePerUnit * consumption;
+    const totalRent = item.rent + billAmount;
 
-const pdfHeaders = [
+    return [
+      item.employeeCode,
+      item.employeeName,
+      item.designation,
+      item.positionGrade,
+      item.post,
+      item.unit,
+      item.quarterNo,
+      `${item.rent}`,
+      item.oldReading,
+      item.currentReading,
+      consumption,
+      `${item.ratePerUnit}`,
+      `${billAmount}`,
+      `${totalRent}`,
+    ];
+  });
+
+  const pdfHeaders = [
     'Employee Code',
     'Employee Name',
     'Designation',
@@ -249,10 +251,10 @@ const pdfHeaders = [
 
   const generatePDF = () => {
     const doc = new jsPDF({
-    orientation: "landscape",
-    unit: "mm",
-    format: "a4",
-   });
+      orientation: 'landscape',
+      unit: 'mm',
+      format: 'a4',
+    });
 
     doc.setFontSize(14);
 
@@ -265,17 +267,16 @@ const pdfHeaders = [
       styles: {
         fontSize: 8,
         cellPadding: 2,
-        overflow: "linebreak",
+        overflow: 'linebreak',
       },
       headStyles: {
         fillColor: [22, 163, 74],
         textColor: 255,
-        halign:"center"
+        halign: 'center',
       },
       bodyStyles: {
-      halign: "center",
+        halign: 'center',
       },
-
     });
 
     doc.save('Report.pdf');
