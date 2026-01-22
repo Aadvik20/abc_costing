@@ -11,7 +11,7 @@ import { clearOldSessionStorage } from './services/ssoService';
 injectStore(store);
 clearOldSessionStorage();
 createRoot(document.getElementById('root')!).render(
-  <StrictMode>
+    <StrictMode>
     <BrowserRouter>
       <Provider store={store}>
         <PersistGate loading={<div>Loading...</div>} persistor={persister}>

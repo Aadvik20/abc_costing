@@ -5,7 +5,7 @@ import { NavMain } from '@/components/nav-main';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarMenu, SidebarMenuButton, SidebarRail, SidebarSeparator, useSidebar } from '@/components/ui/sidebar';
 import { environment } from '@/config';
 import { clearAllStorage } from '@/lib/helperFunction';
-import { Home, Link, Building, Users } from 'lucide-react';
+import { Home, Link, Building, Users , Landmark} from 'lucide-react';
 import { NavItem } from '@/types/types';
 import { Separator } from '../ui/separator';
 import { useAppSelector } from '@/app/hooks';
@@ -17,39 +17,15 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   const canAccessAdminDashboard = true;
   const allNavItems: NavItem[] = [
     {
-      title: 'Quarter Types',
+      title: 'Purchase Order',
       url: '/dashboard',
       icon: Home,
-      roles: ['Admin'],
+      roles: ['user'],
     },
     {
-      title: 'Quarter Details',
-      url: '/quarter-details-management',
-      icon: Building,
-      roles: ['CGM'],
-    },
-    {
-      title: 'Quarter Allocation',
-      url: '/employee-quarter-allocation',
-      icon: Users,
-      roles: ['CGM'],
-    },
-    {
-      title: 'User Role Mapping',
-      url: '/user-role-mapping',
-      icon: Users,
-      roles: ['Admin', 'CGM'],
-    },
-    {
-      title: 'Manage Roles',
-      url: '/manage-roles',
-      icon: UserCheck2,
-      roles: ['Admin', 'CGM'],
-    },
-    {
-      title: 'Electricity Bill',
-      url: '/electricity-bill',
-      icon: Zap,
+      title: 'Finance',
+      url: '/Finance',
+      icon: Landmark,
       roles: ['user'],
     },
   ];

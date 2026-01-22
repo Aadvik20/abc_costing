@@ -3,16 +3,11 @@ import { persistStore, persistReducer } from 'redux-persist';
 import storageSession from 'redux-persist/lib/storage/session';
 import { combineReducers } from 'redux';
 import userReducer from '@/features/user/userSlice';
+import poSlicereducer from '@/features/ManagePoSlice';
 import applicationsReducer from '@/features/applications/applicationSlice';
-import masterDataReducer from '../features/masterData/masterSlice';
 import tokenDataReduer from '../features/user/TokenDataSlice';
-import quarterTypesReducer from '../features/quarter/QuarterTypeSlice';
-import quarterDetailsReducer from '../features/quarter/quarterDetailsSlice';
-import employeeListReducer from '../features/quarter/employeeListSlice';
-import quarterEmployeeMapReducer from '../features/quarter/quarterEmployeeMapSlice';
-import userRoleReducer from '../features/userRole/userRoles';
-import masterRolesReducer from '../features/userRole/masterRoles';
-import quarterEmployeeBillMapReducer from '../features/quarter/quarterEmployeeBillMapSlice';
+import FinanceSlicereducer from '@/features/FinanceSlice';
+import masterDatareducer from '@/features/masterData/masterSlice';
 
 const persistConfig = {
   key: 'root',
@@ -23,15 +18,10 @@ const persistConfig = {
 const rootReducer = combineReducers({
   user: userReducer,
   applications: applicationsReducer,
-  masterData: masterDataReducer,
   tokenData: tokenDataReduer,
-  quarterTypes: quarterTypesReducer,
-  quarterDetails: quarterDetailsReducer,
-  employeeList: employeeListReducer,
-  quarterEmployeeMapList: quarterEmployeeMapReducer,
-  userRoles: userRoleReducer,
-  masterRoles: masterRolesReducer,
-  quarterEmployeeBillMap: quarterEmployeeBillMapReducer,
+  poSlice: poSlicereducer,
+  FinanceSlice: FinanceSlicereducer,
+  masterData: masterDatareducer,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

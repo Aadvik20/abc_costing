@@ -48,7 +48,7 @@ const initialState: MasterDataState = {
 
 export const fetchMasterData = createAsyncThunk<MasterDataResponse, void, { rejectValue: string }>('masterData/fetchMasterData', async (_, thunkAPI) => {
   try {
-    const response = await axiosInstance.get(`/Account/GetStaticMasterData`);
+    const response = await axiosInstance.get(`/Util/constant-data`);
 
     return response.data.data as MasterDataResponse;
   } catch (error: any) {

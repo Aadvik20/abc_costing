@@ -83,17 +83,17 @@ const initialState: UserState = {
   delegatedApplicationNames: null,
 };
 
-export const fetchUserProfile = createAsyncThunk('user/fetchProfile', async (_, { rejectWithValue }) => {
+export const fetchUserProfile = createAsyncThunk('user/fetchUserProfile', async (_, { rejectWithValue }) => {
   try {
-    const response = await axiosInstance.get<ProfileResponse>('/Account/profile');
-    const data = response.data;
+    const response = await axiosInstance.get<ProfileResponse>('/User/GetProfile');
+    const data: any = response.data;
     if (data.error) {
       throw new Error(data.errorDetail || 'Unknown error occurred');
     }
 
     const delegationInfo = getDelegationInfoFromSession();
     data.data = {
-      ...data.data,
+      ...data.employeeInfo,
       ...delegationInfo,
     };
     return data;
@@ -123,18 +123,19 @@ const userSlice = createSlice({
       .addCase(fetchUserProfile.fulfilled, (state, action) => {
         state.loading = false;
         const { data } = action.payload || {};
-
-        state.EmpCode = data?.empCode || '';
-        state.name = data?.name || '';
-        state.Designation = data?.designation;
-        state.Unit = data?.unit || '';
+        state.EmpCode = data?.employeeCode || '';
+        state.name = data?.userName || '';
+        state.Designation = data?.designation || '';
+        state.Unit = data?.location || '';
         state.unitId = String(data?.unitId);
-        state.Department = data?.department || '';
+        state.Department = data?.deptDfccil || '';
         state.Lavel = data?.level || '';
         state.Mobile = data?.mobile || '';
-        state.Email = data?.email || '';
-        state.employeeMasterAutoId = data?.empId || null;
-        const roles = Array.isArray(data.qRoles)
+        state.Email = data?.emailAddress || '';
+        // state.employeeMasterAutoId = data?.employeeMasterAutoId || null;
+        // state.reportingOfficer = data?.reportingOfficer || null;
+        // state.personnelSubArea = data?.personnelSubArea || null;
+        const roles : any = Array.isArray(data.qRoles)
           ? Array.from(
               new Set(data.qRoles.map((r: any) => (typeof r === 'string' ? r : r?.roleAssign)).filter((s: any) => typeof s === 'string' && s.trim().length > 0))
             )

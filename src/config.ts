@@ -1,5 +1,5 @@
 const DFCCIL_UAT = {
-  apiUrl: 'https://uatquarterapi.dfccil.com/api',
+  apiUrl: 'https://uatopenpoapi.dfccil.com/api',
   orgHierarchy: 'https://uatorganization.dfccil.com/api',
   logoutUrl: 'https://uat.dfccil.com/DfcHome',
   exitUrl: 'https://uatlogin.dfccil.com/applications',

@@ -11,7 +11,6 @@ const SiteHeader: React.FC<{ showtoggle?: boolean }> = () => {
   const user = useSelector((state: RootState) => state.user);
   const { toggleSidebar } = useSidebar();
   const { decoded } = useSelector((state: RootState) => state.tokenData);
-
   return (
     <header className="bg-white shadow-md sticky top-0 w-full z-50 border-b-4 border-red-600 h-12 sm:h-16 md:h-[80px] px-2 sm:px-4">
       <div className="flex items-center justify-between h-full p-2">

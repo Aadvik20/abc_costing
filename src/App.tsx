@@ -1,6 +1,6 @@
-import React from 'react';
+import React from 'react'
+import AppRoutes from './routes/AppRoutes'
 import { Toaster } from 'react-hot-toast';
-import AppRoutes from './routes/AppRoutes';
 import { ErrorBoundary } from 'react-error-boundary';
 import ErrorFallbackUI from './components/common/ErrorFallbackUI';
 import { AuthProvider } from './auth/AuthProvider';
@@ -81,17 +81,17 @@ function BoundaryWrapper({ children }: { children: React.ReactNode }) {
       {children}
     </ErrorBoundary>
   );
-}
+};
 const App = () => {
   return (
     <div>
-      <AuthProvider>
+        <AuthProvider>
         <Toaster reverseOrder={false} toastOptions={{ duration: 3000, position: 'top-center' }} />
         <BoundaryWrapper>
           <AppRoutes />
         </BoundaryWrapper>
       </AuthProvider>
     </div>
-  );
-};
-export default App;
+  )
+}
+export default App

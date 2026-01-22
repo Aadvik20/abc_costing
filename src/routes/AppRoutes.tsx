@@ -1,3 +1,5 @@
+import React from 'react';
+import ManagePo from '@/pages/ManagePo';
 import { Routes, Route } from 'react-router';
 import { useEffect } from 'react';
 import PrivateRoute from './PrivateRoute';
@@ -9,25 +11,21 @@ import FrontChannelLogout from '@/auth/FrontChannelLogout';
 import { useAppSelector } from '@/app/hooks';
 import { useGlobalLogout } from '@/auth/useGlobalLogout';
 import { AppDispatch, RootState } from '@/app/store';
-import { fetchApplications } from '@/features/applications/applicationSlice';
-import AppLayout from '@/components/layout/app-layout';
 import Seo from '@/components/common/Seo';
 import { useAppName } from '@/hooks/useAppName';
 import { useAuth } from 'react-oidc-context';
 import { useDispatch, useSelector } from 'react-redux';
+import AppLayout from '@/components/layout/app-layout';
+import Finance from '@/pages/Finance';
 import { fetchMasterData } from '@/features/masterData/masterSlice';
-import EmployeeQuarterAllocation from '@/pages/admin/EmployeeQuarterAllocation';
-import QuarterDetailsManagement from '@/pages/admin/QuarterDetailsManagement';
-import QuarterTypeManagement from '@/pages/admin/QuarterTypeManagement';
-import UserRoleMapping from '@/pages/Roles/UserRoleMapping';
-import ManageRoles from '@/pages/Roles/ManageRoles';
-import ElectricityBill from '@/pages/admin/ElectricityBill';
+import { fetchApplications } from '@/features/applications/applicationSlice';
 
 const AppRoutes = () => {
   const dispatch = useDispatch<AppDispatch>();
   const { fullDescription, description } = useAppName();
-  const applications = useAppSelector((state: RootState) => state.applications.applications);
   const { isAuthenticated } = useAuth();
+  const applications = useAppSelector((state: RootState) => state.applications.applications);
+
   const masterData = useSelector((state: RootState) => state.masterData.departments);
   useEffect(() => {
     if (isAuthenticated && masterData?.length === 0) {
@@ -35,12 +33,11 @@ const AppRoutes = () => {
     }
   }, [masterData.length, isAuthenticated]);
   useGlobalLogout();
-  useEffect(() => {
-    if (applications?.length === 0) {
-      dispatch(fetchApplications());
-    }
-  }, [applications, dispatch]);
-
+  // useEffect(() => {
+  //   if (applications?.length === 0) {
+  //     dispatch(fetchApplications());
+  //   }
+  // }, [applications, dispatch]);
   return (
     <>
       <Seo title={fullDescription} description={description} />
@@ -49,13 +46,10 @@ const AppRoutes = () => {
         <Route path="/logout-notification" element={<FrontChannelLogout />} />
         <Route element={<AppLayout isAdmin={false} />}>
           <Route element={<PrivateRoute allowedRoles={['user']} />}>
+            \
             <Route path="/" element={<HomePage />} />
-            <Route path="/employee-quarter-allocation" element={<EmployeeQuarterAllocation />} />
-            <Route path="/quarter-details-management" element={<QuarterDetailsManagement />} />
-            <Route path="/dashboard" element={<QuarterTypeManagement />} />
-            <Route path="/user-role-mapping" element={<UserRoleMapping />} />
-            <Route path="/manage-roles" element={<ManageRoles />} />
-            <Route path="/electricity-bill" element={<ElectricityBill />} />
+            <Route path="/dashboard" element={<ManagePo />} />
+            <Route path="/finance" element={<Finance />} />
           </Route>
         </Route>
         <Route element={<AppLayout isAdmin={true} />}>

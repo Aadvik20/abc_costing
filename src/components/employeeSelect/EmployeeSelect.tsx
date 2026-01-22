@@ -22,7 +22,7 @@ type OptionType = {
 };
 
 const EmployeeSelect = () => {
-  const { user, employee } = useSelector((state: RootState) => ({
+  const { user, employee} = useSelector((state: RootState) => ({
     user: state.user,
     employee: state.employee,
   }));

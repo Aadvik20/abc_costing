@@ -15,6 +15,7 @@ import { Input } from './input';
 import { Button } from './button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './table';
 
+
 interface TableListProps {
   data: any[];
   columns: any[];
@@ -146,9 +147,9 @@ export default function TableList({
           </div>
         </div>
       </div>
-      <div className="rounded-md border">
+      <div className="rounded-md border h-[500px] overflow-x-auto overflow-y-auto">
         <Table>
-          <TableHeader className="text-white ">
+          <TableHeader className="text-white">
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
