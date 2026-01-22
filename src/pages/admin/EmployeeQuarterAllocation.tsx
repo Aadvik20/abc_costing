@@ -195,7 +195,6 @@ const EmployeeQuarterAllocation = () => {
                       setShowModal(true);
                       setSelectedRow(null);
                       dispatch(fetchQuarterDetails());
-                      
                     }}
                     className="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
                   >
