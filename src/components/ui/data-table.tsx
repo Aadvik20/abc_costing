@@ -147,7 +147,7 @@ export default function TableList({
           </div>
         </div>
       </div>
-      <div className="rounded-md border h-[500px] overflow-x-auto overflow-y-auto">
+      <div className="rounded-md border h-[530px] overflow-x-auto overflow-y-auto">
         <Table>
           <TableHeader className="text-white">
             {table.getHeaderGroups().map((headerGroup) => (

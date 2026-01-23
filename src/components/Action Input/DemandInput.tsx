@@ -12,7 +12,7 @@ const DemandInput = React.memo(({ sapDump, onSave }: Props) => {
 
   return (
     <div
-      className="flex items-center gap-2"
+      className="flex items-center"
       onMouseDown={(e) => e.stopPropagation()}
       onClick={(e) => e.stopPropagation()}
     >
