@@ -1,5 +1,6 @@
 import { oidcConfig } from '@/auth/config';
 import { format, parseISO } from 'date-fns';
+import { Currency } from 'lucide-react';
 
 export const setSessionItem = (key: string, value: any) => {
   const valueToStore = typeof value === 'object' ? JSON.stringify(value) : value;
@@ -82,6 +83,14 @@ export const formatRupees = (amount: number | null | undefined): string => {
     minimumFractionDigits: 2,
   }).format(amount);
 };
+
+export const formatRupeeInput = (value) => {
+    if (!value) return '';
+    const numericValue = value.replace(/[^0-9]/g, '');
+    return new Intl.NumberFormat('en-IN').format(numericValue);
+  };
+
+
 export const getNextDate = (dateString: string) => {
   if (!dateString) return;
   const date = new Date(dateString);

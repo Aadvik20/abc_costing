@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { formatRupees } from '@/lib/helperFunction';
+import {formatRupeeInput} from "@/lib/helperFunction"
 
 export function PurchaseOrderModal({ open, onOpenChange, initialData, onSave }) {
   const [anticipatedDemand, setAnticipatedDemand] = useState('');
@@ -27,7 +28,7 @@ export function PurchaseOrderModal({ open, onOpenChange, initialData, onSave }) 
   };
 
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value
+    const value = e.target.value.replace(/[^0-9]/g, '');
 
     if (value === '') {
       setAnticipatedDemand('');
@@ -80,11 +81,11 @@ export function PurchaseOrderModal({ open, onOpenChange, initialData, onSave }) 
             <p className="text-sm font-medium ">Anticipated Demand</p>
             <div>
               <Input
-                className="mt-1 text-right"
-                type="number"
+                className="mt-1 text-right font-medium"
+                type="text"
                 inputMode="numeric"
                 placeholder="Enter Demand Amount"
-                value={anticipatedDemand}
+                value={formatRupeeInput(anticipatedDemand)}
                 onChange={handleAmountChange}
               />
               {error && <span className="text-xs text-red-500">{error}</span>}

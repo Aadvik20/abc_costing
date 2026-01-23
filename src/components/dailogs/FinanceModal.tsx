@@ -3,6 +3,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { formatRupees } from '@/lib/helperFunction';
+import {formatRupeeInput} from "@/lib/helperFunction"
+import { fetchFinanceData } from '@/features/FinanceSlice';
+import { useAppDispatch} from '@/app/hooks';
 
 export function FinanceModal({ open, onOpenChange, initialData, onSave }) {
   const [approveDemand, setApproveDemand] = useState('');
@@ -11,8 +14,10 @@ export function FinanceModal({ open, onOpenChange, initialData, onSave }) {
 
   const [error, setError] = useState('');
 
+  const dispatch = useAppDispatch()
+
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
+    const value = e.target.value.replace(/[^0-9]/g, '');
 
     if (value === '') {
       setApproveDemand('');
@@ -55,6 +60,8 @@ export function FinanceModal({ open, onOpenChange, initialData, onSave }) {
       reason: reason || '',
     };
     await onSave?.(payload);
+    await dispatch(fetchFinanceData());
+    setApproveDemand('')
   };
 
   return (
@@ -96,15 +103,22 @@ export function FinanceModal({ open, onOpenChange, initialData, onSave }) {
           <div className="grid grid-cols-[1fr_2fr] gap-y-4 gap-x-6 items-center">
             <p className="text-sm font-medium ">Approve Demand</p>
             <div>
-            <Input className="mt-1 text-right" type="number" placeholder="Enter Approve Amount" value={approveDemand} onChange={handleAmountChange} />
-            {error && <span className="text-xs text-red-500">{error}</span>}
+              <Input
+                className="mt-1 text-right font-medium`"
+                inputMode="numeric"
+                type="text"
+                placeholder="Enter Approve Amount"
+                value={formatRupeeInput(approveDemand)}
+                onChange={handleAmountChange}
+              />
+              {error && <span className="text-xs text-red-500">{error}</span>}
             </div>
           </div>
 
           <div className="grid grid-cols-[1fr_2fr] gap-y-4 gap-x-6 items-center">
             <p className="text-sm font-medium ">Reason</p>
 
-            <Input className="mt-1" type="text" placeholder="Enter Reason" value={reason} onChange={(e) => setReason(e.target.value)} />
+            <Input className="mt-1 font-medium" type="text" placeholder="Enter Reason" value={reason} onChange={(e) => setReason(e.target.value)} />
           </div>
         </div>
         <DialogFooter className="gap-2">
@@ -112,12 +126,12 @@ export function FinanceModal({ open, onOpenChange, initialData, onSave }) {
             variant="outline"
             type="button"
             onClick={() => {
-              (onOpenChange?.(false), setApproveDemand('') , setError(''));
+              (onOpenChange?.(false), setApproveDemand(''), setError(''));
             }}
           >
             Cancel
           </Button>
-          <Button disabled = {!approveDemand || Boolean (error)}  type="button" onClick={submit}>
+          <Button disabled={!approveDemand || Boolean(error)} type="button" onClick={submit}>
             Submit
           </Button>
         </DialogFooter>

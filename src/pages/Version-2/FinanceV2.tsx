@@ -6,8 +6,6 @@ import TableList from '@/components/ui/data-table';
 import axiosInstance from '@/services/axiosInstance';
 import toast from 'react-hot-toast';
 import { Button } from '@/components/ui/button';
-import FinanceActionInput from '@/components/Action Input/FinanceActionInput';
-import { formatRupees } from '@/lib/helperFunction';
 import Loader from '@/components/ui/loader';
 import { FinanceModal } from '@/components/dailogs/FinanceModal';
 
@@ -36,10 +34,10 @@ const Finance2 = () => {
 
   const onSave = async (payload) => {
     try {
-      console.log(payload);
       const response = await axiosInstance.post('/Finance', payload);
       if (response.data.success) {
         toast.success('Demand Approved Successfully');
+        setShowModal(false);
       } else {
         toast.error(response.data.errorMessage);
       }
