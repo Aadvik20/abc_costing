@@ -6,7 +6,6 @@ import { useAppDispatch, useAppSelector } from '@/app/hooks';
 import { fetchPoData, removePoByPktblSapDump } from '@/features/ManagePoSlice';
 import toast from 'react-hot-toast';
 import TableList from '@/components/ui/data-table';
-import DemandInput from '@/components/Action Input/DemandInput';
 import { formatRupees } from '@/lib/helperFunction';
 import Loader from '@/components/ui/loader';
 import { PurchaseOrderModal } from '@/components/dailogs/PurchaseOrderModal';
@@ -16,7 +15,7 @@ const PurchaseOrderV2 = () => {
   const [departments, setDepartments] = useState([]);
   const [supplier, setSupplier] = useState([]);
 
-  const [selectedUnit, setSelectedUnit] = useState('');
+  const [selectedUnit, setSelectedUnit] = useState('All Units');
   const [selectedDepartment, setSelectedDepartment] = useState('');
   const [selectedSupplier, setSelectedSupplier] = useState('');
 
@@ -94,6 +93,7 @@ const PurchaseOrderV2 = () => {
         cell: ({ row }) => (
           <div className="px-2 font-semibold">
             <Button
+              variant="outline"
               onClick={() => {
                 setSelectedRow(row.original);
                 setShowModal(true);
@@ -110,6 +110,10 @@ const PurchaseOrderV2 = () => {
 
   const tableData = useMemo(() => {
     let data = po || [];
+
+    if (selectedUnit === 'All Units') {
+      return data;
+    }
 
     if (selectedUnit) {
       data = data.filter((r) => r.unit === selectedUnit);
@@ -165,6 +169,10 @@ const PurchaseOrderV2 = () => {
         <TableList
           data={tableData}
           columns={columns}
+          // onRowClick={(row) => {
+          //   setSelectedRow(row);
+          //   setShowModal(true);
+          // }}
           rightElements={
             <>
               <div className="flex items-center gap-2">

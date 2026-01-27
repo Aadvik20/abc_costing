@@ -3,12 +3,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { formatRupees } from '@/lib/helperFunction';
-import {formatRupeeInput} from "@/lib/helperFunction"
+import { formatRupeeInput } from '@/lib/helperFunction';
+import { DialogClose } from '@radix-ui/react-dialog';
 
 export function PurchaseOrderModal({ open, onOpenChange, initialData, onSave }) {
   const [anticipatedDemand, setAnticipatedDemand] = useState('');
   const [error, setError] = useState('');
-
   const data = initialData || {};
 
   const poOrderValue = data.poOrderValue ?? 0;

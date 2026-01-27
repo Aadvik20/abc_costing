@@ -10,7 +10,7 @@ import Loader from '@/components/ui/loader';
 import { FinanceModal } from '@/components/dailogs/FinanceModal';
 
 const Finance2 = () => {
-  const [selectedUnit, setSelectedUnit] = useState('');
+  const [selectedUnit, setSelectedUnit] = useState('All Units');
 
   const [units, setUnits] = useState([]);
 
@@ -79,44 +79,13 @@ const Finance2 = () => {
         header: 'Capex Opex',
         cell: ({ row }) => <div className="px-2 font-semibold">{row.original.capexOpex || '-'}</div>,
       },
-      // {
-      //   accessorKey: 'poOrderValue',
-      //   header: 'PO Order Value',
-      //   cell: ({ row }) => <div className="px-2 text-right">{formatRupees(row.original.poOrderValue) || '-'}</div>,
-      // },
-      // {
-      //   accessorKey: 'deliveredValue',
-      //   header: 'Delivered Value',
-      //   cell: ({ row }) => <div className="px-2 text-right">{formatRupees(row.original.deliveredValue) || '-'}</div>
-
-      // },
-      // {
-      //   accessorKey: 'balanceToBeInvoice',
-      //   header: 'Balance To Be Invoice',
-      //   cell: ({ row }) => <div className="px-2 text-right">{formatRupees(row.original.balanceToBeInvoice) || '-'}</div>
-      // },
-      // {
-      //   accessorKey: 'demandAmount',
-      //   header: 'Demanded Amount',
-      //   cell: ({ row }) =><div className="px-2 text-right">{formatRupees(row.original.demandAmount) || '-'}</div>
-
-      // },
-      // {
-      //   accessorKey: 'pendingAmount',
-      //   header: 'Pending Amount',
-      //   cell: ({ row }) =><div className="px-2 text-right">{formatRupees(row.original.pendingAmount) || '-'}</div>
-      // },
-      // {
-      //   accessorKey: 'approvedAmount',
-      //   header: 'Approved Amount',
-      //   cell: ({ row }) => <div className="px-2">{row.original.approvedAmount || '-'}</div>,
-      // },
       {
         accessorKey: 'action',
         header: 'Action',
         cell: ({ row }) => (
           <div className="px-2 font-semibold">
             <Button
+              variant="outline"
               onClick={() => {
                 setSelectedRow(row.original);
                 setShowModal(true);
@@ -133,6 +102,10 @@ const Finance2 = () => {
   const tableData = useMemo(() => {
     let data = finance || [];
 
+    if (selectedUnit === 'All Units') {
+      return data;
+    }
+
     if (selectedUnit) {
       data = data.filter((r) => r.unit === selectedUnit);
     }
@@ -145,7 +118,7 @@ const Finance2 = () => {
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Finance Record</h1>
-          <p className="text-gray-600 mt-1"> Finance records</p>
+          <p className="text-gray-600 mt-1">Manage Finance records</p>
         </div>
       </div>
       <div className="mt-6 min-h-screen">

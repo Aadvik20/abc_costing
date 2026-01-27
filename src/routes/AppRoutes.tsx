@@ -48,7 +48,6 @@ const AppRoutes = () => {
         <Route path="/logout-notification" element={<FrontChannelLogout />} />
         <Route element={<AppLayout isAdmin={false} />}>
           <Route element={<PrivateRoute allowedRoles={['user']} />}>
-            \
             <Route path="/" element={<HomePage />} />
             <Route path="/dashboard" element={<ManagePo />} />
             <Route path="/finance" element={<Finance />} />
