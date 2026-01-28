@@ -6,7 +6,6 @@ import { useAppDispatch, useAppSelector } from '@/app/hooks';
 import { fetchPoData, removePoByPktblSapDump } from '@/features/ManagePoSlice';
 import toast from 'react-hot-toast';
 import TableList from '@/components/ui/data-table';
-import { formatRupees } from '@/lib/helperFunction';
 import Loader from '@/components/ui/loader';
 import { PurchaseOrderModal } from '@/components/dailogs/PurchaseOrderModal';
 
@@ -15,7 +14,7 @@ const PurchaseOrderV2 = () => {
   const [departments, setDepartments] = useState([]);
   const [supplier, setSupplier] = useState([]);
 
-  const [selectedUnit, setSelectedUnit] = useState('All Units');
+  const [selectedUnit, setSelectedUnit] = useState('');
   const [selectedDepartment, setSelectedDepartment] = useState('');
   const [selectedSupplier, setSelectedSupplier] = useState('');
 
@@ -111,10 +110,6 @@ const PurchaseOrderV2 = () => {
   const tableData = useMemo(() => {
     let data = po || [];
 
-    if (selectedUnit === 'All Units') {
-      return data;
-    }
-
     if (selectedUnit) {
       data = data.filter((r) => r.unit === selectedUnit);
     }
@@ -180,8 +175,8 @@ const PurchaseOrderV2 = () => {
                   value={selectedUnit}
                   onChange={(e) => {
                     setSelectedUnit(e.target.value);
-                    setSelectedDepartment(null);
-                    setSelectedSupplier(null);
+                    setSelectedDepartment('');
+                    setSelectedSupplier('');
                   }}
                   className=" w-[200px] p-3 border-2 rounded outline:none"
                 >
@@ -197,7 +192,7 @@ const PurchaseOrderV2 = () => {
                   value={selectedDepartment}
                   onChange={(e) => {
                     setSelectedDepartment(e.target.value);
-                    setSelectedSupplier(null);
+                    setSelectedSupplier('');
                   }}
                   disabled={!selectedUnit}
                   className=" w-[200px] p-3 border-2 rounded outline:none"

@@ -18,7 +18,7 @@ const Finance2 = () => {
   const [showModal, setShowModal] = useState(false);
 
   const dispatch = useAppDispatch();
-  const { finance, loading } = useAppSelector((state) => state.FinanceSlice);
+  const { finance , loading } = useAppSelector((state) => state.FinanceSlice);
 
   useEffect(() => {
     if (!finance.length) {

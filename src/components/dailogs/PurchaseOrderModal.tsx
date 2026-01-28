@@ -4,13 +4,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { formatRupees } from '@/lib/helperFunction';
 import { formatRupeeInput } from '@/lib/helperFunction';
-import { DialogClose } from '@radix-ui/react-dialog';
 
 export function PurchaseOrderModal({ open, onOpenChange, initialData, onSave }) {
   const [anticipatedDemand, setAnticipatedDemand] = useState('');
   const [error, setError] = useState('');
   const data = initialData || {};
-
   const poOrderValue = data.poOrderValue ?? 0;
   const deliveredValue = data.deliveredValue ?? 0;
   const balanceToBeInvoice = data.balanceToBeInvoice ?? 0;
@@ -45,14 +43,13 @@ export function PurchaseOrderModal({ open, onOpenChange, initialData, onSave }) 
     }
 
     if (num > balanceToBeInvoice) {
-      setError(`Amount cannot be greater than Balance Amount (₹${balanceToBeInvoice})`);
+      setError(`Amount cannot be greater than Balance Amount (${formatRupees(balanceToBeInvoice)})`);
     } else {
       setError('');
     }
 
     setAnticipatedDemand(value);
   };
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent onPointerDownOutside={(e) => e.preventDefault()} onEscapeKeyDown={(e) => e.preventDefault()} className="max-w-2xl">
@@ -97,7 +94,7 @@ export function PurchaseOrderModal({ open, onOpenChange, initialData, onSave }) 
             variant="outline"
             type="button"
             onClick={() => {
-              (onOpenChange?.(false), setAnticipatedDemand(''));
+              (onOpenChange?.(false), setAnticipatedDemand(''), setError(''));
             }}
           >
             Cancel

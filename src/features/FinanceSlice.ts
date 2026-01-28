@@ -1,7 +1,16 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import axiosInstance from '@/services/axiosInstance';
 
+export type ApprovalHistory = {
+  approvedAmount : number;
+  approvedBy : number ; 
+  approvedOn : string;
+  decisionReason : string;
+  decisionType : string;
+}
+
 export type Finance = {
+  approvalHistory: ApprovalHistory[];
   poNo: string; 
   supplierCode : string;
   contractNo : string;

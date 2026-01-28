@@ -12,8 +12,8 @@ export type Post = {
   post: string;
 };
 
-export type PositionGrade = {
-  positionGrade: string;
+export type grades = {
+  grades: string;
   pgOrder: number;
 };
 
@@ -24,14 +24,14 @@ export type Department = {
 type MasterDataResponse = {
   units: Unit[];
   posts: Post[];
-  positionGrades: PositionGrade[];
+  grades: grades[];
   departments: Department[];
 };
 
 interface MasterDataState {
   units: Unit[];
   posts: Post[];
-  positionGrades: PositionGrade[];
+  grades: grades[];
   departments: Department[];
   loading: boolean;
   error: string | null;
@@ -40,7 +40,7 @@ interface MasterDataState {
 const initialState: MasterDataState = {
   units: [],
   posts: [],
-  positionGrades: [],
+  grades: [],
   departments: [],
   loading: false,
   error: null,
@@ -49,7 +49,6 @@ const initialState: MasterDataState = {
 export const fetchMasterData = createAsyncThunk<MasterDataResponse, void, { rejectValue: string }>('masterData/fetchMasterData', async (_, thunkAPI) => {
   try {
     const response = await axiosInstance.get(`/Util/constant-data`);
-
     return response.data.data as MasterDataResponse;
   } catch (error: any) {
     return thunkAPI.rejectWithValue(error.response?.data?.message || 'Failed to fetch master data');
@@ -69,7 +68,7 @@ const masterDataSlice = createSlice({
       .addCase(fetchMasterData.fulfilled, (state, action: PayloadAction<MasterDataResponse>) => {
         state.loading = false;
         state.units = [...action.payload.units].sort((a, b) => a.sequenceID - b.sequenceID);
-        state.positionGrades = [...action.payload.positionGrades].sort((a, b) => a.pgOrder - b.pgOrder);
+        state.grades = [...action.payload.grades].sort((a, b) => a.pgOrder - b.pgOrder);
         state.posts = action.payload.posts;
         state.departments = action.payload.departments;
       })

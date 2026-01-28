@@ -14,7 +14,7 @@ export function FinanceModal({ open, onOpenChange, initialData, onSave }) {
 
   const [error, setError] = useState('');
 
-  const dispatch = useAppDispatch()
+  const dispatch = useAppDispatch();
 
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.replace(/[^0-9]/g, '');
@@ -34,15 +34,15 @@ export function FinanceModal({ open, onOpenChange, initialData, onSave }) {
     }
 
     if (num > pendingAncipatedDemand) {
-      setError(`Amount cannot be greater than Pending Amount (₹${pendingAncipatedDemand})`);
+      setError(`Amount cannot be greater than Pending Amount (${formatRupees(pendingAncipatedDemand)})`);
     } else {
       setError('');
     }
 
     setApproveDemand(value);
-  };
+  };              
 
-  const data = initialData || {};
+  const data = initialData || {}; 
 
   const poOrderValue = data.poOrderValue ?? 0;
   const deliveredValue = data.deliveredValue ?? 0;
