@@ -66,17 +66,17 @@ const ManagePo = () => {
       {
         accessorKey: 'unit',
         header: 'Unit',
-        cell: ({ row }) => <div className="px-2">{row.original.unit || '-'}</div>,
+        cell: ({ row }) => <div className="px-2 font-semibold">{row.original.unit || '-'}</div>,
       },
       {
         accessorKey: 'department',
         header: 'Department',
-        cell: ({ row }) => <div className="px-2">{row.original.department || '-'}</div>,
+        cell: ({ row }) => <div className="px-2 font-semibold">{row.original.department || '-'}</div>,
       },
       {
         accessorKey: 'poOrderValue',
         header: 'PO Order Value',
-        cell: ({ row }) => <div className="px-2 text-right">{formatRupees(row.original.poOrderValue) || '-'}</div>,
+        cell: ({ row }) => <div className="px-2 text-right font-semibold">{formatRupees(row.original.poOrderValue) || '-'}</div>,
       },
       // {
       //   accessorKey: 'CURRENCY',
@@ -86,12 +86,12 @@ const ManagePo = () => {
       {
         accessorKey: 'deliveredValue',
         header: 'Delivered Value',
-        cell: ({ row }) => <div className="px-2 text-right">{formatRupees(row.original.deliveredValue) || '-'}</div>,
+        cell: ({ row }) => <div className="px-2 text-right font-semibold">{formatRupees(row.original.deliveredValue) || '-'}</div>,
       },
       {
         accessorKey: 'balanceToBeInvoice',
         header: 'Balance To Be Invoice',
-        cell: ({ row }) => <div className="px-2 text-right">{formatRupees(row.original.balanceToBeInvoice) || '-'}</div>,
+        cell: ({ row }) => <div className="px-2 text-right font-semibold">{formatRupees(row.original.balanceToBeInvoice) || '-'}</div>,
       },
       {
         accessorKey: 'action',
@@ -181,10 +181,11 @@ const ManagePo = () => {
           <p className="text-gray-600 mt-1">Manage purchase order records</p>
         </div>
       </div>
-      <div className="mt-6 min-h-screen">
+      <div className="mt-6">
         <TableList
           data={tableData}
           columns={columns}
+          showRefresh
           rightElements={
             <>
               <div className="flex items-center gap-2">

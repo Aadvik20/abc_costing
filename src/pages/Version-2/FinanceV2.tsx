@@ -52,12 +52,12 @@ const Finance2 = () => {
       {
         accessorKey: 'unit',
         header: 'Unit',
-        cell: ({ row }) => <div className="px-2">{row.original.unit || '-'}</div>,
+        cell: ({ row }) => <div className="px-2 font-semibold">{row.original.unit || '-'}</div>,
       },
       {
         accessorKey: 'department',
         header: 'Department',
-        cell: ({ row }) => <div className="px-2">{row.original.department || '-'}</div>,
+        cell: ({ row }) => <div className="px-2 font-semibold">{row.original.department || '-'}</div>,
       },
       {
         accessorKey: 'supplierCode',
@@ -128,6 +128,7 @@ const Finance2 = () => {
             <TableList
               data={tableData}
               columns={columns}
+              showRefresh
               rightElements={
                 <>
                   <div className="flex items-center gap-2">

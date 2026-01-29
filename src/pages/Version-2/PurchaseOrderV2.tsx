@@ -9,7 +9,7 @@ import TableList from '@/components/ui/data-table';
 import Loader from '@/components/ui/loader';
 import { PurchaseOrderModal } from '@/components/dailogs/PurchaseOrderModal';
 import { ApproveHistoryModal } from '@/components/dailogs/ApproveHistoryModal';
-import { History } from 'lucide-react';
+import { History, RefreshCw } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 
 const PurchaseOrderV2 = () => {
@@ -63,12 +63,12 @@ const PurchaseOrderV2 = () => {
       {
         accessorKey: 'unit',
         header: 'Unit',
-        cell: ({ row }) => <div className="px-2">{row.original.unit || '-'}</div>,
+        cell: ({ row }) => <div className="px-2 font-semibold">{row.original.unit || '-'}</div>,
       },
       {
         accessorKey: 'department',
         header: 'Department',
-        cell: ({ row }) => <div className="px-2">{row.original.department || '-'}</div>,
+        cell: ({ row }) => <div className="px-2 font-semibold">{row.original.department || '-'}</div>,
       },
       {
         accessorKey: 'supplierCode',
@@ -179,6 +179,7 @@ const PurchaseOrderV2 = () => {
             <TableList
               data={tableData}
               columns={columns}
+              showRefresh
               // onRowClick={(row) => {
               //   setSelectedRow(row);
               //   setShowModal(true);
