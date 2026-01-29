@@ -8,6 +8,7 @@ import toast from 'react-hot-toast';
 import { Button } from '@/components/ui/button';
 import Loader from '@/components/ui/loader';
 import { FinanceModal } from '@/components/dailogs/FinanceModal';
+import { Card, CardContent } from '@/components/ui/card';
 
 const Finance2 = () => {
   const [selectedUnit, setSelectedUnit] = useState('All Units');
@@ -18,7 +19,7 @@ const Finance2 = () => {
   const [showModal, setShowModal] = useState(false);
 
   const dispatch = useAppDispatch();
-  const { finance , loading } = useAppSelector((state) => state.FinanceSlice);
+  const { finance, loading } = useAppSelector((state) => state.FinanceSlice);
 
   useEffect(() => {
     if (!finance.length) {
@@ -121,40 +122,44 @@ const Finance2 = () => {
           <p className="text-gray-600 mt-1">Manage Finance records</p>
         </div>
       </div>
-      <div className="mt-6 min-h-screen">
-        <TableList
-          data={tableData}
-          columns={columns}
-          rightElements={
-            <>
-              <div className="flex items-center gap-2">
-                <select
-                  value={selectedUnit}
-                  onChange={(e) => {
-                    setSelectedUnit(e.target.value);
-                  }}
-                  className=" w-[200px] p-3 border-2 rounded outline:none"
-                >
-                  <option value="All Units">All Units</option>
-                  {units.map((u, i) => (
-                    <option key={i} value={u}>
-                      {u}
-                    </option>
-                  ))}
-                </select>
+      <Card className='shadow-lg border-0'>
+        <CardContent>
+          <div className="mt-6">
+            <TableList
+              data={tableData}
+              columns={columns}
+              rightElements={
+                <>
+                  <div className="flex items-center gap-2">
+                    <select
+                      value={selectedUnit}
+                      onChange={(e) => {
+                        setSelectedUnit(e.target.value);
+                      }}
+                      className=" w-[200px] p-3 border-2 rounded outline:none"
+                    >
+                      <option value="All Units">All Units</option>
+                      {units.map((u, i) => (
+                        <option key={i} value={u}>
+                          {u}
+                        </option>
+                      ))}
+                    </select>
 
-                <Button
-                  onClick={() => {
-                    setSelectedUnit('');
-                  }}
-                >
-                  Reset
-                </Button>
-              </div>
-            </>
-          }
-        />
-      </div>
+                    <Button
+                      onClick={() => {
+                        setSelectedUnit('');
+                      }}
+                    >
+                      Reset
+                    </Button>
+                  </div>
+                </>
+              }
+            />
+          </div>
+        </CardContent>
+      </Card>
       <FinanceModal open={showModal} onOpenChange={setShowModal} initialData={selectedRow} onSave={onSave} />
     </div>
   );

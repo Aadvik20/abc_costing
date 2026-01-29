@@ -8,6 +8,9 @@ import toast from 'react-hot-toast';
 import TableList from '@/components/ui/data-table';
 import Loader from '@/components/ui/loader';
 import { PurchaseOrderModal } from '@/components/dailogs/PurchaseOrderModal';
+import { ApproveHistoryModal } from '@/components/dailogs/ApproveHistoryModal';
+import { History } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
 
 const PurchaseOrderV2 = () => {
   const [units, setUnits] = useState([]);
@@ -20,6 +23,7 @@ const PurchaseOrderV2 = () => {
 
   const [selectedRow, setSelectedRow] = React.useState(null);
   const [showModal, setShowModal] = useState(false);
+  const [shoeModal2, setShowModal2] = useState(false);
 
   const dispatch = useAppDispatch();
   const { po, loading } = useAppSelector((state) => state.poSlice);
@@ -90,8 +94,8 @@ const PurchaseOrderV2 = () => {
         accessorKey: 'action',
         header: 'Action',
         cell: ({ row }) => (
-          <div className="px-2 font-semibold">
-            <Button
+          <div className="px-2 gap-4 flex font-semibold">
+            <Button 
               variant="outline"
               onClick={() => {
                 setSelectedRow(row.original);
@@ -99,6 +103,15 @@ const PurchaseOrderV2 = () => {
               }}
             >
               Raise Demand
+            </Button>
+
+            <Button
+              onClick={() => {
+                setSelectedRow(row.original);
+                setShowModal2(true);
+              }}
+            >
+              <History />
             </Button>
           </div>
         ),
@@ -160,82 +173,88 @@ const PurchaseOrderV2 = () => {
           <p className="text-gray-600 mt-1">Manage purchase order records</p>
         </div>
       </div>
-      <div className="mt-6 min-h-screen">
-        <TableList
-          data={tableData}
-          columns={columns}
-          // onRowClick={(row) => {
-          //   setSelectedRow(row);
-          //   setShowModal(true);
-          // }}
-          rightElements={
-            <>
-              <div className="flex items-center gap-2">
-                <select
-                  value={selectedUnit}
-                  onChange={(e) => {
-                    setSelectedUnit(e.target.value);
-                    setSelectedDepartment('');
-                    setSelectedSupplier('');
-                  }}
-                  className=" w-[200px] p-3 border-2 rounded outline:none"
-                >
-                  <option value="">All Units</option>
-                  {units.map((u, i) => (
-                    <option key={i} value={u}>
-                      {u}
-                    </option>
-                  ))}
-                </select>
+      <Card className="border-0 shadow-lg">
+        <CardContent>
+          <div className="mt-6">
+            <TableList
+              data={tableData}
+              columns={columns}
+              // onRowClick={(row) => {
+              //   setSelectedRow(row);
+              //   setShowModal(true);
+              // }}
+              rightElements={
+                <>
+                  <div className="flex items-center gap-2">
+                    <select
+                      value={selectedUnit}
+                      onChange={(e) => {
+                        setSelectedUnit(e.target.value);
+                        setSelectedDepartment('');
+                        setSelectedSupplier('');
+                      }}
+                      className=" w-[200px] p-3 border-2 rounded outline:none"
+                    >
+                      <option value="">All Units</option>
+                      {units.map((u, i) => (
+                        <option key={i} value={u}>
+                          {u}
+                        </option>
+                      ))}
+                    </select>
 
-                <select
-                  value={selectedDepartment}
-                  onChange={(e) => {
-                    setSelectedDepartment(e.target.value);
-                    setSelectedSupplier('');
-                  }}
-                  disabled={!selectedUnit}
-                  className=" w-[200px] p-3 border-2 rounded outline:none"
-                >
-                  <option value="">All Departments</option>
-                  {filteredDepartments.map((d, i) => (
-                    <option key={i} value={d}>
-                      {d}
-                    </option>
-                  ))}
-                </select>
+                    <select
+                      value={selectedDepartment}
+                      onChange={(e) => {
+                        setSelectedDepartment(e.target.value);
+                        setSelectedSupplier('');
+                      }}
+                      disabled={!selectedUnit}
+                      className=" w-[200px] p-3 border-2 rounded outline:none"
+                    >
+                      <option value="">All Departments</option>
+                      {filteredDepartments.map((d, i) => (
+                        <option key={i} value={d}>
+                          {d}
+                        </option>
+                      ))}
+                    </select>
 
-                <select
-                  value={selectedSupplier}
-                  onChange={(e) => {
-                    setSelectedSupplier(e.target.value);
-                  }}
-                  disabled={!selectedDepartment}
-                  className=" w-[200px] p-3 border-2 rounded outline:none"
-                >
-                  <option value="">All Supplier</option>
-                  {filteredSuppliers.map((s, i) => (
-                    <option key={i} value={s}>
-                      {s}
-                    </option>
-                  ))}
-                </select>
+                    <select
+                      value={selectedSupplier}
+                      onChange={(e) => {
+                        setSelectedSupplier(e.target.value);
+                      }}
+                      disabled={!selectedDepartment}
+                      className=" w-[200px] p-3 border-2 rounded outline:none"
+                    >
+                      <option value="">All Supplier</option>
+                      {filteredSuppliers.map((s, i) => (
+                        <option key={i} value={s}>
+                          {s}
+                        </option>
+                      ))}
+                    </select>
 
-                <Button
-                  onClick={() => {
-                    setSelectedUnit('');
-                    setSelectedDepartment('');
-                    setSelectedSupplier('');
-                  }}
-                >
-                  Reset
-                </Button>
-              </div>
-            </>
-          }
-        />
-      </div>
+                    <Button
+                      onClick={() => {
+                        setSelectedUnit('');
+                        setSelectedDepartment('');
+                        setSelectedSupplier('');
+                      }}
+                    >
+                      Reset
+                    </Button>
+                  </div>
+                </>
+              }
+            />
+          </div>
+        </CardContent>
+      </Card>
       <PurchaseOrderModal open={showModal} onOpenChange={setShowModal} initialData={selectedRow} onSave={onSave} />
+
+      <ApproveHistoryModal open={shoeModal2} onOpenChange={setShowModal2} initialData={selectedRow} />
     </div>
   );
 };
