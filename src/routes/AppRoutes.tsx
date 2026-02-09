@@ -17,8 +17,8 @@ import { useAuth } from 'react-oidc-context';
 import { useDispatch, useSelector } from 'react-redux';
 import AppLayout from '@/components/layout/app-layout';
 import Finance from '@/pages/Finance';
-import PurchaseOrderV2 from '@/pages/Version-2/PurchaseOrderV2'
-import FinanceV2 from '@/pages/Version-2/FinanceV2'
+import PurchaseOrderV2 from '@/pages/Version-2/PurchaseOrderV2';
+import FinanceV2 from '@/pages/Version-2/FinanceV2';
 import { fetchMasterData } from '@/features/masterData/masterSlice';
 import { fetchApplications } from '@/features/applications/applicationSlice';
 
@@ -35,11 +35,11 @@ const AppRoutes = () => {
     }
   }, [masterData.length, isAuthenticated]);
   useGlobalLogout();
-  // useEffect(() => {
-  //   if (applications?.length === 0) {
-  //     dispatch(fetchApplications());
-  //   }
-  // }, [applications, dispatch]);
+  useEffect(() => {
+    if (applications?.length === 0) {
+      dispatch(fetchApplications());
+    }
+  }, [applications, dispatch]);
   return (
     <>
       <Seo title={fullDescription} description={description} />
@@ -51,7 +51,7 @@ const AppRoutes = () => {
             <Route path="/" element={<HomePage />} />
             <Route path="/dashboard" element={<ManagePo />} />
             <Route path="/finance" element={<Finance />} />
-            <Route path="/purchaseOrderV2" element={<PurchaseOrderV2/>} />
+            <Route path="/purchaseOrderV2" element={<PurchaseOrderV2 />} />
             <Route path="/financeV2" element={<FinanceV2 />} />
           </Route>
         </Route>

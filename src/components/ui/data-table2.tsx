@@ -49,8 +49,6 @@ export default function TableList2({
   const table = useReactTable({
     data,
     columns,
-
-    
     getRowId: (row) => row.pktblSapDump, 
 
     enableSorting: true,

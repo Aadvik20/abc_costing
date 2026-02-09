@@ -43,7 +43,7 @@ export function PurchaseOrderModal({ open, onOpenChange, initialData, onSave }) 
     }
 
     if (num > balanceToBeInvoice) {
-      setError(`Amount cannot be greater than Balance Amount (${formatRupees(balanceToBeInvoice)})`);
+      setError(`Amount is greater than Balance Amount (${formatRupees(balanceToBeInvoice)})`);
     } else {
       setError('');
     }
@@ -100,7 +100,10 @@ export function PurchaseOrderModal({ open, onOpenChange, initialData, onSave }) 
             Cancel
           </Button>
 
-          <Button disabled={!anticipatedDemand || Boolean(error)} type="button" onClick={submit}>
+          <Button disabled={!anticipatedDemand} type="button" onClick={() =>{
+            submit();
+            onOpenChange?.(false)
+            }}>
             Submit
           </Button>
         </DialogFooter>

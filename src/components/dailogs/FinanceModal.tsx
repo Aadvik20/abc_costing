@@ -34,7 +34,7 @@ export function FinanceModal({ open, onOpenChange, initialData, onSave }) {
     }
 
     if (num > pendingAncipatedDemand) {
-      setError(`Amount cannot be greater than Pending Amount (${formatRupees(pendingAncipatedDemand)})`);
+      setError(`Amount is greater than Pending Amount (${formatRupees(pendingAncipatedDemand)})`);
     } else {
       setError('');
     }
@@ -131,8 +131,11 @@ export function FinanceModal({ open, onOpenChange, initialData, onSave }) {
           >
             Cancel
           </Button>
-          <Button disabled={!approveDemand || Boolean(error)} type="button" onClick={submit}>
-            Submit
+          <Button disabled={!approveDemand || Boolean(error)} type="button" onClick={()=>{
+            submit();
+            onOpenChange?.(false)
+          }}>
+          Submit
           </Button>
         </DialogFooter>
       </DialogContent>

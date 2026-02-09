@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import Loader from '@/components/ui/loader';
 import { FinanceModal } from '@/components/dailogs/FinanceModal';
 import { Card, CardContent } from '@/components/ui/card';
+import { RefreshCcw } from 'lucide-react';
 
 const Finance2 = () => {
   const [selectedUnit, setSelectedUnit] = useState('All Units');
@@ -103,6 +104,8 @@ const Finance2 = () => {
   const tableData = useMemo(() => {
     let data = finance || [];
 
+    data = data.filter((r) => Number(r.pendingAmount) > 0);
+
     if (selectedUnit === 'All Units') {
       return data;
     }
@@ -119,16 +122,19 @@ const Finance2 = () => {
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Finance Record</h1>
-          <p className="text-gray-600 mt-1">Manage Finance records</p>
+          <p className="text-gray-600 mt-1">Manage finance records</p>
         </div>
       </div>
-      <Card className='shadow-lg border-0'>
+      <Card className="shadow-lg border-0">
         <CardContent>
-          <div className="mt-6">
+          <div className="mt-5">
             <TableList
               data={tableData}
               columns={columns}
-              showRefresh
+              showRefresh={true}
+              onRefresh={() => {
+                dispatch(fetchFinanceData());
+              }}
               rightElements={
                 <>
                   <div className="flex items-center gap-2">
@@ -137,7 +143,7 @@ const Finance2 = () => {
                       onChange={(e) => {
                         setSelectedUnit(e.target.value);
                       }}
-                      className=" w-[200px] p-3 border-2 rounded outline:none"
+                      className=" w-[200px] px-3 py-2 border-2 rounded outline:none"
                     >
                       <option value="All Units">All Units</option>
                       {units.map((u, i) => (

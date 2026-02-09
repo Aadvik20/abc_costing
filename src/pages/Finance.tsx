@@ -16,13 +16,13 @@ const Finance = () => {
   const [units, setUnits] = useState([]);
 
   const dispatch = useAppDispatch();
-  const { finance , loading } = useAppSelector((state) => state.FinanceSlice);
+  const { finance, loading } = useAppSelector((state) => state.FinanceSlice);
 
   useEffect(() => {
-    if(!finance.length){
-    dispatch(fetchFinanceData());
+    if (!finance.length) {
+      dispatch(fetchFinanceData());
     }
-  }, [dispatch , finance.length]);
+  }, [dispatch, finance.length]);
 
   useEffect(() => {
     if (finance?.length) {
@@ -37,7 +37,7 @@ const Finance = () => {
         employeeCode: 'NA',
         demandId: demandId,
         approvedAmount: amount,
-        reason: reason || "",
+        reason: reason || '',
       };
       console.log(payload);
       const response = await axiosInstance.post('/Finance', payload);
@@ -96,24 +96,22 @@ const Finance = () => {
       {
         accessorKey: 'deliveredValue',
         header: 'Delivered Value',
-        cell: ({ row }) => <div className="px-2 text-right font-semibold">{formatRupees(row.original.deliveredValue) || '-'}</div>
-      
+        cell: ({ row }) => <div className="px-2 text-right font-semibold">{formatRupees(row.original.deliveredValue) || '-'}</div>,
       },
       {
         accessorKey: 'balanceToBeInvoice',
         header: 'Balance To Be Invoice',
-        cell: ({ row }) => <div className="px-2 text-right font-semibold">{formatRupees(row.original.balanceToBeInvoice) || '-'}</div>
+        cell: ({ row }) => <div className="px-2 text-right font-semibold">{formatRupees(row.original.balanceToBeInvoice) || '-'}</div>,
       },
       {
         accessorKey: 'demandAmount',
         header: 'Demanded Amount',
-        cell: ({ row }) =><div className="px-2 text-right font-semibold">{formatRupees(row.original.demandAmount) || '-'}</div>
-
+        cell: ({ row }) => <div className="px-2 text-right font-semibold">{formatRupees(row.original.demandAmount) || '-'}</div>,
       },
       {
         accessorKey: 'pendingAmount',
         header: 'Pending Amount',
-        cell: ({ row }) =><div className="px-2 text-right font-semibold">{formatRupees(row.original.pendingAmount) || '-'}</div>
+        cell: ({ row }) => <div className="px-2 text-right font-semibold">{formatRupees(row.original.pendingAmount) || '-'}</div>,
       },
       // {
       //   accessorKey: 'approvedAmount',
@@ -125,10 +123,14 @@ const Finance = () => {
         header: 'Action',
         cell: ({ row }) => <FinanceActionInput demandId={row.original.pkDemandId} pendingAmount={row.original.pendingAmount} onSave={onSave} />,
       },
-    ],[]);
+    ],
+    []
+  );
   const tableData = useMemo(() => {
     let data = finance || [];
 
+    data = data.filter((r) => Number(r.pendingAmount) > 0);
+    
     if (selectedUnit) {
       data = data.filter((r) => r.unit === selectedUnit);
     }
@@ -137,18 +139,21 @@ const Finance = () => {
 
   return (
     <div className="p-4 md:p-8">
-      {loading&&<Loader/>}
+      {loading && <Loader />}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Finance Record</h1>
-          <p className="text-gray-600 mt-1"> Finance records</p>
+          <p className="text-gray-600 mt-1">Manage finance records</p>
         </div>
       </div>
       <div className="mt-6">
         <TableList
           data={tableData}
           columns={columns}
-          showRefresh
+          showRefresh={true}
+          onRefresh={() => {
+            dispatch(fetchFinanceData());
+          }}
           rightElements={
             <>
               <div className="flex items-center gap-2">

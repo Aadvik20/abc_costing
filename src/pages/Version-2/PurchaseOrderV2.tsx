@@ -95,7 +95,7 @@ const PurchaseOrderV2 = () => {
         header: 'Action',
         cell: ({ row }) => (
           <div className="px-2 gap-4 flex font-semibold">
-            <Button 
+            <Button
               variant="outline"
               onClick={() => {
                 setSelectedRow(row.original);
@@ -175,11 +175,14 @@ const PurchaseOrderV2 = () => {
       </div>
       <Card className="border-0 shadow-lg">
         <CardContent>
-          <div className="mt-6">
+          <div className="mt-5">
             <TableList
               data={tableData}
               columns={columns}
-              showRefresh
+              showRefresh={true}
+              onRefresh={() => {
+                dispatch(fetchPoData());
+              }}
               // onRowClick={(row) => {
               //   setSelectedRow(row);
               //   setShowModal(true);
@@ -194,7 +197,7 @@ const PurchaseOrderV2 = () => {
                         setSelectedDepartment('');
                         setSelectedSupplier('');
                       }}
-                      className=" w-[200px] p-3 border-2 rounded outline:none"
+                      className=" w-[200px] px-3 py-2 border-2 rounded outline:none"
                     >
                       <option value="">All Units</option>
                       {units.map((u, i) => (
@@ -211,7 +214,7 @@ const PurchaseOrderV2 = () => {
                         setSelectedSupplier('');
                       }}
                       disabled={!selectedUnit}
-                      className=" w-[200px] p-3 border-2 rounded outline:none"
+                      className=" w-[200px] px-3 py-2 border-2 rounded outline:none"
                     >
                       <option value="">All Departments</option>
                       {filteredDepartments.map((d, i) => (
@@ -227,7 +230,7 @@ const PurchaseOrderV2 = () => {
                         setSelectedSupplier(e.target.value);
                       }}
                       disabled={!selectedDepartment}
-                      className=" w-[200px] p-3 border-2 rounded outline:none"
+                      className=" w-[200px] px-3 py-2 border-2 rounded outline:none"
                     >
                       <option value="">All Supplier</option>
                       {filteredSuppliers.map((s, i) => (

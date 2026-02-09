@@ -4,10 +4,10 @@ const DFCCIL_UAT = {
   logoutUrl: 'https://uat.dfccil.com/DfcHome',
   exitUrl: 'https://uatlogin.dfccil.com/applications',
   authUrl: 'https://app2.dfccil.com',
-  clientId: '5078739144764161bd53673c98c7023f',
+  clientId: '29d9a04b724941b3a490899d950aa3ce',
   postLogout: 'https://uatlogin.dfccil.com/signout',
   redirectPath: 'dashboard',
-  applicationId: 73,
+  applicationId: 76,
 };
 
 const DFCCIL_PROD = {
@@ -16,7 +16,7 @@ const DFCCIL_PROD = {
   logoutUrl: 'https://it.dfccil.com/Home/Home',
   exitUrl: 'https://dashboard.dfccil.com/applications',
   authUrl: 'https://app2.dfccil.com',
-  clientId: '071ed846a328407ab65d9a1d9a23847a',
+  clientId: '29d9a04b724941b3a490899d950aa3ce',
   postLogout: 'https://dashboard.dfccil.com/signout',
   redirectPath: 'dashboard',
   applicationId: 4,

@@ -8,7 +8,7 @@ import toast from 'react-hot-toast';
 import TableList from '@/components/ui/data-table';
 import DemandInput from '@/components/Action Input/DemandInput';
 import { formatRupees } from '@/lib/helperFunction';
-import Loader  from '@/components/ui/loader';
+import Loader from '@/components/ui/loader';
 
 const ManagePo = () => {
   const [units, setUnits] = useState([]);
@@ -174,7 +174,7 @@ const ManagePo = () => {
 
   return (
     <div className="p-4 md:p-8">
-      {loading&&<Loader/>}
+      {loading && <Loader />}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Purchase Order Record</h1>
@@ -185,7 +185,10 @@ const ManagePo = () => {
         <TableList
           data={tableData}
           columns={columns}
-          showRefresh
+          showRefresh={true}
+          onRefresh={() => {
+            dispatch(fetchPoData());
+          }}
           rightElements={
             <>
               <div className="flex items-center gap-2">
@@ -238,7 +241,6 @@ const ManagePo = () => {
                     </option>
                   ))}
                 </select>
-                
 
                 {/* <Select onValueChange={setSelectedCapex}>
                     <SelectTrigger className="w-[200px]">
