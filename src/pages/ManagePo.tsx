@@ -9,6 +9,7 @@ import TableList from '@/components/ui/data-table';
 import DemandInput from '@/components/Action Input/DemandInput';
 import { formatRupees } from '@/lib/helperFunction';
 import Loader from '@/components/ui/loader';
+import { Label } from '@/components/ui/label';
 
 const ManagePo = () => {
   const [units, setUnits] = useState([]);
@@ -48,30 +49,20 @@ const ManagePo = () => {
         header: 'PO NO.',
         cell: ({ row }) => <div className="px-2 font-semibold">{row.original.poNo || '-'}</div>,
       },
+        {
+        accessorKey: '',
+        header: 'PO Date',
+        cell: ({ row }) => <div className="px-2 font-semibold"></div>,
+      },
       {
         accessorKey: 'supplierCode',
         header: 'Supplier Code',
         cell: ({ row }) => <div className="px-2 font-semibold">{row.original.supplierCode || '-'}</div>,
       },
       {
-        accessorKey: 'contractNo',
-        header: 'Contract No',
-        cell: ({ row }) => <div className="px-2 font-semibold">{row.original.contractNo || '-'}</div>,
-      },
-      {
         accessorKey: 'capexOpex',
         header: 'Capex Opex',
         cell: ({ row }) => <div className="px-2 font-semibold">{row.original.capexOpex || '-'}</div>,
-      },
-      {
-        accessorKey: 'unit',
-        header: 'Unit',
-        cell: ({ row }) => <div className="px-2 font-semibold">{row.original.unit || '-'}</div>,
-      },
-      {
-        accessorKey: 'department',
-        header: 'Department',
-        cell: ({ row }) => <div className="px-2 font-semibold">{row.original.department || '-'}</div>,
       },
       {
         accessorKey: 'poOrderValue',
@@ -93,11 +84,11 @@ const ManagePo = () => {
         header: 'Balance To Be Invoice',
         cell: ({ row }) => <div className="px-2 text-right font-semibold">{formatRupees(row.original.balanceToBeInvoice) || '-'}</div>,
       },
-      {
-        accessorKey: 'action',
-        header: 'Action',
-        cell: ({ row }) => <DemandInput sapDump={row.original.pktblSapDump} onSave={onSave} />,
-      },
+      // {
+      //   accessorKey: 'action',
+      //   header: 'Action',
+      //   cell: ({ row }) => <DemandInput sapDump={row.original.pktblSapDump} onSave={onSave} />,
+      // },
     ],
     []
   );
@@ -192,6 +183,8 @@ const ManagePo = () => {
           rightElements={
             <>
               <div className="flex items-center gap-2">
+                <div>
+                <Label>Select Unit</Label>
                 <select
                   value={selectedUnit}
                   onChange={(e) => {
@@ -201,14 +194,17 @@ const ManagePo = () => {
                   }}
                   className=" w-[200px] p-3 border-2 rounded outline:none"
                 >
-                  <option value="">All Units</option>
+                  <option value="">Select Unit</option>
                   {units.map((u, i) => (
                     <option key={i} value={u}>
                       {u}
                     </option>
                   ))}
                 </select>
-
+                </div>
+                
+                <div>
+                <Label>Select Department</Label>
                 <select
                   value={selectedDepartment}
                   onChange={(e) => {
@@ -218,14 +214,17 @@ const ManagePo = () => {
                   disabled={!selectedUnit}
                   className=" w-[200px] p-3 border-2 rounded outline:none"
                 >
-                  <option value="">All Departments</option>
+                  <option value="">Select Department</option>
                   {filteredDepartments.map((d, i) => (
                     <option key={i} value={d}>
                       {d}
                     </option>
                   ))}
                 </select>
+                </div>
 
+                <div>
+                <Label>Select Supplier</Label>
                 <select
                   value={selectedSupplier}
                   onChange={(e) => {
@@ -234,13 +233,14 @@ const ManagePo = () => {
                   disabled={!selectedDepartment}
                   className=" w-[200px] p-3 border-2 rounded outline:none"
                 >
-                  <option value="">All Supplier</option>
+                  <option value="">Select Supplier</option>
                   {filteredSuppliers.map((s, i) => (
                     <option key={i} value={s}>
                       {s}
                     </option>
                   ))}
                 </select>
+                </div>
 
                 {/* <Select onValueChange={setSelectedCapex}>
                     <SelectTrigger className="w-[200px]">
