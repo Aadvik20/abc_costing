@@ -18,8 +18,10 @@ const PurchaseOrder = () => {
 
   const [units, setUnits] = useState([]);
   const [departments, setDepartments] = useState([]);
+  const [capex, setCapex] = useState([]);
   const [selectedUnit, setSelectedUnit] = useState('');
   const [selectedDepartment, setSelectedDepartment] = useState('');
+  const [selectedCapex , setSelectedCapex] = useState('');
 
   const dispatch = useAppDispatch();
   const { po, loading } = useAppSelector((state) => state.poSlice);
@@ -34,6 +36,7 @@ const PurchaseOrder = () => {
     if (po?.length) {
       setUnits([...new Set(po.map((r) => r.unit).filter(Boolean))]);
       setDepartments([...new Set(po.map((r) => r.department).filter(Boolean))]);
+      setCapex([...new Set(po.map((r) => r.capexOpex).filter(Boolean))]);
     }
   }, [po]);
 
@@ -53,6 +56,11 @@ const PurchaseOrder = () => {
         accessorKey: 'supplierCode',
         header: 'Supplier Code',
         cell: ({ row }) => <div className="px-2 py-3 font-semibold">{row.original.supplierCode || '-'}</div>,
+      },
+      {
+        accessorKey: 'contractDesp',
+        header: 'Contract Description',
+        cell: ({ row }) => <div className="px-2 py-3 font-semibold">{}</div>,
       },
       {
         accessorKey: 'capexOpex',
@@ -111,6 +119,11 @@ const PurchaseOrder = () => {
     if (selectedDepartment) {
       data = data.filter((r) => r.department === selectedDepartment);
     }
+
+    // if(selectedCapex){
+    //   data = data.filter((r)=> r.capexOpex === selectedCapex);
+    // }
+
     return data;
   }, [po, selectedUnit, selectedDepartment]);
 
@@ -142,6 +155,19 @@ const PurchaseOrder = () => {
       ),
     ];
   }, [selectedUnit, po]);
+
+   const filteredCapex = useMemo(() => {
+    if (!selectedDepartment) return capex;
+
+    return [
+      ...new Set(
+        po
+          .filter((r) => r.unit === selectedUnit && r.department === selectedDepartment)
+          .map((r) => r.capexOpex)
+          .filter(Boolean)
+      ),
+    ];
+  }, [selectedUnit, selectedDepartment ,  po]);
 
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!selectedUnit) {
@@ -367,6 +393,27 @@ const PurchaseOrder = () => {
                           ))}
                         </SelectContent>
                       </Select> */}
+                    </div>
+
+                    {/* Capex */}
+                    <div className="flex flex-col gap-1">
+                      <label className="text-md font-medium text-gray-700">Select Capex/Opex</label>
+                      <select
+                        value={selectedCapex}
+                        onChange={(e) => {
+                          setSelectedCapex(e.target.value);
+                          setError('');
+                        }}
+                        disabled={!selectedDepartment}
+                        className="w-[200px] px-3 py-2 border-2 rounded outline-none disabled:bg-gray-100"
+                      >
+                        <option value="">Select Capex/Opex</option>
+                        {filteredCapex.map((c, i) => (
+                          <option key={i} value={c}>
+                            {c}
+                          </option>
+                        ))}
+                      </select>
                     </div>
 
                     {/* Reset */}
