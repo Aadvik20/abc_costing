@@ -26,18 +26,18 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
       icon: Landmark,
       roles: ['user'],
     },
-    {
-      title: 'Purchase Order V2',
-      url: '/purchaseOrderv2',
-      icon: Home,
-      roles: ['user'],
-    },
-    {
-      title: 'Finance V2',
-      url: '/financeV2',
-      icon: Landmark,
-      roles: ['user'],
-    },
+    // {
+    //   title: 'Purchase Order V2',
+    //   url: '/purchaseOrderv2',
+    //   icon: Home,
+    //   roles: ['user'],
+    // },
+    // {
+    //   title: 'Finance V2',
+    //   url: '/financeV2',
+    //   icon: Landmark,
+    //   roles: ['user'],
+    // },
   ];
   // React.useEffect(() => {
   //   if (loading) return;

@@ -1,5 +1,4 @@
 import React from 'react';
-import ManagePo from '@/pages/ManagePo';
 import { Routes, Route } from 'react-router';
 import { useEffect } from 'react';
 import PrivateRoute from './PrivateRoute';
@@ -21,6 +20,7 @@ import PurchaseOrderV2 from '@/pages/Version-2/PurchaseOrderV2';
 import FinanceV2 from '@/pages/Version-2/FinanceV2';
 import { fetchMasterData } from '@/features/masterData/masterSlice';
 import { fetchApplications } from '@/features/applications/applicationSlice';
+import PurchaseOrder from '@/pages/PurchaseOrder';
 
 const AppRoutes = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -49,10 +49,10 @@ const AppRoutes = () => {
         <Route element={<AppLayout isAdmin={false} />}>
           <Route element={<PrivateRoute allowedRoles={['user']} />}>
             <Route path="/" element={<HomePage />} />
-            <Route path="/dashboard" element={<ManagePo />} />
+            <Route path="/dashboard" element={<PurchaseOrder/>} />
             <Route path="/finance" element={<Finance />} />
-            <Route path="/purchaseOrderV2" element={<PurchaseOrderV2 />} />
-            <Route path="/financeV2" element={<FinanceV2 />} />
+            {/* <Route path="/purchaseOrderV2" element={<PurchaseOrderV2 />} />
+            <Route path="/financeV2" element={<FinanceV2 />} /> */}
           </Route>
         </Route>
         <Route element={<AppLayout isAdmin={true} />}>

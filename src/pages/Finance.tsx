@@ -64,24 +64,9 @@ const Finance = () => {
         cell: ({ row }) => <div className="px-2 font-semibold">{row.original.supplierCode || '-'}</div>,
       },
       {
-        accessorKey: 'contractNo',
-        header: 'Contract No',
-        cell: ({ row }) => <div className="px-2 font-semibold">{row.original.contractNo || '-'}</div>,
-      },
-      {
         accessorKey: 'capexOpex',
         header: 'Capex Opex',
         cell: ({ row }) => <div className="px-2 font-semibold">{row.original.capexOpex || '-'}</div>,
-      },
-      {
-        accessorKey: 'createdBy',
-        header: 'Created By',
-        cell: ({ row }) => <div className="px-2 font-semibold">{row.original.createdBy || '-'}</div>,
-      },
-      {
-        accessorKey: 'unit',
-        header: 'Unit',
-        cell: ({ row }) => <div className="px-2 font-semibold">{row.original.unit || '-'}</div>,
       },
       {
         accessorKey: 'department',
@@ -143,7 +128,7 @@ const Finance = () => {
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Finance Record</h1>
-          <p className="text-gray-600 mt-1">Manage finance records</p>
+          <p className="text-gray-600 mt-1">Manage finance records.</p>
         </div>
       </div>
       <div className="mt-6">
@@ -162,7 +147,7 @@ const Finance = () => {
                   onChange={(e) => {
                     setSelectedUnit(e.target.value);
                   }}
-                  className=" w-[200px] p-3 border-2 rounded outline:none"
+                  className=" w-[200px] px-3 py-2 border-2 rounded outline:none"
                 >
                   <option value="All Units">All Units</option>
                   {units.map((u, i) => (

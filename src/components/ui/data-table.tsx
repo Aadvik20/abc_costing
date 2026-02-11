@@ -10,11 +10,10 @@ import {
   getSortedRowModel,
   useReactTable,
 } from '@tanstack/react-table';
-import { ChevronLeft, ChevronRight, ListFilter, RefreshCw, Search, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Inbox, ListFilter, RefreshCw, Search, X } from 'lucide-react';
 import { Input } from './input';
 import { Button } from './button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './table';
-
 
 interface TableListProps {
   data: any[];
@@ -28,6 +27,7 @@ interface TableListProps {
   onRefresh?: () => void;
   rowClassName?: (rowData: any) => string;
   purposeField?: string; // Field name that contains the purpose value
+  emptyMessage?: string;
 }
 export default function TableList({
   data,
@@ -37,6 +37,7 @@ export default function TableList({
   showRefresh = false,
   rightElements,
   inputPlaceholder = 'Search request by name..... ',
+  emptyMessage = 'No results.',
   rowClassName,
   onRowClick,
   onRefresh,
@@ -147,7 +148,7 @@ export default function TableList({
           </div>
         </div>
       </div>
-      <div className="rounded-md border h-[530px] overflow-x-auto overflow-y-auto">
+      <div className="rounded-md border min-h-[400px] overflow-x-auto overflow-y-auto">
         <Table>
           <TableHeader className="text-white">
             {table.getHeaderGroups().map((headerGroup) => (
@@ -179,7 +180,10 @@ export default function TableList({
             ) : (
               <TableRow>
                 <TableCell colSpan={columns.length} className="h-24 text-center">
-                  No results.
+                  <div className="flex flex-col items-center justify-center py-10 text-gray-400">
+                    <Inbox className="h-8 w-8 mb-2" />
+                    <p>{emptyMessage}</p>
+                  </div>
                 </TableCell>
               </TableRow>
             )}
