@@ -192,3 +192,99 @@ export function getDelegationInfoFromSession(): {
   const decodedToken = getDecodedAccessToken();
   return extractDelegationInfo(decodedToken);
 }
+
+export const formatRupeesInWords = (amount: number): string => {
+  if (amount === null || amount === undefined || isNaN(amount)) {
+    return '';
+  }
+
+  const belowTwenty = [
+    '', 'One', 'Two', 'Three', 'Four', 'Five', 'Six',
+    'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve',
+    'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen',
+    'Seventeen', 'Eighteen', 'Nineteen',
+  ];
+
+  const tens = [
+    '', '', 'Twenty', 'Thirty', 'Forty',
+    'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety',
+  ];
+
+  const convertBelowThousand = (num: number): string => {
+    let str = '';
+
+    if (num >= 100) {
+      str += belowTwenty[Math.floor(num / 100)] + ' Hundred ';
+      num %= 100;
+    }
+
+    if (num >= 20) {
+      str += tens[Math.floor(num / 10)] + ' ';
+      num %= 10;
+    }
+
+    if (num > 0) {
+      str += belowTwenty[num] + ' ';
+    }
+
+    return str.trim();
+  };
+
+  const convertNumber = (num: number): string => {
+    if (num === 0) return '';
+
+    let result = '';
+
+    const crore = Math.floor(num / 10000000);
+    const remainderAfterCrore = num % 10000000;
+
+    const lakh = Math.floor(remainderAfterCrore / 100000);
+    const remainderAfterLakh = remainderAfterCrore % 100000;
+
+    const thousand = Math.floor(remainderAfterLakh / 1000);
+    const hundred = remainderAfterLakh % 1000;
+
+    // 🔥 Important: If crore > 999, recursively convert
+    if (crore > 0) {
+      result += convertNumber(crore) + ' Crore ';
+    }
+
+    if (lakh > 0) {
+      result += convertBelowThousand(lakh) + ' Lakh ';
+    }
+
+    if (thousand > 0) {
+      result += convertBelowThousand(thousand) + ' Thousand ';
+    }
+
+    if (hundred > 0) {
+      result += convertBelowThousand(hundred) + ' ';
+    }
+
+    return result.trim();
+  };
+
+  const isNegative = amount < 0;
+  amount = Math.abs(amount);
+
+  const rupees = Math.floor(amount);
+  const paise = Math.round((amount - rupees) * 100);
+
+  if (rupees === 0 && paise === 0) {
+    return 'Zero Rupees Only';
+  }
+
+  let result = convertNumber(rupees);
+
+  if (paise > 0) {
+    result += ' and ' + convertBelowThousand(paise) + ' Paise';
+  }
+
+  result += ' Only';
+
+  if (isNegative) {
+    result = 'Minus ' + result;
+  }
+
+  return result.replace(/\s+/g, ' ').trim();
+};

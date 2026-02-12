@@ -3,10 +3,10 @@ import { Button } from '@/components/ui/button';
 import { useMemo } from 'react';
 import axiosInstance from '@/services/axiosInstance';
 import { useAppDispatch, useAppSelector } from '@/app/hooks';
-import { fetchPoData, removePoByPktblSapDump } from '@/features/ManagePoSlice';
+import { fetchPoData } from '@/features/ManagePoSlice';
 import toast from 'react-hot-toast';
 import TableList from '@/components/ui/data-table';
-import { formatRupeeInput, formatRupees } from '@/lib/helperFunction';
+import { formatRupeeInput, formatRupees, formatRupeesInWords } from '@/lib/helperFunction';
 import Loader from '@/components/ui/loader';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -14,14 +14,16 @@ import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, Di
 
 const PurchaseOrder = () => {
   const [anticipatedAmount, setAnticipatedAmount] = useState('');
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [error, setError] = useState('');
 
   const [units, setUnits] = useState([]);
   const [departments, setDepartments] = useState([]);
   const [capex, setCapex] = useState([]);
+
   const [selectedUnit, setSelectedUnit] = useState('');
   const [selectedDepartment, setSelectedDepartment] = useState('');
-  const [selectedCapex , setSelectedCapex] = useState('');
+  const [selectedCapex, setSelectedCapex] = useState('');
 
   const dispatch = useAppDispatch();
   const { po, loading } = useAppSelector((state) => state.poSlice);
@@ -55,7 +57,7 @@ const PurchaseOrder = () => {
       {
         accessorKey: 'supplierCode',
         header: 'Supplier Code',
-        cell: ({ row }) => <div className="px-2 py-3 font-semibold">{row.original.supplierCode || '-'}</div>,
+        cell: ({ row }) => <div className="px-2 py-3 font-semibold">{row.original.supplierCode.toUpperCase() || '-'}</div>,
       },
       {
         accessorKey: 'contractDesp',
@@ -65,7 +67,7 @@ const PurchaseOrder = () => {
       {
         accessorKey: 'capexOpex',
         header: 'Capex Opex',
-        cell: ({ row }) => <div className="px-2 py-3 font-semibold">{row.original.capexOpex || '-'}</div>,
+        cell: ({ row }) => <div className="px-2 py-3 font-semibold">{row.original.capexOpex.toUpperCase() || '-'}</div>,
       },
       {
         accessorKey: 'poOrderValue',
@@ -110,6 +112,7 @@ const PurchaseOrder = () => {
 
   const tableData = useMemo(() => {
     if (!selectedUnit) return [];
+
     let data = po || [];
 
     if (selectedUnit) {
@@ -120,12 +123,12 @@ const PurchaseOrder = () => {
       data = data.filter((r) => r.department === selectedDepartment);
     }
 
-    // if(selectedCapex){
-    //   data = data.filter((r)=> r.capexOpex === selectedCapex);
-    // }
+    if (selectedCapex) {
+      data = data.filter((r) => r.capexOpex === selectedCapex);
+    }
 
     return data;
-  }, [po, selectedUnit, selectedDepartment]);
+  }, [po, selectedUnit, selectedDepartment, selectedCapex]);
 
   const totals = useMemo(() => {
     return tableData.reduce(
@@ -156,7 +159,7 @@ const PurchaseOrder = () => {
     ];
   }, [selectedUnit, po]);
 
-   const filteredCapex = useMemo(() => {
+  const filteredCapex = useMemo(() => {
     if (!selectedDepartment) return capex;
 
     return [
@@ -167,7 +170,7 @@ const PurchaseOrder = () => {
           .filter(Boolean)
       ),
     ];
-  }, [selectedUnit, selectedDepartment ,  po]);
+  }, [selectedUnit, selectedDepartment, po]);
 
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!selectedUnit) {
@@ -217,86 +220,111 @@ const PurchaseOrder = () => {
             {selectedDepartment && <span className="px-3 py-1 rounded-full bg-purple-50 text-purple-700 font-medium">{selectedDepartment}</span>}
           </div>
         )} */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-2">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
           {/* Total PO */}
-          <div className="rounded-xl border bg-white p-3 shadow-sm h-[80px]">
-            <p className="text-sm text-gray-700">Total PO Order Value</p>
-            <p className="text-xl font-bold text-right text-green-600">{formatRupees(totals.poOrderValue)}</p>
+          <div className="rounded-lg border border-slate-200 bg-white px-4 py-3 shadow-sm hover:shadow-md transition-all duration-200 min-h-[110px] flex flex-col justify-between">
+            <div className="flex items-center py-1 justify-between">
+              <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Total PO Order Value</span>
+            </div>
+            <p className="text-2xl font-semibold text-right text-blue-600 mt-1">{formatRupees(totals.poOrderValue)}</p>
+            <p className="text-xs text-slate-400 italic leading-snug mt-1">{formatRupeesInWords(totals.poOrderValue)}</p>
           </div>
 
           {/* Delivered */}
-          <div className="rounded-xl border bg-white p-3 shadow-sm h-[80px]">
-            <p className="text-sm text-gray-700">Total Delivered Value</p>
-            <p className="text-xl font-bold text-right text-green-600">{formatRupees(totals.deliveredValue)}</p>
+          <div className="rounded-lg border border-slate-200 bg-white px-4 py-3 shadow-sm hover:shadow-md transition-all duration-200 min-h-[110px] flex flex-col justify-between">
+            <div className="flex items-center py-1 justify-between">
+              <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Total DELEVIRED Value</span>
+            </div>
+            <p className="text-2xl font-semibold text-right text-blue-600 mt-1">{formatRupees(totals.deliveredValue)}</p>
+            <p className="text-xs text-slate-400 italic leading-snug mt-1">{formatRupeesInWords(totals.deliveredValue)}</p>
           </div>
 
-          {/* Balance*/}
-          <div className="flex flex-col gap-3">
-            <div className="rounded-xl border bg-white p-3 shadow-sm h-[80px]">
-              <p className="text-sm text-gray-700">Total Balance To Be Invoiced</p>
-              <p className="text-xl font-bold text-right text-green-600">{formatRupees(totals.balanceToBeInvoice)}</p>
+          {/* Balance */}
+          <div className="rounded-lg border border-slate-200 bg-white px-4 py-3 shadow-sm hover:shadow-md transition-all duration-200 min-h-[110px] flex flex-col justify-between">
+            <div className="flex items-center py-1 justify-between">
+              <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Total BALANCE Value</span>
             </div>
+            <p className="text-2xl font-semibold text-right text-blue-600 mt-1">{formatRupees(totals.balanceToBeInvoice)}</p>
+            <p className="text-xs text-slate-400 italic leading-snug mt-1">{formatRupeesInWords(totals.balanceToBeInvoice)}</p>
+          </div>
 
-            {/* Anticipated Demand */}
-            <div className="rounded-xl border bg-white p-3 shadow-sm h-[110px]">
-              <label className="text-sm font-semibold text-gray-700 block mb-2">Raise an Anticipated Demand</label>
+          {/* Demand */}
+          <div className="rounded-xl border bg-purple-50 border-purple-200 px-4 py-3 shadow-sm min-h-[120px] flex flex-col justify-between">
+            <label className="text-sm font-semibold text-gray-700">Raise Anticipated Demand</label>
 
-              <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-start">
-                <div className="w-full sm:w-3/4">
-                  <Input
-                    className="text-right font-medium"
-                    type="text"
-                    inputMode="numeric"
-                    placeholder="Enter Demand Amount"
-                    value={formatRupeeInput(anticipatedAmount)}
-                    onChange={handleAmountChange}
-                  />
-
-                  <div className="h-5 mt-1">{error && <p className="text-sm text-red-500 whitespace-nowrap overflow-hidden text-ellipsis">{error}</p>}</div>
-                </div>
-
-                <div className="w-full sm:w-auto sm:self-start">
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <Button className="w-full sm:w-auto" disabled={!anticipatedAmount || !selectedUnit || !selectedDepartment}>
-                        Raise Demand
-                      </Button>
-                    </DialogTrigger>
-
-                    <DialogContent className="sm:max-w-md">
-                      <DialogHeader className="space-y-3">
-                        <DialogTitle className="text-xl font-semibold">Confirm Raise Demand</DialogTitle>
-
-                        <DialogDescription className="text-sm text-muted-foreground leading-relaxed">
-                          Are you sure you want to raise an anticipated demand of{' '}
-                          <span className="font-semibold text-green-600">{formatRupees(Number(anticipatedAmount))}</span> for the{' '}
-                          <span className="font-medium">{selectedDepartment}</span> department in the <span className="font-medium">{selectedUnit}</span> unit?
-                          Please verify the details before confirming.
-                        </DialogDescription>
-                      </DialogHeader>
-
-                      <DialogFooter className="mt-4 gap-2 sm:justify-end">
-                        <DialogClose asChild>
-                          <Button variant="outline">Cancel</Button>
-                        </DialogClose>
-
-                        <DialogClose asChild>
-                          <Button
-                            disabled={!anticipatedAmount}
-                            onClick={() => {
-                              onSave(Number(anticipatedAmount));
-                              setAnticipatedAmount('');
-                              setError('');
-                            }}
-                          >
-                            Confirm
-                          </Button>
-                        </DialogClose>
-                      </DialogFooter>
-                    </DialogContent>
-                  </Dialog>
-                </div>
+            {/* Amount Input */}
+            <div className="mt-2 w-full">
+              <div className="mb-2">
+                <Input
+                  className="text-right font-medium h-9"
+                  type="text"
+                  inputMode="numeric"
+                  placeholder="Enter Amount"
+                  value={formatRupeeInput(anticipatedAmount)}
+                  onChange={handleAmountChange}
+                />
               </div>
+
+              {/* Upload Button */}
+              <div className="w-full sm:w-auto">
+                <input
+                  id="demandFile"
+                  type="file"
+                  accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                  className="w-full border border-gray-300 rounded-m text-sm text-gray-600 file:bg-blue-500 file:text-white file:border-0 file:px-3 file:py-1.5 file:mr-3 file:rounded hover:file:bg-blue-700 cursor-pointer"
+                  onChange={(e) => {
+                    setSelectedFile(e.target.files?.[0]);
+                  }}
+                />
+              </div>
+            </div>
+            <div className="min-h-[20px] mt-1 mb-1">{error && <p className="text-sm text-amber-600 truncate">{error}</p>}</div>
+
+            {/* Raise Demand Button */}
+            <div className="w-full sm:w-auto flex flex-col items-end">
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button
+                    size="sm"
+                    className="w-full sm:w-auto cursor-pointer"
+                    disabled={!anticipatedAmount || !selectedUnit || !selectedDepartment || !selectedFile}
+                  >
+                    Raise Demand
+                  </Button>
+                </DialogTrigger>
+
+                <DialogContent className="sm:max-w-md">
+                  <DialogHeader className="space-y-2">
+                    <DialogTitle className="text-xl font-semibold">Confirm</DialogTitle>
+
+                    <DialogDescription className="text-sm text-muted-foreground leading-relaxed">
+                      Are you sure you want to raise an anticipated demand of{' '}
+                      <span className="font-semibold text-blue-600">{formatRupees(Number(anticipatedAmount))}</span> for the{' '}
+                      <span className="font-medium">{selectedDepartment}</span> department in the <span className="font-medium">{selectedUnit}</span> unit?
+                      Please verify the details before confirming.
+                    </DialogDescription>
+                  </DialogHeader>
+
+                  <DialogFooter className="mt-3 gap-2 sm:justify-end">
+                    <DialogClose asChild>
+                      <Button variant="outline">Cancel</Button>
+                    </DialogClose>
+
+                    <DialogClose asChild>
+                      <Button
+                        disabled={!anticipatedAmount}
+                        onClick={() => {
+                          onSave(Number(anticipatedAmount));
+                          setAnticipatedAmount('');
+                          setError('');
+                        }}
+                      >
+                        Confirm
+                      </Button>
+                    </DialogClose>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
             </div>
           </div>
         </div>
@@ -312,7 +340,7 @@ const PurchaseOrder = () => {
                   dispatch(fetchPoData());
                 }}
                 rightElements={
-                  <div className="flex flex-wrap items-end gap-4">
+                  <div className="flex flex-wrap items-end gap-2">
                     {/* Unit */}
                     <div className="flex flex-col gap-1">
                       <label className="text-md font-medium text-gray-700">Select Unit</label>
@@ -332,26 +360,6 @@ const PurchaseOrder = () => {
                           </option>
                         ))}
                       </select>
-                      {/* <Select
-                        value={selectedUnit}
-                        onValueChange={(value) => {
-                          setSelectedUnit(value);
-                          setSelectedDepartment('');
-                          setError('');
-                        }}
-                      >
-                        <SelectTrigger className="w-[200px]">
-                          <SelectValue placeholder="Select Unit" />
-                        </SelectTrigger>
-
-                        <SelectContent side="bottom">
-                          {units.map((u, i) => (
-                            <SelectItem key={i} value={u}>
-                              {u}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select> */}
                     </div>
 
                     {/* Department */}
@@ -364,7 +372,7 @@ const PurchaseOrder = () => {
                           setError('');
                         }}
                         disabled={!selectedUnit}
-                        className="w-[200px] px-3 py-2 border-2 rounded outline-none disabled:bg-gray-100"
+                        className="w-[200px] px-3 py-2 border-2 rounded outline-none"
                       >
                         <option value="">Select Department</option>
                         {filteredDepartments.map((d, i) => (
@@ -373,26 +381,6 @@ const PurchaseOrder = () => {
                           </option>
                         ))}
                       </select>
-                      {/* <Select
-                        value={selectedDepartment}
-                        onValueChange={(value) => {
-                          setSelectedDepartment(value);
-                          setError('');
-                        }}
-                        disabled={!selectedUnit}
-                      >
-                        <SelectTrigger className="w-[200px]">
-                          <SelectValue placeholder="Select Department" />
-                        </SelectTrigger>
-
-                        <SelectContent side="bottom">
-                          {filteredDepartments.map((d, i) => (
-                            <SelectItem key={i} value={d}>
-                              {d}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select> */}
                     </div>
 
                     {/* Capex */}
@@ -405,7 +393,7 @@ const PurchaseOrder = () => {
                           setError('');
                         }}
                         disabled={!selectedDepartment}
-                        className="w-[200px] px-3 py-2 border-2 rounded outline-none disabled:bg-gray-100"
+                        className="w-[200px] px-3 py-2 border-2 rounded outline-none"
                       >
                         <option value="">Select Capex/Opex</option>
                         {filteredCapex.map((c, i) => (
