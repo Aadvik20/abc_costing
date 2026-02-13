@@ -249,7 +249,7 @@ const PurchaseOrder = () => {
           </div>
 
           {/* Demand */}
-          <div className="rounded-xl border bg-purple-50 border-purple-200 px-4 py-3 shadow-sm min-h-[120px] flex flex-col justify-between">
+          <div className="rounded-xl border bg-purple-50 border-purple-200 shadow-sm hover:shadow-md px-4 py-3 min-h-[120px] flex flex-col justify-between">
             <label className="text-sm font-semibold text-gray-700">Raise Anticipated Demand</label>
 
             {/* Amount Input */}
@@ -278,7 +278,7 @@ const PurchaseOrder = () => {
                 />
               </div>
             </div>
-            <div className="min-h-[20px] mt-1 mb-1">{error && <p className="text-sm text-amber-600 truncate">{error}</p>}</div>
+            <div className="min-h-[20px] mt-1 mb-1">{error && <p className="text-xs text-amber-600 truncate">{error}</p>}</div>
 
             {/* Raise Demand Button */}
             <div className="w-full sm:w-auto flex flex-col items-end">

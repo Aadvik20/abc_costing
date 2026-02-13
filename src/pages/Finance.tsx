@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { formatRupees } from '@/lib/helperFunction';
 import Loader from '@/components/ui/loader';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent } from '@/components/ui/card';
 
 const Finance = () => {
   const [selectedUnitDept, setSelectedUnitDept] = useState({
@@ -115,7 +116,6 @@ const Finance = () => {
   );
 
   const tableData = useMemo(() => {
-
     if (!selectedUnitDept[activeTab].unit) return [];
 
     let data = finance || [];
@@ -140,6 +140,18 @@ const Finance = () => {
     return data;
   }, [finance, activeTab, selectedUnitDept]);
 
+  const filteredUnits = useMemo(() => {
+    let data = finance || [];
+
+    if (activeTab === 'balance') {
+      data = data.filter((r) => Number(r.balanceToBeInvoice) > 0);
+    } else {
+      data = data.filter((r) => Number(r.balanceToBeInvoice) <= 0);
+    }
+
+    return [...new Set(data.map((r) => r.unit).filter(Boolean))];
+  }, [finance, activeTab]);
+
   const filteredDepartments = useMemo(() => {
     if (!selectedUnitDept[activeTab].unit) return departments;
 
@@ -151,7 +163,7 @@ const Finance = () => {
           .filter(Boolean)
       ),
     ];
-  }, [selectedUnitDept[activeTab].unit , finance]);
+  }, [selectedUnitDept[activeTab].unit, finance]);
 
   return (
     <div className="p-4 md:p-8">
@@ -186,202 +198,155 @@ const Finance = () => {
             </TabsTrigger>
           </TabsList>
 
-          {/* Pending Tab */}
-          <TabsContent value="balance">
-            <TableList
-              data={tableData}
-              columns={columns}
-              showRefresh={true}
-              emptyMessage={
-                !selectedUnitDept[activeTab].unit ? 'Please select a Unit to view Purchase Orders' : 'No Purchase Orders found for selected filters'
-              }
-              onRefresh={() => dispatch(fetchFinanceData())}
-              rightElements={
-                <>
-                  <div className="flex items-center gap-2">
-                    <select
-                      value={selectedUnitDept[activeTab].unit}
-                      onChange={(e) =>
-                        setSelectedUnitDept((prev) => ({
-                          ...prev,
-                          [activeTab]: {
-                            ...prev[activeTab],
-                            unit: e.target.value,
-                          },
-                        }))
-                      }
-                      className=" w-[200px] px-3 py-2 border-2 rounded outline:none"
-                    >
-                      <option value="All Units">Select Unit</option>
-                      {units.map((u, i) => (
-                        <option key={i} value={u}>
-                          {u}
-                        </option>
-                      ))}
-                    </select>
+          <Card className="border-0 shadow-lg">
+            <CardContent>
+              {/* Pending Tab */}
+              <TabsContent value="balance">
+                <TableList
+                  data={tableData}
+                  columns={columns}
+                  showRefresh={true}
+                  emptyMessage={
+                    !selectedUnitDept[activeTab].unit ? 'Please select a Unit to view Purchase Orders' : 'No Purchase Orders found for selected filters'
+                  }
+                  onRefresh={() => dispatch(fetchFinanceData())}
+                  rightElements={
+                    <>
+                      <div className="flex items-center gap-2">
+                        <select
+                          value={selectedUnitDept[activeTab].unit}
+                          onChange={(e) => 
+                            setSelectedUnitDept((prev) => ({
+                              ...prev,
+                              [activeTab]: {
+                                ...prev[activeTab],
+                                unit: e.target.value,
+                                department : '',
+                              },
+                            }))
+                          }
+                          className=" w-[200px] px-3 py-2 border-2 rounded outline:none"
+                        >
+                          <option value="All Units">Select Unit</option>
+                          {filteredUnits.map((u, i) => (
+                            <option key={i} value={u}>
+                              {u}
+                            </option>
+                          ))}
+                        </select>
 
-                    <select
-                      value={selectedUnitDept[activeTab].department}
-                      disabled={!selectedUnitDept[activeTab].unit}
-                      onChange={(e) =>
-                        setSelectedUnitDept((prev) => ({
-                          ...prev,
-                          [activeTab]: {
-                            ...prev[activeTab],
-                            department: e.target.value,
-                          },
-                        }))
-                      }
-                      className=" w-[200px] px-3 py-2 border-2 rounded outline:none"
-                    >
-                      <option value="">Select Department</option>
-                      {filteredDepartments.map((d, i) => (
-                        <option key={i} value={d}>
-                          {d}
-                        </option>
-                      ))}
-                    </select>
+                        <select
+                          value={selectedUnitDept[activeTab].department}
+                          disabled={!selectedUnitDept[activeTab].unit}
+                          onChange={(e) =>
+                            setSelectedUnitDept((prev) => ({
+                              ...prev,
+                              [activeTab]: {
+                                ...prev[activeTab],
+                                department: e.target.value,
+                              },
+                            }))
+                          }
+                          className=" w-[200px] px-3 py-2 border-2 rounded outline:none"
+                        >
+                          <option value="">Select Department</option>
+                          {filteredDepartments.map((d, i) => (
+                            <option key={i} value={d}>
+                              {d}
+                            </option>
+                          ))}
+                        </select>
 
-                    <Button
-                      onClick={() =>
-                        setSelectedUnitDept((prev) => ({
-                          ...prev,
-                          [activeTab]: { unit: '', department: '' },
-                        }))
-                      }
-                    >
-                      Reset
-                    </Button>
-                  </div>
-                </>
-              }
-            />
-          </TabsContent>
+                        <Button
+                          onClick={() =>
+                            setSelectedUnitDept((prev) => ({
+                              ...prev,
+                              [activeTab]: { unit: '', department: '' },
+                            }))
+                          }
+                        >
+                          Reset
+                        </Button>
+                      </div>
+                    </>
+                  }
+                />
+              </TabsContent>
+              {/* Completed Tab */}
+              <TabsContent value="zeroBalance">
+                <TableList
+                  data={tableData}
+                  columns={columns}
+                  showRefresh={true}
+                  emptyMessage={
+                    !selectedUnitDept[activeTab].unit ? 'Please select a Unit to view Purchase Orders' : 'No Purchase Orders found for selected filters'
+                  }
+                  onRefresh={() => dispatch(fetchFinanceData())}
+                  rightElements={
+                    <>
+                      <div className="flex items-center gap-2">
+                        <select
+                          value={selectedUnitDept[activeTab].unit}
+                          onChange={(e) =>
+                            setSelectedUnitDept((prev) => ({
+                              ...prev,
+                              [activeTab]: {
+                                ...prev[activeTab],
+                                unit: e.target.value,
+                                department : '',
+                              },
+                            }))
+                          }
+                          className=" w-[200px] px-3 py-2 border-2 rounded outline:none"
+                        >
+                          <option value="All Units">Select Unit</option>
+                          {filteredUnits.map((u, i) => (
+                            <option key={i} value={u}>
+                              {u}
+                            </option>
+                          ))}
+                        </select>
 
-          {/* Completed Tab */}
-          <TabsContent value="zeroBalance">
-            <TableList
-              data={tableData}
-              columns={columns}
-              showRefresh={true}
-              emptyMessage={
-                !selectedUnitDept[activeTab].unit ? 'Please select a Unit to view Purchase Orders' : 'No Purchase Orders found for selected filters'
-              }
-              onRefresh={() => dispatch(fetchFinanceData())}
-              rightElements={
-                <>
-                  <div className="flex items-center gap-2">
-                    <select
-                      value={selectedUnitDept[activeTab].unit}
-                      onChange={(e) =>
-                        setSelectedUnitDept((prev) => ({
-                          ...prev,
-                          [activeTab]: {
-                            ...prev[activeTab],
-                            unit: e.target.value,
-                          },
-                        }))
-                      }
-                      className=" w-[200px] px-3 py-2 border-2 rounded outline:none"
-                    >
-                      <option value="All Units">Select Unit</option>
-                      {units.map((u, i) => (
-                        <option key={i} value={u}>
-                          {u}
-                        </option>
-                      ))}
-                    </select>
+                        <select
+                          value={selectedUnitDept[activeTab].department}
+                          disabled={!selectedUnitDept[activeTab].unit}
+                          onChange={(e) =>
+                            setSelectedUnitDept((prev) => ({
+                              ...prev,
+                              [activeTab]: {
+                                ...prev[activeTab],
+                                department: e.target.value,
+                              },
+                            }))
+                          }
+                          className=" w-[200px] px-3 py-2 border-2 rounded outline:none"
+                        >
+                          <option value="">Select Department</option>
+                          {filteredDepartments.map((d, i) => (
+                            <option key={i} value={d}>
+                              {d}
+                            </option>
+                          ))}
+                        </select>
 
-                    <select
-                      value={selectedUnitDept[activeTab].department}
-                      disabled={!selectedUnitDept[activeTab].unit}
-                      onChange={(e) =>
-                        setSelectedUnitDept((prev) => ({
-                          ...prev,
-                          [activeTab]: {
-                            ...prev[activeTab],
-                            department: e.target.value,
-                          },
-                        }))
-                      }
-                      className=" w-[200px] px-3 py-2 border-2 rounded outline:none"
-                    >
-                      <option value="">Select Department</option>
-                      {filteredDepartments.map((d, i) => (
-                        <option key={i} value={d}>
-                          {d}
-                        </option>
-                      ))}
-                    </select>
-
-                    <Button
-                      onClick={() =>
-                        setSelectedUnitDept((prev) => ({
-                          ...prev,
-                          [activeTab]: { unit: '', department: '' },
-                        }))
-                      }
-                    >
-                      Reset
-                    </Button>
-                  </div>
-                </>
-              }
-            />
-          </TabsContent>
+                        <Button
+                          onClick={() =>
+                            setSelectedUnitDept((prev) => ({
+                              ...prev,
+                              [activeTab]: { unit: '', department: '' },
+                            }))
+                          }
+                        >
+                          Reset
+                        </Button>
+                      </div>
+                    </>
+                  }
+                />
+              </TabsContent>
+            </CardContent>
+          </Card>
         </Tabs>
-        {/* <TableList
-          data={tableData}
-          columns={columns}
-          showRefresh={true}
-          onRefresh={() => {
-            dispatch(fetchFinanceData());
-          }}
-          rightElements={
-            <>
-              <div className="flex items-center gap-2">
-                <select
-                  value={selectedUnit}
-                  onChange={(e) => {
-                    setSelectedUnit(e.target.value);
-                  }}
-                  className=" w-[200px] px-3 py-2 border-2 rounded outline:none"
-                >
-                  <option value="All Units">Select Unit</option>
-                  {units.map((u, i) => (
-                    <option key={i} value={u}>
-                      {u}
-                    </option>
-                  ))}
-                </select>
-
-                <select
-                  value={selectedDepartment}
-                  onChange={(e) => {
-                    setSelectedDepartment(e.target.value);
-                  }}
-                  className=" w-[200px] px-3 py-2 border-2 rounded outline:none"
-                >
-                  <option value="">Select Department</option>
-                  {departments.map((d, i) => (
-                    <option key={i} value={d}>
-                      {d}
-                    </option>
-                  ))}
-                </select>
-
-                <Button
-                  onClick={() => {
-                    setSelectedUnit('');
-                    setSelectedDepartment('');
-                  }}
-                >
-                  Reset
-                </Button>
-              </div>
-            </>
-          }
-        /> */}
       </div>
     </div>
   );
