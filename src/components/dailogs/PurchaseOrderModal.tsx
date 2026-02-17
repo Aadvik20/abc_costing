@@ -8,6 +8,8 @@ import { formatRupeeInput } from '@/lib/helperFunction';
 export function PurchaseOrderModal({ open, onOpenChange, initialData, onSave }) {
   const [anticipatedDemand, setAnticipatedDemand] = useState('');
   const [error, setError] = useState('');
+  const [confirmOpen, setConfirmOpen] = useState(false);
+
   const data = initialData || {};
   const poOrderValue = data.poOrderValue ?? 0;
   const deliveredValue = data.deliveredValue ?? 0;
@@ -51,63 +53,92 @@ export function PurchaseOrderModal({ open, onOpenChange, initialData, onSave }) 
     setAnticipatedDemand(value);
   };
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent onPointerDownOutside={(e) => e.preventDefault()} onEscapeKeyDown={(e) => e.preventDefault()} className="max-w-2xl">
-        <DialogHeader>
-          <DialogTitle>Raise an Anticipated Demand</DialogTitle>
-        </DialogHeader>
-        <div className="mt-4">
-          <div className="grid grid-cols-[1fr_2fr] gap-y-4 gap-x-6 items-center">
-            <p className="text-sm font-medium">PO Order Value</p>
+    <div>
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent onPointerDownOutside={(e) => e.preventDefault()} onEscapeKeyDown={(e) => e.preventDefault()} className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Raise an Anticipated Demand</DialogTitle>
+          </DialogHeader>
+          <div className="mt-4">
+            <div className="grid grid-cols-[1fr_2fr] gap-y-4 gap-x-6 items-center">
+              <p className="text-sm font-medium">PO Order Value</p>
 
-            <div className="rounded-md border bg-background px-3 py-2 text-sm font-semibold text-right">{formatRupees(poOrderValue)}</div>
-          </div>
+              <div className="rounded-md border bg-background px-3 py-2 text-sm font-semibold text-right">{formatRupees(poOrderValue)}</div>
+            </div>
 
-          <div className="grid grid-cols-[1fr_2fr] gap-y-4 gap-x-6 items-center mt-1">
-            <p className="text-sm font-medium">Delivered Value</p>
-            <div className="rounded-md border bg-background px-3 py-2 text-sm font-semibold text-right">{formatRupees(deliveredValue)}</div>
-          </div>
+            <div className="grid grid-cols-[1fr_2fr] gap-y-4 gap-x-6 items-center mt-1">
+              <p className="text-sm font-medium">Delivered Value</p>
+              <div className="rounded-md border bg-background px-3 py-2 text-sm font-semibold text-right">{formatRupees(deliveredValue)}</div>
+            </div>
 
-          <div className="grid grid-cols-[1fr_2fr] gap-y-4 gap-x-6 items-center mt-1">
-            <p className="text-sm font-medium ">Balance To Be Invoiced</p>
+            <div className="grid grid-cols-[1fr_2fr] gap-y-4 gap-x-6 items-center mt-1">
+              <p className="text-sm font-medium ">Balance To Be Invoiced</p>
 
-            <div className="rounded-md border bg-background px-3 py-2 text-sm font-semibold text-right">{formatRupees(balanceToBeInvoice)}</div>
-          </div>
+              <div className="rounded-md border bg-background px-3 py-2 text-sm font-semibold text-right">{formatRupees(balanceToBeInvoice)}</div>
+            </div>
 
-          <div className="grid grid-cols-[1fr_2fr] gap-y-4 gap-x-6 items-center">
-            <p className="text-sm font-medium ">Anticipated Demand</p>
-            <div>
-              <Input
-                className="mt-1 text-right font-medium"
-                type="text"
-                inputMode="numeric"
-                placeholder="Enter Demand Amount"
-                value={formatRupeeInput(anticipatedDemand)}
-                onChange={handleAmountChange}
-              />
-              {error && <span className="text-xs text-red-500">{error}</span>}
+            <div className="grid grid-cols-[1fr_2fr] gap-y-4 gap-x-6 items-center">
+              <p className="text-sm font-medium ">Anticipated Demand</p>
+              <div>
+                <Input
+                  className="mt-1 text-right font-medium"
+                  type="text"
+                  inputMode="numeric"
+                  placeholder="Enter Demand Amount"
+                  value={formatRupeeInput(anticipatedDemand)}
+                  onChange={handleAmountChange}
+                />
+                {error && <span className="text-xs text-red-500">{error}</span>}
+              </div>
             </div>
           </div>
-        </div>
-        <DialogFooter className="gap-2">
-          <Button
-            variant="outline"
-            type="button"
-            onClick={() => {
-              (onOpenChange?.(false), setAnticipatedDemand(''), setError(''));
-            }}
-          >
-            Cancel
-          </Button>
+          <DialogFooter className="gap-2">
+            <Button
+              variant="outline"
+              type="button"
+              onClick={() => {
+                (onOpenChange?.(false), setAnticipatedDemand(''), setError(''));
+              }}
+            >
+              Cancel
+            </Button>
 
-          <Button disabled={!anticipatedDemand} type="button" onClick={() =>{
-            submit();
-            onOpenChange?.(false)
-            }}>
-            Submit
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+            <Button disabled={!anticipatedDemand} type="button" onClick={() => setConfirmOpen(true)}>
+              Submit
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Confirm Submission</DialogTitle>
+          </DialogHeader>
+
+          <div className="text-sm text-gray-600">
+            Are you sure you want to raise an anticipated demand of <span className="font-semibold">{formatRupees(Number(anticipatedDemand || 0))}</span> for this {data.poNo} PO NO. ?
+          </div>
+
+          <DialogFooter className="gap-2 mt-4">
+            <Button variant="outline" onClick={() => setConfirmOpen(false)}>
+              Cancel
+            </Button>
+
+            <Button
+              onClick={() => {
+                submit();
+                setConfirmOpen(false);
+                onOpenChange?.(false);
+                setAnticipatedDemand('');
+                setError('');
+              }}
+            >
+              Confirm
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
   );
 }

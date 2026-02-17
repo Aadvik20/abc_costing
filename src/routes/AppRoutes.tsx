@@ -51,8 +51,8 @@ const AppRoutes = () => {
             <Route path="/" element={<HomePage />} />
             <Route path="/dashboard" element={<PurchaseOrder/>} />
             <Route path="/finance" element={<Finance />} />
-            {/* <Route path="/purchaseOrderV2" element={<PurchaseOrderV2 />} />
-            <Route path="/financeV2" element={<FinanceV2 />} /> */}
+            <Route path="/purchaseOrderV2" element={<PurchaseOrderV2 />} />
+            <Route path="/financeV2" element={<FinanceV2 />} />
           </Route>
         </Route>
         <Route element={<AppLayout isAdmin={true} />}>

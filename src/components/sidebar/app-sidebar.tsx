@@ -26,18 +26,18 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
       icon: Landmark,
       roles: ['user'],
     },
-    // {
-    //   title: 'Purchase Order V2',
-    //   url: '/purchaseOrderv2',
-    //   icon: Home,
-    //   roles: ['user'],
-    // },
-    // {
-    //   title: 'Finance V2',
-    //   url: '/financeV2',
-    //   icon: Landmark,
-    //   roles: ['user'],
-    // },
+    {
+      title: 'Purchase Order V2',
+      url: '/purchaseOrderv2',
+      icon: Home,
+      roles: ['user'],
+    },
+    {
+      title: 'Finance V2',
+      url: '/financeV2',
+      icon: Landmark,
+      roles: ['user'],
+    },
   ];
   // React.useEffect(() => {
   //   if (loading) return;
@@ -67,8 +67,18 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
         <ToggleIcon onClick={toggleSidebar} className="w-8 h-8 cursor-pointer" />
       </div>
       <SidebarSeparator />
+      
       <SidebarContent className="flex justify-between">
-        <NavMain items={navMainItems} />
+        {/* <NavMain items={navMainItems} /> */}
+        <div>
+        <NavMain items={navMainItems.slice(0, 2)} />
+
+        {/* Temporary separator */}
+        <SidebarSeparator className="my-2" />
+
+        <NavMain items={navMainItems.slice(2)} />
+        </div>
+
       </SidebarContent>
       <SidebarFooter>
         <SidebarMenu>

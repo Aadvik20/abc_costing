@@ -76,11 +76,6 @@ const PurchaseOrderV2 = () => {
         cell: ({ row }) => <div className="px-2 font-semibold">{row.original.supplierCode || '-'}</div>,
       },
       {
-        accessorKey: 'contractNo',
-        header: 'Contract No',
-        cell: ({ row }) => <div className="px-2 font-semibold">{row.original.contractNo || '-'}</div>,
-      },
-      {
         accessorKey: 'poNo',
         header: 'PO NO.',
         cell: ({ row }) => <div className="px-2 font-semibold">{row.original.poNo || '-'}</div>,

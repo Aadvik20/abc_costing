@@ -335,7 +335,7 @@ const PurchaseOrder = () => {
                 data={tableData}
                 columns={columns}
                 showRefresh={true}
-                emptyMessage={!selectedUnit ? 'Please select a Unit to view Purchase Orders' : 'No Purchase Orders found for selected filters'}
+                emptyMessage={!selectedUnit ? 'Please select a Unit to view records' : 'No records found for selected filters'}
                 onRefresh={() => {
                   dispatch(fetchPoData());
                 }}

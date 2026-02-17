@@ -10,6 +10,7 @@ import Loader from '@/components/ui/loader';
 import { FinanceModal } from '@/components/dailogs/FinanceModal';
 import { Card, CardContent } from '@/components/ui/card';
 import { RefreshCcw } from 'lucide-react';
+import { formatRupees } from '@/lib/helperFunction';
 
 const Finance2 = () => {
   const [selectedUnit, setSelectedUnit] = useState('All Units');
@@ -66,11 +67,6 @@ const Finance2 = () => {
         cell: ({ row }) => <div className="px-2 font-semibold">{row.original.supplierCode || '-'}</div>,
       },
       {
-        accessorKey: 'contractNo',
-        header: 'Contract No',
-        cell: ({ row }) => <div className="px-2 font-semibold">{row.original.contractNo || '-'}</div>,
-      },
-      {
         accessorKey: 'poNo',
         header: 'PO NO.',
         cell: ({ row }) => <div className="px-2 font-semibold">{row.original.poNo || '-'}</div>,
@@ -80,6 +76,11 @@ const Finance2 = () => {
         accessorKey: 'capexOpex',
         header: 'Capex Opex',
         cell: ({ row }) => <div className="px-2 font-semibold">{row.original.capexOpex || '-'}</div>,
+      },
+        {
+        accessorKey: 'demandAmount',
+        header: 'Demanded Amount',
+        cell: ({ row }) => <div className="px-2 font-semibold text-right">{formatRupees(row.original.demandAmount || '-')}</div>,
       },
       {
         accessorKey: 'action',
