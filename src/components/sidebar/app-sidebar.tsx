@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { ChevronLeft, ChevronRight, LogOut, Hotel } from 'lucide-react';
+import { ChevronLeft, ChevronRight, LogOut, Hotel, User } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import { NavMain } from '@/components/nav-main';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarMenu, SidebarMenuButton, SidebarRail, SidebarSeparator, useSidebar } from '@/components/ui/sidebar';
@@ -26,6 +26,13 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
       icon: Landmark,
       roles: ['user'],
     },
+    {
+      title: 'Role Assignment',
+      url: '/roleAssignment',
+      icon: User,
+      roles: ['user'],
+    },
+
     {
       title: 'Purchase Order V2',
       url: '/purchaseOrderv2',
@@ -67,18 +74,17 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
         <ToggleIcon onClick={toggleSidebar} className="w-8 h-8 cursor-pointer" />
       </div>
       <SidebarSeparator />
-      
+
       <SidebarContent className="flex justify-between">
         {/* <NavMain items={navMainItems} /> */}
         <div>
-        <NavMain items={navMainItems.slice(0, 2)} />
+          <NavMain items={navMainItems.slice(0, 3)} />
 
-        {/* Temporary separator */}
-        <SidebarSeparator className="my-2" />
+          {/* Temporary separator */}
+          <SidebarSeparator className="my-2" />
 
-        <NavMain items={navMainItems.slice(2)} />
+          <NavMain items={navMainItems.slice(3)} />
         </div>
-
       </SidebarContent>
       <SidebarFooter>
         <SidebarMenu>

@@ -21,6 +21,7 @@ import FinanceV2 from '@/pages/Version-2/FinanceV2';
 import { fetchMasterData } from '@/features/masterData/masterSlice';
 import { fetchApplications } from '@/features/applications/applicationSlice';
 import PurchaseOrder from '@/pages/PurchaseOrder';
+import RoleAssignment from '@/pages/RoleAssignment';
 
 const AppRoutes = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -49,8 +50,10 @@ const AppRoutes = () => {
         <Route element={<AppLayout isAdmin={false} />}>
           <Route element={<PrivateRoute allowedRoles={['user']} />}>
             <Route path="/" element={<HomePage />} />
-            <Route path="/dashboard" element={<PurchaseOrder/>} />
+            <Route path="/dashboard" element={<PurchaseOrder />} />
             <Route path="/finance" element={<Finance />} />
+            <Route path="/roleAssignment" element={<RoleAssignment />} />
+
             <Route path="/purchaseOrderV2" element={<PurchaseOrderV2 />} />
             <Route path="/financeV2" element={<FinanceV2 />} />
           </Route>
