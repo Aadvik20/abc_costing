@@ -21,18 +21,95 @@ export type Department = {
   department: string;
 };
 
+export type Employees = {
+  employeeMasterAutoId: number;
+  employeeCode: string;
+  gender: string;
+  userName: string;
+  post: string;
+  genericDesignation: string;
+  positions: number;
+  positionGrade: string;
+  deptDfccil: string;
+  subDeptDf: string;
+  dob: string;
+  doretirement: string;
+  location: string;
+  dorecruiting: string;
+  dojdfccil: string;
+  dotends: string | null;
+  depTenurecompletiondate: string | null;
+  depExtensionuptodate: string | null;
+  deputationTenure: string | null;
+  dorepatriation: string | null;
+  doabsorption: string | null;
+  dofirstPromotion: string | null;
+  dosecondPromotion: string | null;
+  dothirdPromotion: string | null;
+  doreemployment: string | null;
+  doabsconding: string | null;
+  toemploy: string;
+  empSubgroup: string;
+  ethnicOrigin: string;
+  religion: string;
+  rbfileNo: string | null;
+  lastDesignation: string | null;
+  services: string;
+  ditsdoarailway: string | null;
+  parentRailway: string | null;
+  gazettedNonGazetted: string | null;
+  doletter: string | null;
+  personnelArea: string;
+  personnelSubArea: string;
+  mobile: string;
+  pwd: string;
+  emailAddress: string;
+  status: number;
+  modifyBy: string;
+  modifyDate: string;
+  modifyIp: string;
+  userType: number;
+  designation: string;
+  aboutUs: string | null;
+  extnNo: string | null;
+  faxNo: string | null;
+  mtnno: string | null;
+  photo: string | null;
+  anniversaryDate: string | null;
+  personalMobile: string | null;
+  personalEmailAddress: string | null;
+  parentOrganzation: string | null;
+  duration: string | null;
+  reportingOfficer: string | null;
+  fatherName: string | null;
+};
+
+export type Dept = {
+  departmentid: number;
+  department: string;
+  unitId: number | null;
+  status: string | null;
+  ip: string | null;
+  createDate: string | null; // Could be Date if parsed
+  createBy: string | null;
+  cadres: any[]; // Replace `any` with specific type if known
+};
+
 type MasterDataResponse = {
   units: Unit[];
   posts: Post[];
   grades: grades[];
   departments: Department[];
+  dept: Dept[];
+  employees: Employees[];
 };
-
 interface MasterDataState {
   units: Unit[];
   posts: Post[];
   grades: grades[];
   departments: Department[];
+  dept: Dept[];
+  employees: Employees[];
   loading: boolean;
   error: string | null;
 }
@@ -42,6 +119,8 @@ const initialState: MasterDataState = {
   posts: [],
   grades: [],
   departments: [],
+  dept: [],
+  employees: [],
   loading: false,
   error: null,
 };
@@ -71,6 +150,8 @@ const masterDataSlice = createSlice({
         state.grades = [...action.payload.grades].sort((a, b) => a.pgOrder - b.pgOrder);
         state.posts = action.payload.posts;
         state.departments = action.payload.departments;
+        state.employees = action.payload.employees;
+        state.dept = action.payload.dept;
       })
       .addCase(fetchMasterData.rejected, (state, action) => {
         state.loading = false;

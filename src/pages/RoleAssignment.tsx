@@ -1,22 +1,143 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Select as ShadSelect, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import Select from 'react-select';
 import { Label } from '@/components/ui/label';
 import TableList from '@/components/ui/data-table';
 import Loader from '@/components/ui/loader';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from '@/components/ui/command';
-import { Badge } from '@/components/ui/badge';
-import { X, Check, ChevronDown } from 'lucide-react';
-
+import { Edit, Trash2 } from 'lucide-react';
+import { useAppSelector } from '@/app/hooks';
+import { RootState } from '@/app/store';
+import axiosInstance from '@/services/axiosInstance';
+import toast from 'react-hot-toast';
+import ConfirmDialog from '@/components/common/ConfirmDialog';
+import EditRoleDialog from '@/components/dailogs/EditRoleDialog';
 
 const RoleAssignment = () => {
-  const [selectedUnits, setSelectedUnits] = useState<any[]>([]);
+  const [selectedUnits, setSelectedUnits] = useState('');
   const [selectedDepartments, setSelectedDepartments] = useState<any[]>([]);
-  const [selectedEmployee, setSelectedEmployee] = useState('');
+  const [selectedEmployee, setSelectedEmployee] = useState<any>(null);
   const [selectedRole, setSelectedRole] = useState('');
   const [loading, setLoading] = useState(false);
+  const { units } = useAppSelector((state: RootState) => state.masterData);
+  const { dept } = useAppSelector((state: RootState) => state.masterData);
+  const { employees } = useAppSelector((state: RootState) => state.masterData);
+  const [roles, setRoles] = useState<any[]>([]);
+  const [data, setData] = useState<any[]>([]);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editRowData, setEditRowData] = useState<any>(null);
+
+  const unitOptions = useMemo(
+    () =>
+      (units || []).map((unit: any) => ({
+        value: String(unit.unitid),
+        label: unit.unitName,
+      })),
+    [units]
+  );
+
+  const departmentOptions = useMemo(
+    () =>
+      (dept || []).map((d: any) => ({
+        value: d.departmentid,
+        label: d.department,
+      })),
+    [dept]
+  );
+
+  const filteredEmployees = useMemo(() => {
+    return (employees || []).filter((emp: any) => {
+      const selectedUnitLabel = units.find((u: any) => String(u.unitid) === String(selectedUnits))?.unitName;
+
+      const matchUnit = selectedUnitLabel ? emp.location === selectedUnitLabel : true;
+
+      const matchDept = selectedDepartments.length > 0 ? selectedDepartments.some((d) => d.label === emp.deptDfccil) : true;
+
+      return matchUnit && matchDept;
+    });
+  }, [employees, selectedUnits, selectedDepartments, units]);
+
+  const fetchRoles = async () => {
+    try {
+      setLoading(true);
+      const response = await axiosInstance.get('/User/roles');
+
+      if (response.data.success) {
+        setRoles(response.data.data);
+      }
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      const response = await axiosInstance.get('/User/employee-roles');
+
+      if (response.data.success) {
+        setData(response.data.data);
+      }
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchRoles();
+    fetchData();
+  }, []);
+
+  const roleOptions = useMemo(
+    () =>
+      roles.map((role: any) => ({
+        value: String(role.roleId),
+        label: role.roleName,
+      })),
+    [roles]
+  );
+
+  const customSelectStyles = {
+    control: (provided: any) => ({
+      ...provided,
+      minHeight: '40px',
+      maxHeight: '40px',
+    }),
+
+    valueContainer: (provided: any) => ({
+      ...provided,
+      overflowX: 'auto',
+      overflowY: 'hidden',
+      flexWrap: 'nowrap',
+      whiteSpace: 'nowrap',
+    }),
+
+    multiValue: (provided: any) => ({
+      ...provided,
+      flexShrink: 0,
+    }),
+  };
+
+  const employeeOptions = useMemo(() => {
+    return filteredEmployees.map((emp: any) => ({
+      value: emp.employeeCode,
+      label: emp.userName,
+      empName: emp.userName,
+      empCode: emp.employeeCode,
+      designation: emp.post,
+      department: emp.deptDfccil,
+    }));
+  }, [filteredEmployees]);
+
+  const handleEdit = (row: any) => {
+    setEditRowData(row);
+    setEditDialogOpen(true);
+  };
 
   const columns = useMemo(
     () => [
@@ -28,218 +149,210 @@ const RoleAssignment = () => {
       {
         id: 'empCode',
         header: 'Employee Code',
-        accessorKey: 'empCode',
-        cell: ({ row }) => row.original?.empCode,
+        cell: ({ row }) => row.original?.employeeCode,
       },
       {
         id: 'emplName',
-        accessorKey: 'emplName',
         header: 'Employee Name',
-        cell: ({ row }) => <div className="capitalize">{row?.original?.emplName}</div>,
+        cell: ({ row }) => <div className="capitalize">{row.original?.employeeName}</div>,
       },
       {
         id: 'unit',
         header: 'Unit',
-        accessorKey: 'location',
         cell: ({ row }) => {
-          return <div>{row?.original?.location}</div>;
-        },
-      },
-      {
-        id: 'deptDFCCIL',
-        accessorKey: 'deptDFCCIL',
-        header: 'Department',
-        cell: ({ row }) => <div className="capitalize">{row?.original?.deptDFCCIL}</div>,
-      },
+          const units = row.original?.units || [];
 
-      {
-        id: 'roles',
-        header: 'Role',
-        accessorKey: 'roles',
-        cell: ({ row }) => {
-          const roles = row.original?.roles;
-          if (!roles || roles.length === 0) return 'No roles assigned';
-          return <div className="capitalize">{roles.map((role) => role.roleName).join(', ')}</div>;
+          if (units.length === 0) return '-';
+
+          return <div>{units.map((u: any) => u.unitName).join(', ')}</div>;
         },
+      },
+      {
+        id: 'departments',
+        header: 'Departments',
+        cell: ({ row }) => {
+          const units = row.original?.units || [];
+
+          const departments = units.flatMap((u: any) => (u.departments || []).map((d: any) => d.depName));
+
+          return <div className="capitalize">{departments.length > 0 ? departments.join(', ') : '-'}</div>;
+        },
+      },
+      {
+        id: 'role',
+        header: 'Role',
+        cell: ({ row }) => <div className="capitalize">{row.original?.role || '-'}</div>,
       },
       {
         id: 'action',
         header: 'Action',
-        accessorKey: 'action',
         cell: ({ row }) => {
-          return <div className=""></div>;
+          const rowData = row.original;
+
+          return (
+            <div className="flex gap-2">
+              <Button size="sm" variant="outline" onClick={() => handleEdit(rowData)}>
+                <Edit />
+              </Button>
+
+              <ConfirmDialog
+                triggerLabel=""
+                onConfirm={() => handleDelete(rowData)}
+                actionLabel="Deactivate Role"
+                title="Deactivate Role from Employee"
+                description="Are you sure you want to deactivate this role from the employee? This action cannot be undone."
+                icon={<Trash2 />}
+              />
+            </div>
+          );
         },
       },
     ],
     []
   );
 
-  const unitOptions = [
-    { value: '1', label: 'Unit 1' },
-    { value: '2', label: 'Unit 2' },
-  ];
+  const handleDelete = async (row: any) => {
+    try {
+      setLoading(true);
 
-  const departmentOptions = [
-    { value: '1', label: 'HR' },
-    { value: '2', label: 'Finance' },
-  ];
+      const payload = {
+        employeeCode: row.employeeCode,
+        roleId: row.roleId,
+      };
 
-  const employeeOptions = [
-    { value: '1', label: 'John Doe' },
-    { value: '2', label: 'Jane Smith' },
-  ];
+      const res = await axiosInstance.post('/User/deactivate-role', payload);
 
-  const roleOptions = [
-    { value: '1', label: 'Admin' },
-    { value: '2', label: 'Manager' },
-  ];
+      if (res.data.success) {
+        toast.success('Role removed successfully');
+        fetchData();
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error('Delete failed');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAssignRole = async () => {
+    if (!selectedEmployee || !selectedRole || !selectedUnits) {
+      toast.error('Please select all fields');
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      const payload = {
+        employeeCode: selectedEmployee.value,
+        roleId: Number(selectedRole),
+        unitDepartments: [
+          {
+            unitId: Number(selectedUnits),
+            departmentIds: selectedDepartments.map((d) => d.value),
+          },
+        ],
+      };
+
+      const res = await axiosInstance.post('/User/assign-or-update', payload);
+
+      if (res.data.success) {
+        toast.success('Role Assigned successfully');
+
+        setSelectedEmployee(null);
+        setSelectedRole('');
+        setSelectedDepartments([]);
+        setSelectedUnits('');
+        fetchData();
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error('Something went wrong');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="p-3 sm:p-4 lg:p-6 space-y-4 sm:space-y-6 max-w-full">
-      <h2 className='text-xl sm:text-2xl font-semibold'>Role Assignment</h2>
+      <h2 className="text-xl sm:text-2xl font-semibold">Role Assignment</h2>
       {loading && <Loader />}
       <Card className="w-full">
         <CardContent className="p-3">
           <div className="space-y-4 lg:space-y-0 lg:grid lg:grid-cols-5 gap-3 lg:items-start">
             {/* Units Multi Select */}
             <div className="w-full">
-              <Label className="text-sm font-medium mb-2 block">Select Units</Label>
-
-              <Popover>
-                <PopoverTrigger asChild>
-                  <div className="flex flex-wrap items-center gap-2 border rounded-md px-3 py-2 min-h-[40px] cursor-pointer">
-                    {selectedUnits.length > 0 ? (
-                      selectedUnits.map((unit) => (
-                        <Badge key={unit.value} variant="secondary" className="flex items-center gap-1">
-                          {unit.label}
-                          <X
-                            className="h-3 w-3 cursor-pointer"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setSelectedUnits(selectedUnits.filter((u) => u.value !== unit.value));
-                            }}
-                          />
-                        </Badge>
-                      ))
-                    ) : (
-                      <span className="text-muted-foreground">Select Units</span>
-                    )}
-
-                    <ChevronDown className="ml-auto h-4 w-4 opacity-50" />
-                  </div>
-                </PopoverTrigger>
-
-                <PopoverContent className="w-full p-0">
-                  <Command>
-                    <CommandInput placeholder="Search units..." />
-                    <CommandEmpty>No unit found.</CommandEmpty>
-
-                    <CommandGroup>
-                      {unitOptions.map((unit) => {
-                        const isSelected = selectedUnits.some((u) => u.value === unit.value);
-
-                        return (
-                          <CommandItem
-                            key={unit.value}
-                            onSelect={() => {
-                              if (isSelected) {
-                                setSelectedUnits(selectedUnits.filter((u) => u.value !== unit.value));
-                              } else {
-                                setSelectedUnits([...selectedUnits, unit]);
-                              }
-                            }}
-                          >
-                            <Check className={`mr-2 h-4 w-4 ${isSelected ? 'opacity-100' : 'opacity-0'}`} />
-                            {unit.label}
-                          </CommandItem>
-                        );
-                      })}
-                    </CommandGroup>
-                  </Command>
-                </PopoverContent>
-              </Popover>
+              <Label className="text-sm font-medium mb-2 block">Unit</Label>
+              <ShadSelect value={selectedUnits} onValueChange={setSelectedUnits}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select Unit" />
+                </SelectTrigger>
+                <SelectContent>
+                  {unitOptions.map((unit) => (
+                    <SelectItem key={unit.value} value={unit.value}>
+                      {unit.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </ShadSelect>
             </div>
 
             {/* Departments Multi Select */}
             <div className="w-full">
               <Label className="text-sm font-medium mb-2 block">Select Departments</Label>
 
-              <Popover>
-                <PopoverTrigger asChild>
-                  <div className="flex flex-wrap items-center gap-2 border rounded-md px-3 py-2 min-h-[40px] cursor-pointer">
-                    {selectedDepartments.length > 0 ? (
-                      selectedDepartments.map((dept) => (
-                        <Badge key={dept.value} variant="secondary" className="flex items-center gap-1">
-                          {dept.label}
-                          <X
-                            className="h-3 w-3 cursor-pointer"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setSelectedDepartments(selectedDepartments.filter((d) => d.value !== dept.value));
-                            }}
-                          />
-                        </Badge>
-                      ))
-                    ) : (
-                      <span className="text-muted-foreground">Select Departments</span>
-                    )}
-
-                    <ChevronDown className="ml-auto h-4 w-4 opacity-50" />
-                  </div>
-                </PopoverTrigger>
-
-                <PopoverContent className="w-full p-0">
-                  <Command>
-                    <CommandInput placeholder="Search departments..." />
-                    <CommandEmpty>No department found.</CommandEmpty>
-
-                    <CommandGroup>
-                      {departmentOptions.map((dept) => {
-                        const isSelected = selectedDepartments.some((d) => d.value === dept.value);
-
-                        return (
-                          <CommandItem
-                            key={dept.value}
-                            onSelect={() => {
-                              if (isSelected) {
-                                setSelectedDepartments(selectedDepartments.filter((d) => d.value !== dept.value));
-                              } else {
-                                setSelectedDepartments([...selectedDepartments, dept]);
-                              }
-                            }}
-                          >
-                            <Check className={`mr-2 h-4 w-4 ${isSelected ? 'opacity-100' : 'opacity-0'}`} />
-                            {dept.label}
-                          </CommandItem>
-                        );
-                      })}
-                    </CommandGroup>
-                  </Command>
-                </PopoverContent>
-              </Popover>
+              <Select
+                isMulti
+                value={selectedDepartments}
+                onChange={(val) => setSelectedDepartments([...(val || [])])}
+                options={departmentOptions}
+                placeholder="Select Departments"
+                closeMenuOnSelect={false}
+                styles={customSelectStyles}
+              />
             </div>
 
             {/* Employee Select */}
             <div className="w-full">
               <Label className="text-sm font-medium mb-2 block">Select Employee</Label>
-              <Select value={selectedEmployee} onValueChange={setSelectedEmployee}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select Employee" />
-                </SelectTrigger>
-                <SelectContent>
-                  {employeeOptions.map((emp) => (
-                    <SelectItem key={emp.value} value={emp.value}>
-                      {emp.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Select
+                id="selectedEmployee"
+                value={selectedEmployee}
+                onChange={(val) => setSelectedEmployee(val)}
+                options={employeeOptions}
+                placeholder="Select employee"
+                isClearable
+                styles={customSelectStyles}
+                isDisabled={!selectedUnits && selectedDepartments.length === 0}
+                formatOptionLabel={(option: any) => (
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 flex items-center justify-center bg-primary text-white rounded-full font-bold uppercase">
+                      {option?.empName?.[0]}
+                    </div>
+                    <div>
+                      <div className="text-sm font-medium text-gray-800">{option?.empName}</div>
+                      <div className="text-xs text-gray-500">
+                        {option?.empCode} | {option?.department} | {option?.designation}
+                      </div>
+                    </div>
+                  </div>
+                )}
+                filterOption={(option, inputValue) => {
+                  const search = inputValue.toLowerCase();
+                  return (
+                    option.data.empName?.toLowerCase().includes(search) ||
+                    option.data.empCode?.toLowerCase().includes(search) ||
+                    option.data.designation?.toLowerCase().includes(search) ||
+                    option.data.department?.toLowerCase().includes(search)
+                  );
+                }}
+              />
             </div>
 
             {/* Role Select */}
             <div className="w-full">
               <Label className="text-sm font-medium mb-2 block">Select Role</Label>
-              <Select value={selectedRole} onValueChange={setSelectedRole}>
+              <ShadSelect value={selectedRole} onValueChange={setSelectedRole}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select Role" />
                 </SelectTrigger>
@@ -250,28 +363,39 @@ const RoleAssignment = () => {
                     </SelectItem>
                   ))}
                 </SelectContent>
-              </Select>
+              </ShadSelect>
             </div>
 
             {/* Assign Button */}
             <div className="w-full lg:w-auto">
-              <Button className="w-full lg:w-auto lg:px-8 mt-7">
+              <Button
+                onClick={handleAssignRole}
+                className="w-full lg:w-auto lg:px-8 mt-7"
+                disabled={!selectedUnits || !selectedEmployee || !selectedRole || loading}
+              >
                 Assign Role
               </Button>
             </div>
           </div>
         </CardContent>
       </Card>
-
       <div className="w-full">
         <div className="w-full overflow-x-auto">
           <div className="min-w-full">
             <div>
-              <TableList columns={columns} data={[]} />
+              <TableList columns={columns} data={data} />
             </div>
           </div>
         </div>
       </div>
+      <EditRoleDialog
+        open={editDialogOpen}
+        onClose={() => setEditDialogOpen(false)}
+        data={editRowData}
+        unitOptions={unitOptions}
+        departmentOptions={departmentOptions}
+        onSuccess={fetchData}
+      />
     </div>
   );
 };
