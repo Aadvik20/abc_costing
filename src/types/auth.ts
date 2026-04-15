@@ -1,16 +1,4 @@
-export type UserRole =
-  | 'user'
-  | 'admin'
-  | 'finance'
-  | 'superAdmin'
-  | 'CorporateAdmin'
-  | 'EmployeeAssigningAuthority'
-  | 'FinanceAdmin'
-  | 'FinanceUser'
-  | 'reporting'
-  | 'reportingAuthrity'
-  | 'Reporting'
-  | 'Approving';
+export type UserRole = -1 | 0 | 1 | 2 | 'admin' | 1000
 
 export interface UserClaims {
   name: string;

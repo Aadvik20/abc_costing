@@ -22,6 +22,8 @@ import { fetchMasterData } from '@/features/masterData/masterSlice';
 import { fetchApplications } from '@/features/applications/applicationSlice';
 import PurchaseOrder from '@/pages/PurchaseOrder';
 import RoleAssignment from '@/pages/RoleAssignment';
+import BudgetDemand from '@/pages/BudgetDemand';
+import Dashboard from '@/pages/user/Dashboard';
 
 const AppRoutes = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -48,21 +50,28 @@ const AppRoutes = () => {
         <Route path="/unauthorized" element={<Unauthorized />} />
         <Route path="/logout-notification" element={<FrontChannelLogout />} />
         <Route element={<AppLayout isAdmin={false} />}>
-          <Route element={<PrivateRoute allowedRoles={['user']} />}>
+          <Route element={<PrivateRoute allowedRoles={[-1]} />}>
             <Route path="/" element={<HomePage />} />
-            <Route path="/dashboard" element={<PurchaseOrder />} />
-            <Route path="/finance" element={<Finance />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+          </Route>
+          <Route element={<PrivateRoute allowedRoles={[1000 , 0]} />}>
             <Route path="/roleAssignment" element={<RoleAssignment />} />
-
+          </Route>
+          <Route element={<PrivateRoute allowedRoles={[2 , 0]} />}>
+            <Route path="/purchaseOrder" element={<PurchaseOrder />} />
             <Route path="/purchaseOrderV2" element={<PurchaseOrderV2 />} />
+            <Route path="/budgetDemand" element={<BudgetDemand />} />
+          </Route>
+          <Route element={<PrivateRoute allowedRoles={[1 , 0]} />}>
+            <Route path="/finance" element={<Finance />} />
             <Route path="/financeV2" element={<FinanceV2 />} />
           </Route>
         </Route>
         <Route element={<AppLayout isAdmin={true} />}>
-          <Route element={<PrivateRoute allowedRoles={['user']} />}></Route>
+          <Route element={<PrivateRoute allowedRoles={[-1]} />}></Route>
         </Route>
         <Route element={<AppLayout isAdmin={true} />}>
-          <Route element={<PrivateRoute allowedRoles={['admin', 'superAdmin']} />}>
+          <Route element={<PrivateRoute allowedRoles={['admin', 0]} />}>
             <Route path="/admin-dashboard" element={<AdminDashboard />} />
           </Route>
         </Route>

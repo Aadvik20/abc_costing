@@ -6,6 +6,26 @@ export const setSessionItem = (key: string, value: any) => {
   const valueToStore = typeof value === 'object' ? JSON.stringify(value) : value;
   sessionStorage.setItem(key, valueToStore);
 };
+export const monthOptions = [
+  { value: 1, label: 'Jan' },
+  { value: 2, label: 'Feb' },
+  { value: 3, label: 'Mar' },
+  { value: 4, label: 'Apr' },
+  { value: 5, label: 'May' },
+  { value: 6, label: 'Jun' },
+  { value: 7, label: 'Jul' },
+  { value: 8, label: 'Aug' },
+  { value: 9, label: 'Sep' },
+  { value: 10, label: 'Oct' },
+  { value: 11, label: 'Nov' },
+  { value: 12, label: 'Dec' },
+];
+
+export const yearOptions = Array.from({ length: 7 }, (_, i) => {
+  const currentYear = new Date().getFullYear();
+  const y = currentYear - 3 + i;
+  return { value: y, label: y.toString() };
+});
 export const formatDateTime = (dateString: string): string => {
   if (!dateString) return '';
 
@@ -85,11 +105,10 @@ export const formatRupees = (amount: number | null | undefined): string => {
 };
 
 export const formatRupeeInput = (value) => {
-    if (!value) return '';
-    const numericValue = value.replace(/[^0-9]/g, '');
-    return new Intl.NumberFormat('en-IN').format(numericValue);
-  };
-
+  if (!value) return '';
+  const numericValue = value.replace(/[^0-9]/g, '');
+  return new Intl.NumberFormat('en-IN').format(numericValue);
+};
 
 export const getNextDate = (dateString: string) => {
   if (!dateString) return;
@@ -199,16 +218,29 @@ export const formatRupeesInWords = (amount: number): string => {
   }
 
   const belowTwenty = [
-    '', 'One', 'Two', 'Three', 'Four', 'Five', 'Six',
-    'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve',
-    'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen',
-    'Seventeen', 'Eighteen', 'Nineteen',
+    '',
+    'One',
+    'Two',
+    'Three',
+    'Four',
+    'Five',
+    'Six',
+    'Seven',
+    'Eight',
+    'Nine',
+    'Ten',
+    'Eleven',
+    'Twelve',
+    'Thirteen',
+    'Fourteen',
+    'Fifteen',
+    'Sixteen',
+    'Seventeen',
+    'Eighteen',
+    'Nineteen',
   ];
 
-  const tens = [
-    '', '', 'Twenty', 'Thirty', 'Forty',
-    'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety',
-  ];
+  const tens = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
 
   const convertBelowThousand = (num: number): string => {
     let str = '';

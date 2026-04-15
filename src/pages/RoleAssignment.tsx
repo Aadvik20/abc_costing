@@ -20,8 +20,8 @@ const RoleAssignment = () => {
   const [selectedEmployee, setSelectedEmployee] = useState<any>(null);
   const [selectedRole, setSelectedRole] = useState('');
   const [loading, setLoading] = useState(false);
-  const { units } = useAppSelector((state: RootState) => state.masterData);
-  const { dept } = useAppSelector((state: RootState) => state.masterData);
+  const { units } = useAppSelector((state: RootState) => state.user);
+  const { departments } = useAppSelector((state: RootState) => state.user);
   const { employees } = useAppSelector((state: RootState) => state.masterData);
   const [roles, setRoles] = useState<any[]>([]);
   const [data, setData] = useState<any[]>([]);
@@ -31,24 +31,46 @@ const RoleAssignment = () => {
   const unitOptions = useMemo(
     () =>
       (units || []).map((unit: any) => ({
-        value: String(unit.unitid),
-        label: unit.unitName,
+        value: String(unit.value),
+        label: unit.label,
       })),
     [units]
   );
 
-  const departmentOptions = useMemo(
-    () =>
-      (dept || []).map((d: any) => ({
-        value: d.departmentid,
-        label: d.department,
-      })),
-    [dept]
-  );
+  const filteredDepartments = useMemo(() => {
+    if (!selectedUnits) return [];
+
+    return departments
+      .filter((d: any) => d.unitId === selectedUnits)
+      .map((d: any) => ({
+        value: d.value,
+        label: d.label,
+      }));
+  }, [selectedUnits, departments]);
+
+  const isAllSelected = selectedDepartments.length === filteredDepartments.length;
+
+  const deptOptions = [
+    {
+      label: isAllSelected ? 'Deselect All' : 'Select All',
+      value: 'all',
+    },
+    ...filteredDepartments,
+  ];
+
+  useEffect(() => {
+    setSelectedDepartments([]);
+  }, [selectedUnits]);
+
+  useEffect(() => {
+    if (units.length === 1 && !selectedUnits) {
+      setSelectedUnits(units[0].value);
+    }
+  }, [units, selectedUnits]);
 
   const filteredEmployees = useMemo(() => {
     return (employees || []).filter((emp: any) => {
-      const selectedUnitLabel = units.find((u: any) => String(u.unitid) === String(selectedUnits))?.unitName;
+      const selectedUnitLabel = units.find((u: any) => u.value === selectedUnits)?.label;
 
       const matchUnit = selectedUnitLabel ? emp.location === selectedUnitLabel : true;
 
@@ -106,15 +128,14 @@ const RoleAssignment = () => {
     control: (provided: any) => ({
       ...provided,
       minHeight: '40px',
-      maxHeight: '40px',
+      maxHeight: '80px',
     }),
 
     valueContainer: (provided: any) => ({
       ...provided,
-      overflowX: 'auto',
-      overflowY: 'hidden',
-      flexWrap: 'nowrap',
-      whiteSpace: 'nowrap',
+      flexWrap: 'wrap', // ✅ allow wrap
+      overflowY: 'auto', // ✅ vertical scroll
+      maxHeight: '80px',
     }),
 
     multiValue: (provided: any) => ({
@@ -304,8 +325,27 @@ const RoleAssignment = () => {
               <Select
                 isMulti
                 value={selectedDepartments}
-                onChange={(val) => setSelectedDepartments([...(val || [])])}
-                options={departmentOptions}
+                onChange={(val) => {
+                  if (!val) {
+                    setSelectedDepartments([]);
+                    return;
+                  }
+
+                  const isAllSelected = val.some((option) => option.value === 'all');
+
+                  if (isAllSelected) {
+                    // If already all selected → deselect all
+                    if (selectedDepartments.length === filteredDepartments.length) {
+                      setSelectedDepartments([]);
+                    } else {
+                      // Select all (exclude "all" option itself)
+                      setSelectedDepartments(filteredDepartments);
+                    }
+                  } else {
+                    setSelectedDepartments(val as any[]);
+                  }
+                }}
+                options={deptOptions}
                 placeholder="Select Departments"
                 closeMenuOnSelect={false}
                 styles={customSelectStyles}
@@ -393,7 +433,7 @@ const RoleAssignment = () => {
         onClose={() => setEditDialogOpen(false)}
         data={editRowData}
         unitOptions={unitOptions}
-        departmentOptions={departmentOptions}
+        departmentOptions={deptOptions}
         onSuccess={fetchData}
       />
     </div>

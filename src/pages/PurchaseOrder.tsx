@@ -17,8 +17,8 @@ const PurchaseOrder = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [error, setError] = useState('');
 
-  const [units, setUnits] = useState([]);
-  const [departments, setDepartments] = useState([]);
+  // const [units, setUnits] = useState([]);
+  // const [departments, setDepartments] = useState([]);
   const [capex, setCapex] = useState([]);
 
   const [selectedUnit, setSelectedUnit] = useState('');
@@ -27,6 +27,11 @@ const PurchaseOrder = () => {
 
   const dispatch = useAppDispatch();
   const { po, loading } = useAppSelector((state) => state.poSlice);
+  const { units } = useAppSelector((state) => state.user);
+  const { departments } = useAppSelector((state) => state.user);
+
+  const allowedUnits = new Set(units.map((u) => u.label));
+  const allowedDepts = new Set(departments.map((d) => d.label));
 
   useEffect(() => {
     if (!po.length) {
@@ -36,11 +41,19 @@ const PurchaseOrder = () => {
 
   useEffect(() => {
     if (po?.length) {
-      setUnits([...new Set(po.map((r) => r.unit).filter(Boolean))]);
-      setDepartments([...new Set(po.map((r) => r.department).filter(Boolean))]);
+      // setUnits([...new Set(po.map((r) => r.unit).filter(Boolean))]);
+      // setDepartments([...new Set(po.map((r) => r.department).filter(Boolean))]);
       setCapex([...new Set(po.map((r) => r.capexOpex).filter(Boolean))]);
     }
   }, [po]);
+
+  useEffect(() => {
+    if (units.length === 1) {
+      setSelectedUnit(units[0].value);
+      setSelectedDepartment('');
+      setSelectedCapex('');
+    }
+  }, [units]);
 
   const columns = useMemo(
     () => [
@@ -115,12 +128,17 @@ const PurchaseOrder = () => {
 
     let data = po || [];
 
-    if (selectedUnit) {
-      data = data.filter((r) => r.unit === selectedUnit);
+    data = data.filter((r) => allowedUnits.has(r.unit) && allowedDepts.has(r.department));
+
+    const selectedUnitLabel = units.find((u) => u.value === selectedUnit)?.label;
+
+    if (selectedUnitLabel) {
+      data = data.filter((r) => r.unit === selectedUnitLabel);
     }
 
     if (selectedDepartment) {
-      data = data.filter((r) => r.department === selectedDepartment);
+      const selectedDeptLabel = departments.find((d) => d.value === Number(selectedDepartment))?.label;
+      data = data.filter((r) => r.department === selectedDeptLabel);
     }
 
     if (selectedCapex) {
@@ -128,7 +146,7 @@ const PurchaseOrder = () => {
     }
 
     return data;
-  }, [po, selectedUnit, selectedDepartment, selectedCapex]);
+  }, [po, selectedUnit, selectedDepartment, selectedCapex, units, departments]);
 
   const totals = useMemo(() => {
     return tableData.reduce(
@@ -149,28 +167,24 @@ const PurchaseOrder = () => {
   const filteredDepartments = useMemo(() => {
     if (!selectedUnit) return departments;
 
-    return [
-      ...new Set(
-        po
-          .filter((r) => r.unit === selectedUnit)
-          .map((r) => r.department)
-          .filter(Boolean)
-      ),
-    ];
-  }, [selectedUnit, po]);
+    return departments.filter((d) => d.unitId === selectedUnit);
+  }, [selectedUnit, departments]);
 
   const filteredCapex = useMemo(() => {
+    const selectedUnitLabel = units.find((u) => u.value === selectedUnit)?.label;
+    const selectedDeptLabel = departments.find((d) => d.value === Number(selectedDepartment))?.label;
+
     if (!selectedDepartment) return capex;
 
     return [
       ...new Set(
         po
-          .filter((r) => r.unit === selectedUnit && r.department === selectedDepartment)
+          .filter((r) => r.unit === selectedUnitLabel && r.department === selectedDeptLabel)
           .map((r) => r.capexOpex)
           .filter(Boolean)
       ),
     ];
-  }, [selectedUnit, selectedDepartment, po]);
+  }, [selectedUnit, selectedDepartment, po, units, departments]);
 
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!selectedUnit) {
@@ -354,9 +368,9 @@ const PurchaseOrder = () => {
                         className="w-[200px] px-3 py-2 border-2 rounded outline-none"
                       >
                         <option value="">Select Unit</option>
-                        {units.map((u, i) => (
-                          <option key={i} value={u}>
-                            {u}
+                        {units.map((u) => (
+                          <option key={u.value} value={u.value}>
+                            {u.label}
                           </option>
                         ))}
                       </select>
@@ -369,15 +383,16 @@ const PurchaseOrder = () => {
                         value={selectedDepartment}
                         onChange={(e) => {
                           setSelectedDepartment(e.target.value);
+                          setSelectedCapex('');
                           setError('');
                         }}
                         disabled={!selectedUnit}
                         className="w-[200px] px-3 py-2 border-2 rounded outline-none"
                       >
                         <option value="">Select Department</option>
-                        {filteredDepartments.map((d, i) => (
-                          <option key={i} value={d}>
-                            {d}
+                        {filteredDepartments.map((d) => (
+                          <option key={d.value} value={d.value}>
+                            {d.label}
                           </option>
                         ))}
                       </select>
@@ -405,7 +420,7 @@ const PurchaseOrder = () => {
                     </div>
 
                     {/* Reset */}
-                    <div className="flex flex-col gap-1">
+                    {/* <div className="flex flex-col gap-1">
                       <Button
                         onClick={() => {
                           setSelectedUnit('');
@@ -416,7 +431,7 @@ const PurchaseOrder = () => {
                       >
                         Reset
                       </Button>
-                    </div>
+                    </div> */}
                   </div>
                 }
               />

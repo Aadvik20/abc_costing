@@ -13,8 +13,8 @@ import { History, RefreshCw } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 
 const PurchaseOrderV2 = () => {
-  const [units, setUnits] = useState([]);
-  const [departments, setDepartments] = useState([]);
+  // const [units, setUnits] = useState([]);
+  // const [departments, setDepartments] = useState([]);
   const [supplier, setSupplier] = useState([]);
 
   const [selectedUnit, setSelectedUnit] = useState('');
@@ -27,6 +27,11 @@ const PurchaseOrderV2 = () => {
 
   const dispatch = useAppDispatch();
   const { po, loading } = useAppSelector((state) => state.poSlice);
+  const { units } = useAppSelector((state) => state.user);
+  const { departments } = useAppSelector((state) => state.user);
+
+  const allowedUnits = new Set(units.map((u) => u.label));
+  const allowedDepts = new Set(departments.map((d) => d.label));
 
   useEffect(() => {
     if (!po.length) {
@@ -35,9 +40,17 @@ const PurchaseOrderV2 = () => {
   }, [dispatch, po?.length]);
 
   useEffect(() => {
+    if (units.length === 1) {
+      setSelectedUnit(units[0].value);
+      setSelectedDepartment('');
+      setSelectedSupplier('');
+    }
+  }, [units]);
+
+  useEffect(() => {
     if (po?.length) {
-      setUnits([...new Set(po.map((r) => r.unit).filter(Boolean))]);
-      setDepartments([...new Set(po.map((r) => r.department).filter(Boolean))]);
+      // setUnits([...new Set(po.map((r) => r.unit).filter(Boolean))]);
+      // setDepartments([...new Set(po.map((r) => r.department).filter(Boolean))]);
       setSupplier([...new Set(po.map((r) => r.supplierCode).filter(Boolean))]);
     }
   }, [po]);
@@ -118,12 +131,17 @@ const PurchaseOrderV2 = () => {
   const tableData = useMemo(() => {
     let data = po || [];
 
-    if (selectedUnit) {
-      data = data.filter((r) => r.unit === selectedUnit);
+    data = data.filter((r) => allowedUnits.has(r.unit) && allowedDepts.has(r.department));
+
+    const selectedUnitLabel = units.find((u) => u.value === selectedUnit)?.label;
+
+    if (selectedUnitLabel) {
+      data = data.filter((r) => r.unit === selectedUnitLabel);
     }
 
     if (selectedDepartment) {
-      data = data.filter((r) => r.department === selectedDepartment);
+      const selectedDeptLabel = departments.find((d) => d.value === Number(selectedDepartment))?.label;
+      data = data.filter((r) => r.department === selectedDeptLabel);
     }
 
     if (selectedSupplier) {
@@ -131,33 +149,29 @@ const PurchaseOrderV2 = () => {
     }
 
     return data;
-  }, [po, selectedUnit, selectedDepartment, selectedSupplier]);
+  }, [po, selectedUnit, selectedDepartment, selectedSupplier, units, departments]);
 
   const filteredDepartments = useMemo(() => {
     if (!selectedUnit) return departments;
 
-    return [
-      ...new Set(
-        po
-          .filter((r) => r.unit === selectedUnit)
-          .map((r) => r.department)
-          .filter(Boolean)
-      ),
-    ];
-  }, [selectedUnit, po]);
+    return departments.filter((d) => d.unitId === selectedUnit);
+  }, [selectedUnit, departments]);
 
   const filteredSuppliers = useMemo(() => {
+    const selectedUnitLabel = units.find((u) => u.value === selectedUnit)?.label;
+    const selectedDeptLabel = departments.find((d) => d.value === Number(selectedDepartment))?.label;
+
     if (!selectedDepartment) return supplier;
 
     return [
       ...new Set(
         po
-          .filter((r) => r.unit === selectedUnit && r.department === selectedDepartment)
+          .filter((r) => r.unit === selectedUnitLabel && r.department === selectedDeptLabel)
           .map((r) => r.supplierCode)
           .filter(Boolean)
       ),
     ];
-  }, [selectedUnit, selectedDepartment, po]);
+  }, [selectedUnit, selectedDepartment, po, units, departments]);
 
   return (
     <div className="p-4 md:p-8">
@@ -195,9 +209,9 @@ const PurchaseOrderV2 = () => {
                       className=" w-[200px] px-3 py-2 border-2 rounded outline:none"
                     >
                       <option value="">All Units</option>
-                      {units.map((u, i) => (
-                        <option key={i} value={u}>
-                          {u}
+                      {units.map((u) => (
+                        <option key={u.value} value={u.value}>
+                          {u.label}
                         </option>
                       ))}
                     </select>
@@ -212,9 +226,9 @@ const PurchaseOrderV2 = () => {
                       className=" w-[200px] px-3 py-2 border-2 rounded outline:none"
                     >
                       <option value="">All Departments</option>
-                      {filteredDepartments.map((d, i) => (
-                        <option key={i} value={d}>
-                          {d}
+                      {filteredDepartments.map((d) => (
+                        <option key={d.value} value={d.value}>
+                          {d.label}
                         </option>
                       ))}
                     </select>
@@ -235,7 +249,7 @@ const PurchaseOrderV2 = () => {
                       ))}
                     </select>
 
-                    <Button
+                    {/* <Button
                       onClick={() => {
                         setSelectedUnit('');
                         setSelectedDepartment('');
@@ -243,7 +257,7 @@ const PurchaseOrderV2 = () => {
                       }}
                     >
                       Reset
-                    </Button>
+                    </Button> */}
                   </div>
                 </>
               }

@@ -2,8 +2,18 @@ import { getDelegationInfoFromSession } from '@/lib/helperFunction';
 import axiosInstance from '@/services/axiosInstance';
 import { createSlice, PayloadAction, createAsyncThunk } from '@reduxjs/toolkit';
 
+type UnitOption = {
+  value: string;
+  label: string;
+};
+
+type DepartmentOption = {
+  value: number;
+  label: string;
+  unitId: string;
+};
 export interface UserState {
-  Roles: string[];
+  Roles: Number[];
   name: string | null;
   EmpCode: string | null;
   personnelSubArea: string | null;
@@ -20,10 +30,14 @@ export interface UserState {
   error: string | null;
   reportingOfficer: string | null;
   roleAssigned: any[];
+
+  units: UnitOption[];
+  departments: DepartmentOption[];
+
   isDelegatedUser?: boolean;
   delegateeEmpCode?: string | null;
-  delegatedApplications?: string | null; // "11,61,72,53"
-  delegatedApplicationNames?: string | null; // "IT Services Management,Module Management,e-Measurement Book,APAR"
+  delegatedApplications?: string | null;
+  delegatedApplicationNames?: string | null;
 }
 interface RoleUnit {
   unitId: string;
@@ -58,7 +72,6 @@ interface ProfileResponse {
   };
 }
 
-// ✅ Corrected initial state: Roles is now an empty array
 const initialState: UserState = {
   Roles: [],
   name: null,
@@ -77,6 +90,10 @@ const initialState: UserState = {
   error: null,
   employeeMasterAutoId: null,
   roleAssigned: [],
+
+  units: [],
+  departments: [],
+
   isDelegatedUser: false,
   delegateeEmpCode: null,
   delegatedApplications: null,
@@ -87,6 +104,7 @@ export const fetchUserProfile = createAsyncThunk('user/fetchUserProfile', async 
   try {
     const response = await axiosInstance.get<ProfileResponse>('/User/GetProfile');
     const data: any = response.data;
+    console.log(data.roles);
     if (data.error) {
       throw new Error(data.errorDetail || 'Unknown error occurred');
     }
@@ -94,6 +112,7 @@ export const fetchUserProfile = createAsyncThunk('user/fetchUserProfile', async 
     const delegationInfo = getDelegationInfoFromSession();
     data.data = {
       ...data.employeeInfo,
+      roles: data.roles,
       ...delegationInfo,
     };
     return data;
@@ -123,6 +142,7 @@ const userSlice = createSlice({
       .addCase(fetchUserProfile.fulfilled, (state, action) => {
         state.loading = false;
         const { data } = action.payload || {};
+        console.log(data, 'data from user slid');
         state.EmpCode = data?.employeeCode || '';
         state.name = data?.userName || '';
         state.Designation = data?.designation || '';
@@ -132,16 +152,32 @@ const userSlice = createSlice({
         state.Lavel = data?.level || '';
         state.Mobile = data?.mobile || '';
         state.Email = data?.emailAddress || '';
-        // state.employeeMasterAutoId = data?.employeeMasterAutoId || null;
-        // state.reportingOfficer = data?.reportingOfficer || null;
-        // state.personnelSubArea = data?.personnelSubArea || null;
-        const roles : any = Array.isArray(data.qRoles)
-          ? Array.from(
-              new Set(data.qRoles.map((r: any) => (typeof r === 'string' ? r : r?.roleAssign)).filter((s: any) => typeof s === 'string' && s.trim().length > 0))
+        const roles: any = Array.isArray(data.roles) ? Array.from(new Set(data.roles.map((r: any) => r.roleId))) : [];
+        const units = Array.isArray(data.roles)
+          ? data.roles.flatMap((role: any) =>
+              role.units.map((u: any) => ({
+                value: String(u.unitId),
+                label: u.unitName,
+              }))
             )
           : [];
-        state.Roles = roles.length ? [...roles] : ['user'];
-        state.roleAssigned = data.qRoles;
+        const departments = Array.isArray(data.roles)
+          ? data.roles.flatMap((role: any) =>
+              role.units.flatMap((u: any) =>
+                u.departments.map((d: any) => ({
+                  value: d.depId,
+                  label: d.depName,
+                  unitId: String(u.unitId),
+                }))
+              )
+            )
+          : [];
+        state.units = units;
+        state.departments = departments;
+        state.Roles = roles.length ? [...roles , -1] : [-1];
+        state.roleAssigned = data.roles;
+
+        console.log(roles);
       });
   },
 });

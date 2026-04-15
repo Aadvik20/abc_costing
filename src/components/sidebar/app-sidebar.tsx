@@ -8,58 +8,55 @@ import { clearAllStorage } from '@/lib/helperFunction';
 import { Home, Landmark } from 'lucide-react';
 import { NavItem } from '@/types/types';
 import { Separator } from '../ui/separator';
+import { useAppSelector } from '@/app/hooks';
+import { RootState } from '@/app/store';
 
 export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   const navigate = useNavigate();
   const { state, toggleSidebar } = useSidebar();
+  const { Roles } = useAppSelector((state: RootState) => state.user);
   const canAccessAdminDashboard = false;
   const allNavItems: NavItem[] = [
     {
       title: 'Purchase Order',
-      url: '/dashboard',
+      url: '/purchaseOrder',
       icon: Home,
-      roles: ['user'],
+      roles: [2 , 0],
     },
     {
       title: 'Finance',
       url: '/Finance',
       icon: Landmark,
-      roles: ['user'],
+      roles: [1 , 0],
     },
     {
       title: 'Role Assignment',
       url: '/roleAssignment',
       icon: User,
-      roles: ['user'],
+      roles: [1000 , 0],
     },
 
     {
       title: 'Purchase Order V2',
       url: '/purchaseOrderv2',
       icon: Home,
-      roles: ['user'],
+      roles: [2 , 0],
     },
     {
       title: 'Finance V2',
       url: '/financeV2',
       icon: Landmark,
-      roles: ['user'],
+      roles: [1 , 0],
+    },
+    {
+      title: 'Demand Budget',
+      url: '/budgetDemand',
+      icon: Landmark,
+      roles: [2 , 0],
     },
   ];
-  // React.useEffect(() => {
-  //   if (loading) return;
-  //   if (Roles.length === 0) {
-  //     navigate('/unauthorized');
-  //     return;
-  //   }
-  //   if (Roles.includes('Admin')) {
-  //     navigate('/dashboard');
-  //     return
-  //   }
-  // }, [Roles]);
 
-  // const navMainItems = allNavItems.filter((item) => item.roles.some((role) => Roles.includes(role)));
-  const navMainItems = allNavItems;
+  const navMainItems = allNavItems.filter((item) => item.roles.some((role) => Roles.includes(role)));
   const handleLogout = () => {
     clearAllStorage();
     window.location.href = environment.exitUrl;

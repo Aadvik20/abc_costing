@@ -121,12 +121,33 @@ const EditRoleDialog = ({ open, onClose, data, unitOptions, departmentOptions, o
           <Select
             isMulti
             value={formData.departments}
-            onChange={(val) =>
-              setFormData((prev: any) => ({
-                ...prev,
-                departments: [...(val || [])],
-              }))
-            }
+            onChange={(val) => {
+              if (!val) {
+                setFormData((prev: any) => ({
+                  ...prev,
+                  departments: [],
+                }));
+                return;
+              }
+
+              const isAllSelected = val.some((opt: any) => opt.value === 'all');
+
+              if (isAllSelected) {
+                const realOptions = departmentOptions.filter((d: any) => d.value !== 'all');
+
+                const alreadyAllSelected = formData.departments?.length === realOptions.length;
+
+                setFormData((prev: any) => ({
+                  ...prev,
+                  departments: alreadyAllSelected ? [] : realOptions,
+                }));
+              } else {
+                setFormData((prev: any) => ({
+                  ...prev,
+                  departments: val,
+                }));
+              }
+            }}
             options={departmentOptions}
             closeMenuOnSelect={false}
             styles={customSelectStyles}
