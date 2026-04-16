@@ -10,7 +10,9 @@ import toast from 'react-hot-toast';
 const EditRoleDialog = ({ open, onClose, data, unitOptions, departmentOptions, onSuccess }: any) => {
   const [formData, setFormData] = useState<any>(null);
   const [loading, setLoading] = useState(false);
-
+  
+  console.log(departmentOptions);
+  
   useEffect(() => {
     if (data) {
       const unit = data.units?.[0];

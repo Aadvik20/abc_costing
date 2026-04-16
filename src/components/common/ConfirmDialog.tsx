@@ -1,12 +1,5 @@
 import { useState } from 'react';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 
 interface ConfirmDialogProps {
@@ -22,6 +15,7 @@ interface ConfirmDialogProps {
   withRemarks?: boolean;
   remarksRequired?: boolean;
   remarksPlaceholder?: string;
+  icon?: React.ReactNode;
 }
 
 export default function ConfirmDialog({
@@ -37,6 +31,7 @@ export default function ConfirmDialog({
   withRemarks = false,
   remarksRequired = false,
   remarksPlaceholder = 'Enter remarks...',
+  icon,
 }: ConfirmDialogProps) {
   const [open, setOpen] = useState(false);
   const [remarks, setRemarks] = useState('');
@@ -62,7 +57,8 @@ export default function ConfirmDialog({
 
   return (
     <>
-      <Button disabled={disabled} className={triggerClassName} onClick={handleTriggerClick}>
+      <Button disabled={disabled} className={`flex items-center gap-2 ${triggerClassName}`} onClick={handleTriggerClick}>
+        {icon && <span className="text-base">{icon}</span>}
         {triggerLabel}
       </Button>
 

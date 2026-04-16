@@ -24,7 +24,8 @@ import PurchaseOrder from '@/pages/PurchaseOrder';
 import RoleAssignment from '@/pages/RoleAssignment';
 import BudgetDemand from '@/pages/BudgetDemand';
 import Dashboard from '@/pages/user/Dashboard';
-import BudgetApproveRequests from '@/pages/budgetApproveRequests';
+import BudgetApproveRequests from '@/pages/BudgetApproveRequests';
+import BudgetApproveFinance from '@/pages/BudgetApproveFinance';
 
 const AppRoutes = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -55,18 +56,19 @@ const AppRoutes = () => {
             <Route path="/" element={<HomePage />} />
             <Route path="/dashboard" element={<Dashboard />} />
           </Route>
-          <Route element={<PrivateRoute allowedRoles={[1000 , 0]} />}>
+          <Route element={<PrivateRoute allowedRoles={[1000, 0]} />}>
             <Route path="/roleAssignment" element={<RoleAssignment />} />
-            <Route path="/approvalRequests" element={<BudgetApproveRequests />} />
+            <Route path="/approvalRequestsCgm" element={<BudgetApproveRequests />} />
           </Route>
-          <Route element={<PrivateRoute allowedRoles={[2 , 0]} />}>
+          <Route element={<PrivateRoute allowedRoles={[2, 0]} />}>
             <Route path="/purchaseOrder" element={<PurchaseOrder />} />
             <Route path="/purchaseOrderV2" element={<PurchaseOrderV2 />} />
             <Route path="/budgetDemand" element={<BudgetDemand />} />
           </Route>
-          <Route element={<PrivateRoute allowedRoles={[1 , 0]} />}>
+          <Route element={<PrivateRoute allowedRoles={[1, 0]} />}>
             <Route path="/finance" element={<Finance />} />
             <Route path="/financeV2" element={<FinanceV2 />} />
+            <Route path="/budgetApproveFinance" element={<BudgetApproveFinance />} />
           </Route>
         </Route>
         <Route element={<AppLayout isAdmin={true} />}>

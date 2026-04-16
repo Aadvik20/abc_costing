@@ -38,14 +38,10 @@ const RoleAssignment = () => {
   );
 
   const filteredDepartments = useMemo(() => {
-    if (!selectedUnits) return [];
-
-    return departments
-      .filter((d: any) => d.unitId === selectedUnits)
-      .map((d: any) => ({
-        value: d.value,
-        label: d.label,
-      }));
+    return departments.map((d: any) => ({
+      value: d.value,
+      label: d.label,
+    }));
   }, [selectedUnits, departments]);
 
   const isAllSelected = selectedDepartments.length === filteredDepartments.length;
@@ -58,9 +54,9 @@ const RoleAssignment = () => {
     ...filteredDepartments,
   ];
 
-  useEffect(() => {
-    setSelectedDepartments([]);
-  }, [selectedUnits]);
+  // useEffect(() => {
+  //   setSelectedDepartments([]);
+  // }, [selectedUnits]);
 
   useEffect(() => {
     if (units.length === 1 && !selectedUnits) {
@@ -114,6 +110,22 @@ const RoleAssignment = () => {
     fetchRoles();
     fetchData();
   }, []);
+
+  const filteredData = useMemo(() => {
+    if (!data?.length) return [];
+
+    return data.filter((row) => {
+      const rowUnits = row.units || [];
+
+      const unitMatch = rowUnits.some((u: any) => units?.some((userUnit: any) => Number(userUnit.value) === u.unitId));
+
+      const deptMatch = rowUnits.some((u: any) =>
+        (u.departments || []).some((d: any) => departments?.some((userDept: any) => Number(userDept.value) === d.depId))
+      );
+
+      return unitMatch && deptMatch;
+    });
+  }, [data, units, departments]);
 
   const roleOptions = useMemo(
     () =>
@@ -423,7 +435,7 @@ const RoleAssignment = () => {
         <div className="w-full overflow-x-auto">
           <div className="min-w-full">
             <div>
-              <TableList columns={columns} data={data} />
+              <TableList columns={columns} data={filteredData} />
             </div>
           </div>
         </div>

@@ -21,44 +21,49 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
       title: 'Purchase Order',
       url: '/purchaseOrder',
       icon: Home,
-      roles: [2 , 0],
+      roles: [2, 0], // pouser
     },
     {
       title: 'Finance',
       url: '/Finance',
       icon: Landmark,
-      roles: [1 , 0],
+      roles: [1, 0], // financeAdmin
     },
     {
       title: 'Role Assignment',
       url: '/roleAssignment',
       icon: User,
-      roles: [1000 , 0],
+      roles: [1000, 0], // cgm
     },
-
     {
       title: 'Purchase Order V2',
       url: '/purchaseOrderv2',
       icon: Home,
-      roles: [2 , 0],
+      roles: [2, 0], // pouser
     },
     {
       title: 'Finance V2',
       url: '/financeV2',
       icon: Landmark,
-      roles: [1 , 0],
+      roles: [1, 0], // financeAdmin
     },
     {
       title: 'Demand Budget',
       url: '/budgetDemand',
       icon: Landmark,
-      roles: [2 , 0],
+      roles: [2, 0], // pouser
     },
-        {
+    {
       title: 'Budget Approval',
-      url: '/approvalRequests',
+      url: '/approvalRequestsCgm',
       icon: Inbox,
-      roles: [2 , 0],
+      roles: [1000, 0], // cgm
+    },
+    {
+      title: 'Budget Approval',
+      url: '/budgetApproveFinance',
+      icon: Inbox,
+      roles: [1, 0], // financeAdmin
     },
   ];
 
