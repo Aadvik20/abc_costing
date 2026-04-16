@@ -24,6 +24,7 @@ import PurchaseOrder from '@/pages/PurchaseOrder';
 import RoleAssignment from '@/pages/RoleAssignment';
 import BudgetDemand from '@/pages/BudgetDemand';
 import Dashboard from '@/pages/user/Dashboard';
+import BudgetApproveRequests from '@/pages/budgetApproveRequests';
 
 const AppRoutes = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -56,6 +57,7 @@ const AppRoutes = () => {
           </Route>
           <Route element={<PrivateRoute allowedRoles={[1000 , 0]} />}>
             <Route path="/roleAssignment" element={<RoleAssignment />} />
+            <Route path="/approvalRequests" element={<BudgetApproveRequests />} />
           </Route>
           <Route element={<PrivateRoute allowedRoles={[2 , 0]} />}>
             <Route path="/purchaseOrder" element={<PurchaseOrder />} />

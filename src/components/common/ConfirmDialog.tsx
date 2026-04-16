@@ -1,5 +1,12 @@
-import { useState, ReactNode } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { useState } from 'react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 
 interface ConfirmDialogProps {
@@ -9,51 +16,79 @@ interface ConfirmDialogProps {
   title?: string;
   description?: string;
   actionLabel?: string;
-  icon?: ReactNode; // optional icon
-  onConfirm: () => void;
+  onConfirm: (remarks?: string) => void;
+  beforeOpen?: () => boolean;
+
+  withRemarks?: boolean;
+  remarksRequired?: boolean;
+  remarksPlaceholder?: string;
 }
 
 export default function ConfirmDialog({
   triggerLabel,
   triggerClassName = '',
   disabled = false,
-  title = 'Are you sure?',
+  title = 'Confirm',
   description = 'This action cannot be undone.',
   actionLabel = 'Confirm',
-  icon,
   onConfirm,
+  beforeOpen,
+
+  withRemarks = false,
+  remarksRequired = false,
+  remarksPlaceholder = 'Enter remarks...',
 }: ConfirmDialogProps) {
   const [open, setOpen] = useState(false);
+  const [remarks, setRemarks] = useState('');
+
+  const handleTriggerClick = () => {
+    if (beforeOpen) {
+      const shouldOpen = beforeOpen();
+      if (!shouldOpen) return;
+    }
+    setOpen(true);
+  };
 
   const handleConfirm = () => {
-    onConfirm();
+    if (withRemarks && remarksRequired && !remarks.trim()) {
+      alert('Remarks required'); // or toast
+      return;
+    }
+
+    onConfirm(withRemarks ? remarks : undefined);
+    setRemarks('');
     setOpen(false);
   };
 
   return (
     <>
-      {/* Trigger Button */}
-      <Button disabled={disabled} className={triggerClassName} onClick={() => setOpen(true)}>
-        {icon && <span className="gap-2 flex items-center">{icon}</span>}
+      <Button disabled={disabled} className={triggerClassName} onClick={handleTriggerClick}>
         {triggerLabel}
       </Button>
 
-      {/* Dialog */}
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">{title}</DialogTitle>
+            <DialogTitle>{title}</DialogTitle>
             <DialogDescription>{description}</DialogDescription>
           </DialogHeader>
 
+          {/* 🔥 REMARKS INPUT */}
+          {withRemarks && (
+            <textarea
+              value={remarks}
+              onChange={(e) => setRemarks(e.target.value)}
+              placeholder={remarksPlaceholder}
+              className="w-full border rounded-md p-2 text-sm mt-2"
+              rows={4}
+            />
+          )}
+
           <DialogFooter>
+            <Button onClick={handleConfirm}>{actionLabel}</Button>
+
             <Button variant="outline" onClick={() => setOpen(false)}>
               Cancel
-            </Button>
-
-            <Button className='flex justify-center items-center' onClick={handleConfirm}>
-              {icon && <span className="gap-2">{icon}</span>}
-              {actionLabel && actionLabel}
             </Button>
           </DialogFooter>
         </DialogContent>
