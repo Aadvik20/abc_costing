@@ -325,7 +325,15 @@ const RoleAssignment = () => {
             {/* Units Multi Select */}
             <div className="w-full">
               <Label className="text-sm font-medium mb-2 block">Unit</Label>
-              <ShadSelect value={selectedUnits} onValueChange={setSelectedUnits}>
+              <ShadSelect
+                value={selectedUnits}
+                onValueChange={(val) => {
+                  setSelectedUnits(val);
+                  setSelectedDepartments([]);
+                  setSelectedEmployee(null);
+                  setSelectedRole('');
+                }}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Select Unit" />
                 </SelectTrigger>
@@ -370,6 +378,7 @@ const RoleAssignment = () => {
                 placeholder="Select Departments"
                 closeMenuOnSelect={false}
                 styles={customSelectStyles}
+                isDisabled={!selectedUnits}
               />
             </div>
 

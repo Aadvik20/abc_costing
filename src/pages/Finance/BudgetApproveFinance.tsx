@@ -224,7 +224,7 @@ const BudgetApproveFinance = () => {
     <div className="min-h-screen bg-gray-50/50 p-4 md:p-8">
       {loading && <Loader />}
       {/* Page Header */}
-      <div className="max-w-7xl mx-auto mb-8">
+      <div className="mx-auto mb-8">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl md:text-3xl font-extrabold text-gray-900 tracking-tight">Budget Approval</h1>

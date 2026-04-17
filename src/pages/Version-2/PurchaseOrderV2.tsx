@@ -11,6 +11,7 @@ import { PurchaseOrderModal } from '@/components/dailogs/PurchaseOrderModal';
 import { ApproveHistoryModal } from '@/components/dailogs/ApproveHistoryModal';
 import { History, RefreshCw } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
+import { formatRupees, formatRupeesInWords } from '@/lib/helperFunction';
 
 const PurchaseOrderV2 = () => {
   // const [units, setUnits] = useState([]);
@@ -173,6 +174,22 @@ const PurchaseOrderV2 = () => {
     ];
   }, [selectedUnit, selectedDepartment, po, units, departments]);
 
+  const totals = useMemo(() => {
+    return tableData.reduce(
+      (acc, curr) => {
+        acc.poOrderValue += Number(curr.poOrderValue || 0);
+        acc.deliveredValue += Number(curr.deliveredValue || 0);
+        acc.balanceToBeInvoice += Number(curr.balanceToBeInvoice || 0);
+        return acc;
+      },
+      {
+        poOrderValue: 0,
+        deliveredValue: 0,
+        balanceToBeInvoice: 0,
+      }
+    );
+  }, [tableData]);
+
   return (
     <div className="p-4 md:p-8">
       {loading && <Loader />}
@@ -182,6 +199,37 @@ const PurchaseOrderV2 = () => {
           <p className="text-gray-600 mt-1">Manage purchase order records</p>
         </div>
       </div>
+      <div className="mt-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+          {/* Total PO */}
+          <div className="rounded-lg border border-slate-200 bg-white px-4 py-3 shadow-sm hover:shadow-md transition-all duration-200 min-h-[110px] flex flex-col justify-between">
+            <div className="flex items-center py-1 justify-between">
+              <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Total PO Order Value</span>
+            </div>
+            <p className="text-2xl font-semibold text-right text-blue-600 mt-1">{formatRupees(totals.poOrderValue)}</p>
+            <p className="text-xs text-slate-400 italic leading-snug mt-1">{formatRupeesInWords(totals.poOrderValue)}</p>
+          </div>
+
+          {/* Delivered */}
+          <div className="rounded-lg border border-slate-200 bg-white px-4 py-3 shadow-sm hover:shadow-md transition-all duration-200 min-h-[110px] flex flex-col justify-between">
+            <div className="flex items-center py-1 justify-between">
+              <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Total DELEVIRED Value</span>
+            </div>
+            <p className="text-2xl font-semibold text-right text-blue-600 mt-1">{formatRupees(totals.deliveredValue)}</p>
+            <p className="text-xs text-slate-400 italic leading-snug mt-1">{formatRupeesInWords(totals.deliveredValue)}</p>
+          </div>
+
+          {/* Balance */}
+          <div className="rounded-lg border border-slate-200 bg-white px-4 py-3 shadow-sm hover:shadow-md transition-all duration-200 min-h-[110px] flex flex-col justify-between">
+            <div className="flex items-center py-1 justify-between">
+              <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Total BALANCE Value</span>
+            </div>
+            <p className="text-2xl font-semibold text-right text-blue-600 mt-1">{formatRupees(totals.balanceToBeInvoice)}</p>
+            <p className="text-xs text-slate-400 italic leading-snug mt-1">{formatRupeesInWords(totals.balanceToBeInvoice)}</p>
+          </div>
+        </div>
+      </div>
+      <div></div>
       <Card className="border-0 shadow-lg">
         <CardContent>
           <div className="mt-5">
