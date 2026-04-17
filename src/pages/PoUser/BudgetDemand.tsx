@@ -12,9 +12,8 @@ import axiosInstance from '@/services/axiosInstance';
 import toast from 'react-hot-toast';
 import Loader from '@/components/ui/loader';
 import { monthOptions, yearOptions } from '@/lib/helperFunction';
-import { Label } from '@/components/ui/label';
 import ConfirmDialog from '@/components/common/ConfirmDialog';
-import BudgetRequestList from '@/components/dailogs/BudgetRequestList';
+import BudgetRequestList from '@/pages/PoUser/BudgetRequestList';
 
 const BudgetDemand = () => {
   const [loading, setLoading] = useState(false);
@@ -97,7 +96,7 @@ const BudgetDemand = () => {
     const hasRowErrors = rowErrors.some((r: any) => Object.keys(r).length > 0);
 
     if (newErrors.unit || newErrors.month || newErrors.year || hasRowErrors) {
-      toast.error('Please fill all required fields properly ⚠️');
+      toast.error('Please fill all fields properly ⚠️');
       return false;
     }
 
@@ -154,16 +153,7 @@ const BudgetDemand = () => {
 
   // Handle change
   const handleChange = (index: number, field: string, value: any) => {
-    const updated = [...rows];
-    updated[index][field] = value;
-    setRows(updated);
-
-    // clear error
-    const newErrors = { ...errors };
-    if (newErrors?.rows?.[index]?.[field]) {
-      delete newErrors.rows[index][field];
-      setErrors(newErrors);
-    }
+    setRows((prev) => prev.map((row, i) => (i === index ? { ...row, [field]: value } : row)));
   };
 
   const getDraft = async () => {
@@ -171,7 +161,7 @@ const BudgetDemand = () => {
       setLoading(true);
       const response = await axiosInstance.get('/UnitAmountRequest/Draft');
 
-      if (response.data.statusCode === 'OK') {
+      if (response.data.statusCode === 200) {
         setDraft(response.data.data);
       }
     } catch (error) {
@@ -241,7 +231,12 @@ const BudgetDemand = () => {
       });
       if (res?.data?.statusCode === 200) {
         toast.success(isDraft ? 'Draft saved successfully' : 'Demand submitted successfully');
-        resetForm();
+        if (!isDraft) {
+          resetForm();
+        }
+        if (isDraft) {
+          getDraft();
+        }
       }
       if (res?.data?.statusCode === 409) {
         toast.error('Request already exists for selected unit and deapartment for the current month');
@@ -397,8 +392,9 @@ const BudgetDemand = () => {
 
                 <div className="px-3 pb-3">
                   <label className="text-sm text-gray-800 font-semibold mb-1 block">Description</label>
-
-                  <ReactQuill value={row.description} onChange={(value) => handleChange(index, 'description', value)} className="bg-white" />
+                  <div className="max-h-[300px] overflow-y-auto">
+                    <ReactQuill value={row.description} onChange={(value) => handleChange(index, 'description', value)} className="bg-white" />
+                  </div>
                 </div>
               </div>
             ))}
@@ -427,9 +423,7 @@ const BudgetDemand = () => {
         </div>
       )}
 
-      {activeTab == 'list' && (
-        <BudgetRequestList/>
-      )}
+      {activeTab == 'list' && <BudgetRequestList />}
     </div>
   );
 };

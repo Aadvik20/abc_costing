@@ -23,7 +23,8 @@ const RoleAssignment = () => {
   const { units } = useAppSelector((state: RootState) => state.user);
   const { departments } = useAppSelector((state: RootState) => state.user);
   const { employees } = useAppSelector((state: RootState) => state.masterData);
-  const [roles, setRoles] = useState<any[]>([]);
+  const { Roles } = useAppSelector((state: RootState) => state.user);
+  const [assignRoles, setAssignRoles] = useState<any[]>([]);
   const [data, setData] = useState<any[]>([]);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editRowData, setEditRowData] = useState<any>(null);
@@ -82,7 +83,7 @@ const RoleAssignment = () => {
       const response = await axiosInstance.get('/User/roles');
 
       if (response.data.success) {
-        setRoles(response.data.data);
+        setAssignRoles(response.data.data);
       }
     } catch (error) {
       console.log(error);
@@ -127,14 +128,22 @@ const RoleAssignment = () => {
     });
   }, [data, units, departments]);
 
-  const roleOptions = useMemo(
-    () =>
-      roles.map((role: any) => ({
-        value: String(role.roleId),
-        label: role.roleName,
-      })),
-    [roles]
-  );
+  const roleOptions = useMemo(() => {
+    if (!assignRoles?.length) return [];
+
+    const hasCgm = Roles?.includes(1000);
+
+    let filteredRoles = assignRoles;
+
+    if (hasCgm) {
+      filteredRoles = assignRoles.filter((role: any) => role.roleId === 2);
+    }
+
+    return filteredRoles.map((role: any) => ({
+      value: String(role.roleId),
+      label: role.roleName,
+    }));
+  }, [assignRoles, Roles]);
 
   const customSelectStyles = {
     control: (provided: any) => ({
@@ -180,17 +189,17 @@ const RoleAssignment = () => {
         cell: ({ row }) => row.index + 1,
       },
       {
-        id: 'empCode',
+        accessorKey: 'employeeCode',
         header: 'Employee Code',
         cell: ({ row }) => row.original?.employeeCode,
       },
       {
-        id: 'emplName',
+        accessorKey: 'employeeName',
         header: 'Employee Name',
         cell: ({ row }) => <div className="capitalize">{row.original?.employeeName}</div>,
       },
       {
-        id: 'unit',
+        accessorKey: 'unitName',
         header: 'Unit',
         cell: ({ row }) => {
           const units = row.original?.units || [];
@@ -201,7 +210,7 @@ const RoleAssignment = () => {
         },
       },
       {
-        id: 'departments',
+        accessorKey: 'depName',
         header: 'Departments',
         cell: ({ row }) => {
           const units = row.original?.units || [];
@@ -212,12 +221,12 @@ const RoleAssignment = () => {
         },
       },
       {
-        id: 'role',
+        accessorKey: 'role',
         header: 'Role',
         cell: ({ row }) => <div className="capitalize">{row.original?.role || '-'}</div>,
       },
       {
-        id: 'action',
+        accessorKey: 'action',
         header: 'Action',
         cell: ({ row }) => {
           const rowData = row.original;

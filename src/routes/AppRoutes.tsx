@@ -15,17 +15,17 @@ import { useAppName } from '@/hooks/useAppName';
 import { useAuth } from 'react-oidc-context';
 import { useDispatch, useSelector } from 'react-redux';
 import AppLayout from '@/components/layout/app-layout';
-import Finance from '@/pages/Finance';
+import Finance from '@/pages/Finance/Finance';
 import PurchaseOrderV2 from '@/pages/Version-2/PurchaseOrderV2';
 import FinanceV2 from '@/pages/Version-2/FinanceV2';
 import { fetchMasterData } from '@/features/masterData/masterSlice';
 import { fetchApplications } from '@/features/applications/applicationSlice';
-import PurchaseOrder from '@/pages/PurchaseOrder';
-import RoleAssignment from '@/pages/RoleAssignment';
-import BudgetDemand from '@/pages/BudgetDemand';
+import PurchaseOrder from '@/pages/PoUser/PurchaseOrder';
+import RoleAssignment from '@/pages/Cgm/RoleAssignment';
+import BudgetDemand from '@/pages/PoUser/BudgetDemand';
 import Dashboard from '@/pages/user/Dashboard';
-import BudgetApproveRequests from '@/pages/BudgetApproveRequests';
-import BudgetApproveFinance from '@/pages/BudgetApproveFinance';
+import BudgetApproveRequests from '@/pages/Cgm/BudgetApproveRequests';
+import BudgetApproveFinance from '@/pages/Finance/BudgetApproveFinance';
 
 const AppRoutes = () => {
   const dispatch = useDispatch<AppDispatch>();
