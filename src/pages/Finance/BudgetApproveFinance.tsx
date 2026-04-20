@@ -1,34 +1,26 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import axiosInstance from '@/services/axiosInstance';
-import { formatRupees, monthOptions } from '@/lib/helperFunction';
-import ExpandableTableList from '@/components/ui/expand-table';
+import { formatRupees } from '@/lib/helperFunction';
 import toast from 'react-hot-toast';
 import { status } from '@/constant/status';
 import Loader from '@/components/ui/loader';
-import { CheckCircle, XCircle, Clock, FileText, ExternalLink, RefreshCcw } from 'lucide-react';
-import ConfirmDialog from '@/components/common/ConfirmDialog';
 import { useAppSelector } from '@/app/hooks';
 import { RootState } from '@/app/store';
+import BudgetApproveDialog from '@/components/dailogs/BudgetApproveDialog';
 
 const BudgetApproveFinance = () => {
-  const [statusTab, setStatusTab] = useState<'pending' | 'approved' | 'reverted'>('pending');
   const [loading, setLoading] = useState(false);
   const [request, setRequest] = useState([]);
+  const [financedialogOpen, setFinanceDialogOpen] = useState(false);
+  const [selectedRequests, setSelectedRequests] = useState<any[]>([]);
   const { units } = useAppSelector((state: RootState) => state.user);
   const { departments } = useAppSelector((state: RootState) => state.user);
 
-  const fetchRequests = async (currentTab: string) => {
+  const fetchRequests = async () => {
     try {
       setLoading(true);
-      let statusList = '';
 
-      if (currentTab === 'pending') {
-        statusList = `${status.Pending_Finance.value}`;
-      } else if (currentTab === 'approved') {
-        statusList = `${status.Approved.value}`;
-      } else if (currentTab === 'reverted') {
-        statusList = `${status.Reverted_By_Finance.value}`;
-      }
+      let statusList = `${status.Pending_Finance.value},${status.Approved.value}`;
 
       const response = await axiosInstance.get(`/UnitAmountRequest/list-by-status?statusList=${statusList}`);
       if (response.data.statusCode === 200) {
@@ -43,35 +35,85 @@ const BudgetApproveFinance = () => {
   };
 
   useEffect(() => {
-    fetchRequests(statusTab);
-  }, [statusTab]);
+    fetchRequests();
+  }, []);
 
-  const filteredRequests = useMemo(() => {
-    if (!request.length) return [];
+  const transformedData = useMemo(() => {
+    if (!request?.length) return { units: [], departments: [], matrix: {} };
 
-    return request.filter((req) => {
-      const unitMatch = !units.length || units.some((u: any) => Number(u.value) === req.unitId);
+    const units = [...new Set(request.map((d) => d.unitName))];
+    const departments = [...new Set(request.map((d) => d.departmentName))];
 
-      const deptMatch = !departments?.length || departments.some((d: any) => Number(d.value) === req.departmentId);
+    const matrix: any = {};
 
-      return unitMatch && deptMatch;
+    units.forEach((unit) => {
+      matrix[unit] = {};
+
+      departments.forEach((dept) => {
+        const match = request.find((d) => d.unitName === unit && d.departmentName === dept);
+
+        matrix[unit][dept] = match?.budgetAmount || 0;
+      });
     });
-  }, [request, units, departments]);
+
+    return { units, departments, matrix };
+  }, [request]);
+
+  const getRowTotal = (unit: string) => {
+    return transformedData.departments.reduce((sum, dept) => sum + (transformedData.matrix[unit][dept] || 0), 0);
+  };
+
+  // const getColumnTotal = (dept: string) => {
+  //   return transformedData.units.reduce((sum, unit) => sum + (transformedData.matrix[unit][dept] || 0), 0);
+  // };
+
+  const handleCellClick = (unit: string, dept: string, amount: number) => {
+    const filtered = request.filter((r: any) => r.unitName === unit && r.departmentName === dept && r.budgetAmount === amount);
+
+    setSelectedRequests(filtered);
+    setFinanceDialogOpen(true);
+  };
 
   const handleApprove = async (row: any, targetStatus: string, remarks?: string) => {
     try {
       setLoading(true);
+
       const formData = new FormData();
+
       formData.append('RequestId', String(row.id));
       formData.append('TargetStatus', String(targetStatus));
-      formData.append('Amount', String(row.amount));
-      formData.append('Frequency', String(row.frequency));
+      formData.append('Remarks', remarks || '');
+
+      formData.append('BudgetAmount', String(Number(row.budgetAmount || 0)));
+      formData.append('ActualAmount', String(Number(row.actualAmount || 0)));
+      formData.append('GeneralLedger', row.gl || '');
+
+      formData.append('Frequency', row.frequency || 'Monthly');
       formData.append('Year', String(row.year));
       formData.append('Month', String(row.month));
-      formData.append('Remarks', remarks || '');
-      formData.append('Quarter', '');
+      formData.append('Quarter', String(row.quarter || 0));
+
       formData.append('DemandDetails', row.demandDetails || '');
-      if (row.file) formData.append('File', row.file);
+
+      row.componentsDetails?.forEach((comp: any, index: number) => {
+        formData.append(`ComponentDetails[${index}].brDetailsId`, String(comp.brDetailsId || 0));
+
+        formData.append(`ComponentDetails[${index}].componentDescription`, comp.componentDescription || '');
+
+        formData.append(`ComponentDetails[${index}].mUnit`, comp.munit || '');
+
+        formData.append(`ComponentDetails[${index}].qty`, String(Number(comp.qty || 0)));
+
+        formData.append(`ComponentDetails[${index}].rateOfUnit`, String(Number(comp.rateOfUnit || 0)));
+
+        formData.append(`ComponentDetails[${index}].amount`, String(Number(comp.amount || 0)));
+
+        formData.append(`ComponentDetails[${index}].totalAmount`, String(Number(comp.amount || 0)));
+      });
+
+      if (row.file) {
+        formData.append('File', row.file);
+      }
 
       const res = await axiosInstance.post('/UnitAmountRequest/action', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
@@ -79,7 +121,9 @@ const BudgetApproveFinance = () => {
 
       if (res?.data?.statusCode === 200) {
         toast.success(targetStatus.includes('Approved') ? 'Approved successfully' : 'Reverted successfully');
-        fetchRequests(statusTab);
+
+        fetchRequests();
+        setFinanceDialogOpen(false);
       }
     } catch (error) {
       console.error(error);
@@ -87,137 +131,6 @@ const BudgetApproveFinance = () => {
     } finally {
       setLoading(false);
     }
-  };
-
-  const columns = useMemo(
-    () => [
-      {
-        header: 'Unit',
-        cell: ({ row }: any) => (
-          <div className="px-2 py-2">
-            <p className="font-medium text-gray-900">{row.original.unitName}</p>
-          </div>
-        ),
-      },
-      {
-        header: 'Department',
-        cell: ({ row }: any) => (
-          <div className="px-2 py-2">
-            <p className="font-medium text-gray-900">{row.original.departmentName}</p>
-          </div>
-        ),
-      },
-      {
-        header: 'Month / Year',
-        cell: ({ row }: any) => {
-          const monthObj = monthOptions.find((m) => m.value === row.original.month);
-          return (
-            <div className="px-2 py-2 ">
-              <p className="font-medium text-gray-900">
-                {monthObj?.label} / {row.original.year}{' '}
-              </p>
-            </div>
-          );
-        },
-      },
-      {
-        header: 'Demanded Amount',
-        cell: ({ row }: any) => <div className="px-2 py-2 font-bold text-right text-gray-900">{formatRupees(row.original.amount)}</div>,
-      },
-      //   {
-      //     header: 'Current Status',
-      //     cell: ({ row }: any) => {
-      //       const isApproved = row.original.status === status.Approved.value || row.original.status === status.Pending_Finance.value;
-      //       const isReverted = row.original.statusName?.toLowerCase().includes('revert');
-
-      //       return (
-      //         <div className="px-2 py-2">
-      //           <span
-      //             className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-      //           ${isApproved ? 'bg-green-100 text-green-800' : isReverted ? 'bg-red-100 text-red-800' : 'bg-amber-100 text-amber-800'}`}
-      //           >
-      //             {row.original.statusName}
-      //           </span>
-      //         </div>
-      //       );
-      //     },
-      //   },
-    ],
-    []
-  );
-
-  const renderExpandedContent = (row: any) => {
-    const isPending = row.status === status.Pending_Finance.value;
-    const hasLongDescription = row.demandDetails && row.demandDetails.length > 400;
-
-    return (
-      <div className="p-4 bg-gray-50 rounded-lg border border-gray-200 mt-2 mb-4 mx-2 shadow-inner">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Left: File and Details */}
-          <div className="space-y-4">
-            <div>
-              <h4 className="text-xs font-bold text-gray-800 uppercase tracking-wider mb-2">Document</h4>
-              {row.fileName || row.file ? (
-                <div className="flex items-center gap-3 p-3 bg-white border rounded-lg shadow-sm">
-                  <FileText className="w-8 h-8 text-blue-500" />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-900 truncate">{row.fileName || row.file?.name}</p>
-                  </div>
-                  {row.fileUrl && (
-                    <a href={row.fileUrl} target="_blank" rel="noreferrer" className="p-2 text-blue-600 hover:bg-blue-50 rounded-full transition-colors">
-                      <ExternalLink className="w-4 h-4" />
-                    </a>
-                  )}
-                </div>
-              ) : (
-                <p className="text-sm text-gray-400 italic">No document attached</p>
-              )}
-            </div>
-          </div>
-          {/* Right: Actions */}
-          <div className="flex flex-col justify-end">
-            {isPending && (
-              <div className="flex justify-end gap-3">
-                <ConfirmDialog
-                  triggerClassName="bg-green-600 hover:bg-emerald-700 text-white py-3 rounded-lg text-sm font-bold transition-all hover:shadow-lg disabled:opacity-50"
-                  triggerLabel="Approve"
-                  title="Approve Request"
-                  description="Are you sure you want to approve?"
-                  onConfirm={() => handleApprove(row, status.Approved.label)}
-                />
-                <ConfirmDialog
-                  triggerClassName="bg-amber-600 hover:bg-amber-700 text-white py-3 rounded-lg text-sm font-bold transition-all hover:shadow-lg disabled:opacity-50"
-                  triggerLabel="Revert to user"
-                  title="Revert Request"
-                  description="Please provide reason for revert"
-                  actionLabel="Revert"
-                  withRemarks
-                  remarksRequired
-                  onConfirm={(remarks) => handleApprove(row, status.Reverted_By_Finance.label, remarks)}
-                />
-              </div>
-            )}
-          </div>
-        </div>
-        <div className="mt-6">
-          <section>
-            <h4 className="flex items-center gap-2 text-xs font-bold text-gray-800 uppercase tracking-widest mb-3">Description</h4>
-            <div className="relative group">
-              <div
-                className="prose prose-sm max-w-none p-4 bg-slate-50 rounded-lg border border-slate-100 text-slate-700 overflow-y-auto max-h-[350px] leading-relaxed"
-                style={{ scrollbarWidth: 'thin' }}
-              >
-                <div dangerouslySetInnerHTML={{ __html: row.demandDetails || 'No description provided.' }} />
-              </div>
-              {/* Visual fade effect for long text */}
-              {hasLongDescription && (
-                <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-slate-50 to-transparent pointer-events-none rounded-b-lg" />
-              )}
-            </div>
-          </section>
-        </div>
-      </div>
-    );
   };
 
   return (
@@ -234,26 +147,49 @@ const BudgetApproveFinance = () => {
       </div>
 
       {/* Main Content Card */}
-      <div className="p-6 bg-white rounded-xl shadow border border-gray-100">
-        <div className="flex gap-2 mb-6 border-b pb-4">
-          {(['pending', 'approved', 'reverted'] as const).map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setStatusTab(tab)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all capitalize ${
-                statusTab === tab ? 'bg-blue-600 text-white shadow-md' : 'text-gray-500 hover:bg-gray-100'
-              }`}
-            >
-              {tab}
-            </button>
-          ))}
-        </div>
+      <div className="overflow-x-auto rounded-lg border border-gray-200 shadow-sm">
+        <table className="w-full border-collapse bg-white text-sm">
+          <thead className="bg-gray-50 border-b border-gray-200">
+            <tr>
+              <th className="px-6 py-4 text-left font-semibold text-gray-900">Location</th>
 
-        {/* Table Container */}
-        <div className="p-2">
-          <ExpandableTableList data={filteredRequests} columns={columns} renderExpanded={(row) => renderExpandedContent(row)} />
-        </div>
+              {transformedData.departments.map((dept, idx) => (
+                <th key={idx} className="px-4 py-4 text-right font-semibold text-gray-900">
+                  {dept}
+                </th>
+              ))}
+
+              <th className="px-6 py-4 text-right font-bold text-gray-900 bg-gray-100/50">Total</th>
+            </tr>
+          </thead>
+
+          <tbody className="divide-y divide-gray-200">
+            {transformedData.units.map((unit, index) => (
+              <tr key={index} className="transition-colors hover:bg-blue-50/30">
+                {/* Unit Name */}
+                <td className="whitespace-nowrap px-6 py-4 font-medium text-gray-700">{unit.toUpperCase()}</td>
+
+                {/* Money Cells */}
+                {transformedData.departments.map((dept, idx) => (
+                  <td
+                    key={idx}
+                    className="px-4 py-4 text-right tabular-nums cursor-pointer transition-colors hover:bg-blue-50"
+                    onClick={() => handleCellClick(unit, dept, transformedData.matrix[unit][dept])}
+                  >
+                    <span className="text-gray-600">{formatRupees(transformedData.matrix[unit][dept])}</span>
+                  </td>
+                ))}
+
+                {/* Row Total */}
+                <td className="px-6 py-4 text-right font-bold tabular-nums text-blue-700 bg-gray-50/50 cursor-pointer hover:bg-blue-100">
+                  {formatRupees(getRowTotal(unit))}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
+      <BudgetApproveDialog open={financedialogOpen} onClose={() => setFinanceDialogOpen(false)} data={selectedRequests} onApprove={handleApprove} />
     </div>
   );
 };

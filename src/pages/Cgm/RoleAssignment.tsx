@@ -145,6 +145,12 @@ const RoleAssignment = () => {
     }));
   }, [assignRoles, Roles]);
 
+  useEffect(() => {
+    if (roleOptions.length === 1 && !selectedRole) {
+      setSelectedRole(roleOptions[0].value);
+    }
+  }, [roleOptions, selectedRole]);
+
   const customSelectStyles = {
     control: (provided: any) => ({
       ...provided,

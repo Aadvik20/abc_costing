@@ -110,6 +110,13 @@ export const formatRupeeInput = (value) => {
   return new Intl.NumberFormat('en-IN').format(numericValue);
 };
 
+export const formatDecimal = (value: string) => {
+  if (!value) return '';
+  const num = Number(value);
+  if (isNaN(num)) return '';
+  return num.toFixed(2);
+};
+
 export const getNextDate = (dateString: string) => {
   if (!dateString) return;
   const date = new Date(dateString);

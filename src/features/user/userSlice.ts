@@ -162,19 +162,25 @@ const userSlice = createSlice({
             )
           : [];
         const departments = Array.isArray(data.roles)
-          ? data.roles.flatMap((role: any) =>
-              role.units.flatMap((u: any) =>
-                u.departments.map((d: any) => ({
-                  value: d.depId,
-                  label: d.depName,
-                  unitId: String(u.unitId),
-                }))
-              )
+          ? Array.from(
+              new Map(
+                data.roles.flatMap((role: any) =>
+                  (role.units || []).flatMap((u: any) =>
+                    (u.departments || []).map((d: any) => [
+                      d.depId,
+                      {
+                        value: d.depId,
+                        label: d.depName,
+                      },
+                    ])
+                  )
+                )
+              ).values()
             )
           : [];
         state.units = units;
         state.departments = departments;
-        state.Roles = roles.length ? [...roles , -1] : [-1];
+        state.Roles = roles.length ? [...roles, -1] : [-1];
         state.roleAssigned = data.roles;
 
         console.log(roles);
