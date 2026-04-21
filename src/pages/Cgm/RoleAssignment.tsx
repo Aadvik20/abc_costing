@@ -13,6 +13,7 @@ import axiosInstance from '@/services/axiosInstance';
 import toast from 'react-hot-toast';
 import ConfirmDialog from '@/components/common/ConfirmDialog';
 import EditRoleDialog from '@/components/dailogs/EditRoleDialog';
+import { showCustomToast } from '@/components/common/showCustomToast';
 
 const RoleAssignment = () => {
   const [selectedUnits, setSelectedUnits] = useState('');
@@ -271,7 +272,11 @@ const RoleAssignment = () => {
       const res = await axiosInstance.post('/User/deactivate-role', payload);
 
       if (res.data.success) {
-        toast.success('Role removed successfully');
+        showCustomToast({
+          title: 'Success',
+          type: 'success',
+          message: 'Role removed successfully',
+        });
         fetchData();
       }
     } catch (error) {
@@ -284,7 +289,11 @@ const RoleAssignment = () => {
 
   const handleAssignRole = async () => {
     if (!selectedEmployee || !selectedRole || !selectedUnits) {
-      toast.error('Please select all fields');
+      showCustomToast({
+        title: 'Warning',
+        type: 'warning',
+        message: 'Please select all fields',
+      });
       return;
     }
 
@@ -305,7 +314,11 @@ const RoleAssignment = () => {
       const res = await axiosInstance.post('/User/assign-or-update', payload);
 
       if (res.data.success) {
-        toast.success('Role Assigned successfully');
+        showCustomToast({
+          title: 'Success',
+          type: 'success',
+          message: 'Role Assigned successfully',
+        });
 
         setSelectedEmployee(null);
         setSelectedRole('');

@@ -1,8 +1,8 @@
 import { Dialog, DialogContent } from '@/components/ui/dialog';
-import { formatRupees, monthOptions } from '@/lib/helperFunction';
+import { formatDecimal, formatRupees, monthOptions } from '@/lib/helperFunction';
 import ConfirmDialog from '@/components/common/ConfirmDialog';
 import { status } from '@/constant/status';
-import { FileText, Calendar, Wallet, Calculator } from 'lucide-react';
+import { FileText, Wallet, Calculator, BookOpen } from 'lucide-react';
 
 interface Props {
   open: boolean;
@@ -25,7 +25,6 @@ const BudgetApproveDialog = ({ open, onClose, data, onApprove }: Props) => {
           <h2 className="text-xl font-bold text-gray-900 tracking-tight">Request Details</h2>
         </div>
 
-        {/* SCROLLABLE BODY - Logic: Only scrolls if content exceeds max-height */}
         <div className="flex-1 overflow-y-auto bg-slate-50/50 px-8 py-6">
           {data.length === 0 ? (
             <div className="text-center py-20 text-gray-400 font-medium">No data found</div>
@@ -53,7 +52,7 @@ const BudgetApproveDialog = ({ open, onClose, data, onApprove }: Props) => {
                     </div>
 
                     {/* INFO GRID */}
-                    <div className="grid grid-cols-3 gap-px bg-slate-100 border-b border-slate-100">
+                    <div className="grid grid-cols-2 gap-px  border-b border-slate-100">
                       <div className="bg-white p-5 flex items-center gap-4">
                         <div className="p-2 bg-emerald-50 rounded-lg text-emerald-600">
                           <Wallet size={20} />
@@ -63,18 +62,19 @@ const BudgetApproveDialog = ({ open, onClose, data, onApprove }: Props) => {
                           <p className="text-lg font-bold text-slate-900 tabular-nums leading-none">{formatRupees(req.actualAmount)}</p>
                         </div>
                       </div>
-
-                      <div className="bg-white p-5 flex items-center gap-4">
-                        <div className="p-2 bg-blue-50 rounded-lg text-blue-600">
-                          <Calendar size={20} />
+                      {req.gl != 'null' && req.gl !== '' && (
+                        <div className="bg-white p-5 flex items-center gap-4">
+                          <div className="p-2 bg-blue-50 rounded-lg text-blue-600">
+                            <BookOpen size={20} />
+                          </div>
+                          <div>
+                            <p className="text-[10px] text-slate-400 uppercase font-bold leading-none mb-1">GL No.</p>
+                            <p className="text-sm font-semibold text-slate-700 leading-none">{req.gl || '-'}</p>
+                          </div>
                         </div>
-                        <div>
-                          <p className="text-[10px] text-slate-400 uppercase font-bold leading-none mb-1">GL No.</p>
-                          <p className="text-sm font-semibold text-slate-700 leading-none">{req.gl || '-'}</p>
-                        </div>
-                      </div>
+                      )}
 
-                      <div className="bg-white p-5 flex items-center gap-4">
+                      {/* <div className="bg-white p-5 flex items-center gap-4">
                         <div className="p-2 bg-blue-50 rounded-lg text-blue-600">
                           <Calendar size={20} />
                         </div>
@@ -84,13 +84,13 @@ const BudgetApproveDialog = ({ open, onClose, data, onApprove }: Props) => {
                             {monthOptions.find((m) => m.value === req.month)?.label} {req.year}
                           </p>
                         </div>
-                      </div>
+                      </div> */}
                     </div>
 
                     {/* DESCRIPTION SECTION */}
                     <div className="p-6">
                       <div className="flex justify-between items-center mb-3">
-                        <p className="text-[10px] text-slate-400 uppercase font-bold tracking-widest">Project Description</p>
+                        <p className="text-sm font-bold text-gray-900 uppercase tracking-widest">Project Description</p>
                         {req.fileUrl && (
                           <a
                             href={req.fileUrl}
@@ -119,7 +119,7 @@ const BudgetApproveDialog = ({ open, onClose, data, onApprove }: Props) => {
                       <table className="w-full text-sm">
                         <thead className="bg-white text-[10px] uppercase border-b">
                           <tr>
-                            <th className="px-6 py-3">Component</th>
+                            <th className="px-6 py-3 text-center">Component</th>
                             <th className="px-6 py-3 text-center">Unit</th>
                             <th className="px-6 py-3 text-right">Qty</th>
                             <th className="px-6 py-3 text-right">Rate</th>
@@ -134,7 +134,7 @@ const BudgetApproveDialog = ({ open, onClose, data, onApprove }: Props) => {
 
                               <td className="px-6 py-3 text-center">{comp.munit || '-'}</td>
 
-                              <td className="px-6 py-3 text-right">{comp.qty > 0 ? comp.qty : '-'}</td>
+                              <td className="px-6 py-3 text-right">{comp.qty > 0 ? formatDecimal(comp.qty) : '-'}</td>
 
                               <td className="px-6 py-3 text-right">{comp.rateOfUnit > 0 ? formatRupees(comp.rateOfUnit) : '-'}</td>
 

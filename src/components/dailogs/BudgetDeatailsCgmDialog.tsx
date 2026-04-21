@@ -1,14 +1,13 @@
 import { Dialog, DialogContent } from '@/components/ui/dialog';
-import { formatRupees } from '@/lib/helperFunction';
+import { formatDecimal, formatRupees, monthOptions } from '@/lib/helperFunction';
 import { status as statusConst } from '@/constant/status';
-import { Calculator, Info } from 'lucide-react';
+import { BookOpen, Calculator, Calendar, FileText, Info } from 'lucide-react';
 import ConfirmDialog from '@/components/common/ConfirmDialog';
 
 const BudgetDetailsCgmDialog = ({ open, onClose, data, handleApprove }) => {
   if (!data) return null;
 
   const req = data;
-
   console.log(req);
 
   const isPending = req.status === statusConst.Pending_CGM.value;
@@ -24,10 +23,35 @@ const BudgetDetailsCgmDialog = ({ open, onClose, data, handleApprove }) => {
 
         {/* BODY */}
         <div className="flex-1 overflow-y-auto bg-slate-50/50 p-4">
+          <div className="grid grid-cols-2 gap-px border mb-4 border-slate-100">
+            {req.gl != 'null' && req.gl !== '' && (
+              <div className="bg-white p-5 flex items-center gap-4">
+                <div className="p-2 bg-blue-50 rounded-lg text-blue-600">
+                  <BookOpen size={20} />
+                </div>
+                <div>
+                  <p className="text-[10px] text-slate-400 uppercase font-bold leading-none mb-1">GL No.</p>
+                  <p className="text-sm font-semibold text-slate-700 leading-none">{req.gl || '-'}</p>
+                </div>
+              </div>
+            )}
+
+            <div className="bg-white p-5 flex items-center gap-4">
+              <div className="p-2 bg-blue-50 rounded-lg text-blue-600">
+                <Calendar size={20} />
+              </div>
+              <div>
+                <p className="text-[10px] text-slate-400 uppercase font-bold leading-none mb-1">Period</p>
+                <p className="text-sm font-semibold text-slate-700 leading-none">
+                  {monthOptions.find((m) => m.value === req.month)?.label} {req.year}
+                </p>
+              </div>
+            </div>
+          </div>
           {/* DESCRIPTION */}
           <div className="bg-white p-6 rounded-xl border shadow-sm">
             <div className="flex items-center gap-2 mb-3">
-              <Info size={16} />
+              <FileText size={16}  />
               <span className="text-xs font-bold uppercase">Project Description</span>
             </div>
 
@@ -53,7 +77,7 @@ const BudgetDetailsCgmDialog = ({ open, onClose, data, handleApprove }) => {
             <table className="w-full text-sm">
               <thead className="bg-white text-[10px] uppercase border-b">
                 <tr>
-                  <th className="px-6 py-3">Component</th>
+                  <th className="px-6 py-3 text-center">Component</th>
                   <th className="px-6 py-3 text-center">Unit</th>
                   <th className="px-6 py-3 text-right">Qty</th>
                   <th className="px-6 py-3 text-right">Rate</th>
@@ -68,7 +92,7 @@ const BudgetDetailsCgmDialog = ({ open, onClose, data, handleApprove }) => {
 
                     <td className="px-6 py-3 text-center">{comp.munit || '-'}</td>
 
-                    <td className="px-6 py-3 text-right">{comp.qty > 0 ? comp.qty : '-'}</td>
+                    <td className="px-6 py-3 text-right">{comp.qty > 0 ? formatDecimal(comp.qty) : '-'}</td>
 
                     <td className="px-6 py-3 text-right">{comp.rateOfUnit > 0 ? formatRupees(comp.rateOfUnit) : '-'}</td>
 

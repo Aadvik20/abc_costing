@@ -7,6 +7,7 @@ import Loader from '@/components/ui/loader';
 import { useAppSelector } from '@/app/hooks';
 import { RootState } from '@/app/store';
 import BudgetApproveDialog from '@/components/dailogs/BudgetApproveDialog';
+import { showCustomToast } from '@/components/common/showCustomToast';
 
 const BudgetApproveFinance = () => {
   const [loading, setLoading] = useState(false);
@@ -120,7 +121,11 @@ const BudgetApproveFinance = () => {
       });
 
       if (res?.data?.statusCode === 200) {
-        toast.success(targetStatus.includes('Approved') ? 'Approved successfully' : 'Reverted successfully');
+        showCustomToast({
+          title: 'Success',
+          type: 'success',
+          message: targetStatus.includes('Approved') ? 'Approved successfully' : 'Reverted successfully',
+        });
 
         fetchRequests();
         setFinanceDialogOpen(false);

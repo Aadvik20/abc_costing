@@ -11,6 +11,7 @@ import { useAppSelector } from '@/app/hooks';
 import { RootState } from '@/app/store';
 import TableList from '@/components/ui/data-table2';
 import BudgetDetailsCgmDialog from '@/components/dailogs/BudgetDeatailsCgmDialog';
+import { showCustomToast } from '@/components/common/showCustomToast';
 
 const BudgetApproveRequests = () => {
   const [statusTab, setStatusTab] = useState<'pending' | 'approved' | 'reverted'>('pending');
@@ -108,7 +109,11 @@ const BudgetApproveRequests = () => {
       });
 
       if (res?.data?.statusCode === 200) {
-        toast.success(targetStatus.includes('Finance') ? 'Approved successfully' : 'Reverted successfully');
+        showCustomToast({
+          title: 'Success',
+          type: 'success',
+          message: targetStatus.includes('Finance') ? 'Approved successfully' : 'Reverted successfully',
+        });
 
         fetchRequests(statusTab);
         setOpenDialog(false);

@@ -86,7 +86,7 @@ const App = () => {
   return (
     <div>
         <AuthProvider>
-        <Toaster reverseOrder={false} toastOptions={{ duration: 3000, position: 'top-center' }} />
+        <Toaster reverseOrder={false} toastOptions={{ duration: 3000, position: 'top-right' }} />
         <BoundaryWrapper>
           <AppRoutes />
         </BoundaryWrapper>

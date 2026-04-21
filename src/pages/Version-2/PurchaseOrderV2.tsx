@@ -152,11 +152,11 @@ const PurchaseOrderV2 = () => {
     return data;
   }, [po, selectedUnit, selectedDepartment, selectedSupplier, units, departments]);
 
-  const filteredDepartments = useMemo(() => {
-    if (!selectedUnit) return departments;
+  // const filteredDepartments = useMemo(() => {
+  //   if (!selectedUnit) return departments;
 
-    return departments.filter((d) => d.unitId === selectedUnit);
-  }, [selectedUnit, departments]);
+  //   return departments.filter((d) => d.unitId === selectedUnit);
+  // }, [selectedUnit, departments]);
 
   const filteredSuppliers = useMemo(() => {
     const selectedUnitLabel = units.find((u) => u.value === selectedUnit)?.label;
@@ -274,7 +274,7 @@ const PurchaseOrderV2 = () => {
                       className=" w-[200px] px-3 py-2 border-2 rounded outline:none"
                     >
                       <option value="">All Departments</option>
-                      {filteredDepartments.map((d) => (
+                      {departments.map((d) => (
                         <option key={d.value} value={d.value}>
                           {d.label}
                         </option>

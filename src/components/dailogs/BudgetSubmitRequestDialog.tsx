@@ -1,7 +1,6 @@
 import { Dialog, DialogContent } from '@/components/ui/dialog';
-import { formatRupees } from '@/lib/helperFunction';
-import { status as statusConst } from '@/constant/status';
-import { Wallet, Landmark, Calculator, Info, User } from 'lucide-react';
+import { formatDecimal, formatRupees } from '@/lib/helperFunction';
+import { Calculator, Info } from 'lucide-react';
 
 const BudgetDetailsDialog = ({ open, onClose, data }) => {
   if (!data) return null;
@@ -54,11 +53,11 @@ const BudgetDetailsDialog = ({ open, onClose, data }) => {
               <tbody>
                 {req.componentsDetails?.map((comp, i) => (
                   <tr key={i} className="border-t hover:bg-slate-50">
-                    <td className="px-6 py-3 font-medium">{comp.componentDescription}</td>
+                    <td className="px-6 py-3 font-medium text-center">{comp.componentDescription}</td>
 
                     <td className="px-6 py-3 text-center">{comp.munit > 0 ? `${comp.munit || ''}` : '-'}</td>
 
-                    <td className="px-6 py-3 text-right">{comp.qty > 0 ? `${comp.qty}` : '-'}</td>
+                    <td className="px-6 py-3 text-right">{comp.qty > 0 ? `${formatDecimal(comp.qty)}` : '-'}</td>
 
                     <td className="px-6 py-3 text-right">{comp.rateOfUnit > 0 ? formatRupees(comp.rateOfUnit) : '-'}</td>
 

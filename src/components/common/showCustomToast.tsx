@@ -4,7 +4,7 @@ import CustomToast from './CustomToast';
 type ShowToastProps = {
   title?: string;
   message: string;
-  type?: 'success' | 'error';
+  type?: 'success' | 'error' | 'info' | 'warning';
 };
 
 export const showCustomToast = ({ title, message, type = 'success' }: ShowToastProps) => {

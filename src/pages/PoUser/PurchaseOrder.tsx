@@ -33,6 +33,11 @@ const PurchaseOrder = () => {
   const allowedUnits = new Set(units.map((u) => u.label));
   const allowedDepts = new Set(departments.map((d) => d.label));
 
+  console.log(departments , "udsgfiusgi")
+
+  console.log(allowedUnits);
+  console.log(allowedDepts);
+
   useEffect(() => {
     if (!po.length) {
       dispatch(fetchPoData());
@@ -164,11 +169,11 @@ const PurchaseOrder = () => {
     );
   }, [tableData]);
 
-  const filteredDepartments = useMemo(() => {
-    if (!selectedUnit) return departments;
+  // const filteredDepartments = useMemo(() => {
+  //   if (!selectedUnit) return departments;
 
-    return departments.filter((d) => d.unitId === selectedUnit);
-  }, [selectedUnit, departments]);
+  //   return departments.filter((d) => d.unitId === selectedUnit);
+  // }, [selectedUnit, departments]);
 
   const filteredCapex = useMemo(() => {
     const selectedUnitLabel = units.find((u) => u.value === selectedUnit)?.label;
@@ -390,7 +395,7 @@ const PurchaseOrder = () => {
                         className="w-[200px] px-3 py-2 border-2 rounded outline-none"
                       >
                         <option value="">Select Department</option>
-                        {filteredDepartments.map((d) => (
+                        {departments.map((d) => (
                           <option key={d.value} value={d.value}>
                             {d.label}
                           </option>

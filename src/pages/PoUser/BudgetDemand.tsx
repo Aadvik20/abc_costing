@@ -14,6 +14,7 @@ import Loader from '@/components/ui/loader';
 import { formatDecimal, formatRupees, monthOptions, yearOptions } from '@/lib/helperFunction';
 import ConfirmDialog from '@/components/common/ConfirmDialog';
 import BudgetRequestList from '@/pages/PoUser/BudgetRequestList';
+import { showCustomToast } from '@/components/common/showCustomToast';
 
 const BudgetDemand = () => {
   const [loading, setLoading] = useState(false);
@@ -31,7 +32,7 @@ const BudgetDemand = () => {
   const [unit, setUnit] = useState(null);
   const defaultComponents = [
     { component: '', unit: '', qty: '', rate: '', total: 0 },
-    { component: 'Others', unit: '', qty: '', rate: '', total: 0 },
+    // { component: 'Others', unit: '', qty: '', rate: '', total: 0 },
   ];
 
   const [rows, setRows] = useState([
@@ -44,6 +45,7 @@ const BudgetDemand = () => {
       gl: '',
       file: null,
       components: defaultComponents,
+      hasAddedComponent: false,
     },
   ]);
 
@@ -72,82 +74,38 @@ const BudgetDemand = () => {
   }, [units, unit]);
 
   const getFilteredDepartments = (currentIndex: number) => {
-  const selectedDepartments = rows
-    .map((r, i) => (i !== currentIndex ? r.department?.value : null))
-    .filter(Boolean);
+    const selectedDepartments = rows.map((r, i) => (i !== currentIndex ? r.department?.value : null)).filter(Boolean);
 
-  return departmentOptions.filter(
-    (d) => !selectedDepartments.includes(d.value)
-  );
-};
-
-  // const validateForm = () => {
-  //   let newErrors: any = {};
-
-  //   if (!unit) newErrors.unit = 'Unit required';
-  //   if (!month) newErrors.month = 'Month required';
-  //   if (!year) newErrors.year = 'Year required';
-
-  //   const rowErrors = rows.map((row) => {
-  //     let err: any = {};
-
-  //     if (!row.department) err.department = 'Required';
-  //     if (!row.description || row.description.trim() === '') err.description = 'Required';
-
-  //     if (!row.actualAmount) err.actualAmount = 'Required';
-  //     if (!row.budgetAmount) err.budgetAmount = 'Required';
-
-  //     if (Number(row.actualAmount) < 0) err.actualAmount = 'Invalid';
-  //     if (Number(row.budgetAmount) <= 0) err.budgetAmount = 'Invalid';
-
-  //     // if (!row.gl) err.gl = 'Required';
-
-  //     // const compErrors = row.components.map((c) => {
-  //     //   let cErr: any = {};
-
-  //     //   if (!c.component) cErr.component = 'Required';
-  //     //   if (!c.unit) cErr.unit = 'Required';
-
-  //     //   if (!c.qty || Number(c.qty) <= 0) cErr.qty = 'Invalid';
-  //     //   if (!c.rate || Number(c.rate) <= 0) cErr.rate = 'Invalid';
-
-  //     //   return cErr;
-  //     // });
-
-  //     // err.components = compErrors;
-
-  //     return err;
-  //   });
-
-  //   newErrors.rows = rowErrors;
-
-  //   setErrors(newErrors);
-
-  //   const hasErrors = newErrors.unit || newErrors.month || newErrors.year || rowErrors.some((r) => Object.keys(r).length > 1);
-
-  //   if (hasErrors) {
-  //     toast.error('Please fill all required fields properly ⚠️');
-  //     return false;
-  //   }
-
-  //   return true;
-  // };
+    return departmentOptions.filter((d) => !selectedDepartments.includes(d.value));
+  };
 
   const validateForm = () => {
     let newErrors: any = {};
 
     if (!unit) {
-      toast.error('Unit is required');
+      showCustomToast({
+        title: 'Warning',
+        type: 'warning',
+        message: 'Unit is required',
+      });
       return false;
     }
 
     if (!month) {
-      toast.error('Month is required');
+      showCustomToast({
+        title: 'Warning',
+        type: 'warning',
+        message: 'Month is required',
+      });
       return false;
     }
 
     if (!year) {
-      toast.error('Year is required');
+      showCustomToast({
+        title: 'Warning',
+        type: 'warning',
+        message: 'Year is required',
+      });
       return false;
     }
 
@@ -156,37 +114,61 @@ const BudgetDemand = () => {
 
       if (!row.department) {
         err.department = 'Department required';
-        toast.error(`Row ${index + 1}: Department is required`);
+        showCustomToast({
+          title: 'Warning',
+          type: 'warning',
+          message: `Row ${index + 1}: Department is required`,
+        });
         throw new Error('stop');
       }
 
       if (!row.description || row.description.trim() === '') {
         err.description = 'Description required';
-        toast.error(`Row ${index + 1}: Description is required`);
+        showCustomToast({
+          title: 'Warning',
+          type: 'warning',
+          message: `Row ${index + 1}: Description is required`,
+        });
         throw new Error('stop');
       }
 
       if (!row.actualAmount) {
         err.actualAmount = 'Actual amount required';
-        toast.error(`Row ${index + 1}: Actual amount is required`);
+        showCustomToast({
+          title: 'Warning',
+          type: 'warning',
+          message: `Row ${index + 1}: Actual amount is required`,
+        });
         throw new Error('stop');
       }
 
       if (Number(row.actualAmount) < 0) {
         err.actualAmount = 'Invalid';
-        toast.error(`Row ${index + 1}: Actual amount cannot be negative`);
+        showCustomToast({
+          title: 'Warning',
+          type: 'warning',
+          message: `Row ${index + 1}: Actual amount cannot be negative`,
+        });
         throw new Error('stop');
       }
 
       if (!row.budgetAmount) {
         err.budgetAmount = 'Budget amount required';
-        toast.error(`Row ${index + 1}: Budget amount is required`);
+        showCustomToast({
+          title: 'Warning',
+          type: 'warning',
+          message: `Row ${index + 1}: Budget amount is required`,
+        });
         throw new Error('stop');
       }
 
       if (Number(row.budgetAmount) <= 0) {
         err.budgetAmount = 'Invalid';
-        toast.error(`Row ${index + 1}: Budget must be greater than 0`);
+        showCustomToast({
+          title: 'Warning',
+          type: 'warning',
+          message: `Row ${index + 1}: Budget must be greater than 0`,
+        });
         throw new Error('stop');
       }
 
@@ -223,8 +205,9 @@ const BudgetDemand = () => {
         file: null,
         components: [
           { component: '', unit: '', qty: '', rate: '', total: 0 },
-          { component: 'Others', unit: '', qty: '', rate: '', total: 0 },
+          // { component: 'Others', unit: '', qty: '', rate: '', total: 0 },
         ],
+        hasAddedComponent: false,
       },
     ]);
 
@@ -248,7 +231,17 @@ const BudgetDemand = () => {
       prev.map((row, i) => {
         if (i !== rowIndex) return row;
 
-        let updatedComponents = row.components.map((c, j) => (j === compIndex ? { ...c, [field]: value } : c));
+        let updatedComponents = row.components.map((c, j) => {
+          if (j !== compIndex) return c;
+
+          let updated = { ...c, [field]: value };
+
+          if (c.component === 'Others') {
+            updated.component = value;
+          }
+
+          return updated;
+        });
 
         return recalculateRow({ ...row, components: updatedComponents });
       })
@@ -256,8 +249,22 @@ const BudgetDemand = () => {
   };
 
   const recalculateRow = (row) => {
-    let updatedComponents = row.components.map((c) => {
-      const total = (Number(c.qty) || 0) * (Number(c.rate) || 0);
+    const budget = Number(row.budgetAmount || 0);
+
+    let updatedComponents = row.components.map((c, index) => {
+      if (c.component === 'Others') return c;
+
+      const qty = Number(c.qty);
+      const rate = Number(c.rate);
+
+      let total = 0;
+
+      if (!qty && !rate) {
+        total = Number(row.budgetAmount || 0);
+      } else {
+        total = qty * rate;
+      }
+
       return {
         ...c,
         total: Number(total.toFixed(2)),
@@ -266,18 +273,16 @@ const BudgetDemand = () => {
 
     const othersIndex = updatedComponents.findIndex((c) => c.component === 'Others');
 
-    const sumWithoutOthers = updatedComponents.reduce((sum, c, idx) => {
+    if (othersIndex === -1) return { ...row, components: updatedComponents };
+
+    const used = updatedComponents.reduce((sum, c, idx) => {
       if (idx === othersIndex) return sum;
       return sum + (c.total || 0);
     }, 0);
 
-    const budget = Number(row.budgetAmount || 0);
+    const remaining = Math.max(budget - used, 0);
 
-    const othersValue = Math.max(budget - sumWithoutOthers, 0);
-
-    if (othersIndex !== -1) {
-      updatedComponents[othersIndex].total = Number(othersValue.toFixed(2));
-    }
+    updatedComponents[othersIndex].total = Number(remaining.toFixed(2));
 
     return { ...row, components: updatedComponents };
   };
@@ -290,7 +295,11 @@ const BudgetDemand = () => {
     const hasEmpty = rows.some((row) => isRowEmpty(row));
 
     if (hasEmpty) {
-      toast.error('Please fill existing row first ⚠️');
+      showCustomToast({
+        title: 'Warning',
+        type: 'warning',
+        message: 'Please fill existing row first',
+      });
       return;
     }
 
@@ -305,6 +314,7 @@ const BudgetDemand = () => {
         gl: '',
         file: null,
         components: JSON.parse(JSON.stringify(defaultComponents)),
+        hasAddedComponent: false,
       },
     ]);
   };
@@ -319,6 +329,16 @@ const BudgetDemand = () => {
   };
 
   const addComponentRow = (rowIndex) => {
+    const row = rows[rowIndex];
+
+    if (isOverBudget(row)) {
+      showCustomToast({
+        title: 'Warning',
+        type: 'warning',
+        message: 'Total exceeds budget amount',
+      });
+      return;
+    }
     setRows((prev) =>
       prev.map((row, i) => {
         if (i !== rowIndex) return row;
@@ -326,23 +346,32 @@ const BudgetDemand = () => {
         const hasEmpty = row.components.some((c) => isComponentEmpty(c));
 
         if (hasEmpty) {
-          toast.error('Please fill existing row first ⚠️');
+          toast.dismiss();
+          toast.error('Please fill existing row first ⚠️', {
+            id: 'component-error',
+          });
           return row;
         }
 
-        const newRow = {
-          component: '',
+        let updated = row.components.filter((c) => c.component !== 'Others');
+
+        const used = updated.reduce((sum, c) => sum + (c.total || 0), 0);
+
+        const budget = Number(row.budgetAmount || 0);
+        const remaining = Math.max(budget - used, 0);
+
+        updated.push({
+          component: 'Others',
           unit: '',
           qty: '',
           rate: '',
-          total: 0,
+          total: Number(remaining.toFixed(2)),
+        });
+
+        return {
+          ...row,
+          components: updated,
         };
-
-        const updated = [...row.components];
-
-        updated.splice(updated.length - 1, 0, newRow);
-
-        return { ...row, components: updated };
       })
     );
   };
@@ -352,13 +381,23 @@ const BudgetDemand = () => {
       prev.map((row, i) => {
         if (i !== rowIndex) return row;
 
-        if (row.components.length <= 2) return row;
+        if (row.components.length == 1) return row;
 
         const updated = row.components.filter((_, idx) => idx !== compIndex);
 
         return recalculateRow({ ...row, components: updated });
       })
     );
+  };
+
+  const isOverBudget = (row) => {
+    const budget = Number(row.budgetAmount || 0);
+
+    const totalUsed = row.components.reduce((sum, c) => {
+      return sum + (Number(c.total) || 0);
+    }, 0);
+
+    return totalUsed > budget;
   };
 
   const getDraft = async () => {
@@ -385,7 +424,6 @@ const BudgetDemand = () => {
 
     const first = draft[0];
 
-    // 🔹 TOP LEVEL
     setUnit(String(first.unitId));
 
     setMonth(monthOptions.find((m) => m.value === first.month));
@@ -405,17 +443,17 @@ const BudgetDemand = () => {
           total: comp.totalAmount || 0,
         })) || [];
 
-      const hasOthers = components.some((c) => c.component === 'Others');
+      // const hasOthers = components.some((c) => c.component === 'Others');
 
-      if (!hasOthers) {
-        components.push({
-          component: 'Others',
-          unit: '',
-          qty: '',
-          rate: '',
-          total: 0,
-        });
-      }
+      // if (!hasOthers) {
+      //   components.push({
+      //     component: 'Others',
+      //     unit: '',
+      //     qty: '',
+      //     rate: '',
+      //     total: 0,
+      //   });
+      // }
 
       return {
         requestId: item.id,
@@ -431,6 +469,7 @@ const BudgetDemand = () => {
         gl: item.generalLedger || '',
 
         components,
+        hasAddedComponent: false,
 
         file: null,
         existingFileName: item.fileName,
@@ -489,18 +528,81 @@ const BudgetDemand = () => {
       });
 
       if (res?.data?.statusCode === 200) {
-        toast.success(isDraft ? 'Draft saved successfully' : 'Demand submitted successfully');
+        showCustomToast({
+          title: 'Success',
+          type: 'success',
+          message: isDraft ? 'Draft saved successfully' : 'Demand submitted successfully',
+        });
 
         if (!isDraft) resetForm();
         if (isDraft) getDraft();
       }
 
       if (res?.data?.statusCode === 409) {
-        toast.error('Request already exists for selected unit and department for the current month');
+        showCustomToast({
+          title: 'Failed',
+          type: 'error',
+          message: 'Request already exists for selected unit and department for the current month',
+        });
+      }
+      if (res?.data?.statusCode === 400) {
+        showCustomToast({
+          title: 'Failed',
+          type: 'error',
+          message: res?.data?.message,
+        });
       }
     } catch (error) {
       console.error(error);
-      toast.error('Request Failed');
+      showCustomToast({
+        title: 'Failed',
+        type: 'error',
+        message: 'Request Failed',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteAllDrafts = () => {
+    if (!draft || draft.length === 0) {
+      toast.error('No drafts available');
+      return;
+    }
+
+    const allIds = draft.map((d: any) => d.id);
+
+    handleDeleteDraft(allIds);
+  };
+
+  const handleDeleteDraft = async (ids: number[]) => {
+    try {
+      setLoading(true);
+
+      const res = await axiosInstance.delete('/UnitAmountRequest/delete-drafts', {
+        data: {
+          requestIds: ids,
+        },
+      });
+
+      if (res?.data?.statusCode === 200) {
+        showCustomToast({
+          title: 'Success',
+          type: 'success',
+          message: 'Draft deleted successfully',
+        });
+        resetForm();
+        getDraft();
+      } else {
+        showCustomToast({
+          title: 'Failed',
+          type: 'error',
+          message: res?.data?.message || 'Delete failed',
+        });
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error('Delete failed');
     } finally {
       setLoading(false);
     }
@@ -554,6 +656,14 @@ const BudgetDemand = () => {
 
             {/* Add Row Button */}
             <div className="flex justify-end gap-2">
+              <Button
+                onClick={() => {
+                  handleDeleteAllDrafts();
+                }}
+                className="bg-red-500 hover:bg-red-500 text-white"
+              >
+                Delete All Drafts
+              </Button>
               <Button
                 onClick={() => {
                   if (!validateForm()) return;
@@ -635,7 +745,7 @@ const BudgetDemand = () => {
 
                   <Input value={row.gl} placeholder="GL No." onChange={(e) => handleChange(index, 'gl', e.target.value)} />
 
-                  <Button variant="destructive" size="icon" onClick={() => deleteRow(index)}>
+                  <Button variant="destructive" size="icon" onClick={() => deleteRow(index)} disabled={rows.length === 1}>
                     <Trash2 size={16} />
                   </Button>
                 </div>
@@ -699,17 +809,26 @@ const BudgetDemand = () => {
 
                         {/* DELETE BUTTON */}
                         <div className="flex justify-center">
-                          {comp.component !== 'Others' && (
-                            <Button size="icon" variant="ghost" className="text-red-500 hover:bg-red-50" onClick={() => deleteComponentRow(index, cIndex)}>
-                              <Trash2 size={16} />
-                            </Button>
-                          )}
+                          {/* {comp.component !== 'Others' && ( */}
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="text-red-500 hover:bg-red-50"
+                            onClick={() => deleteComponentRow(index, cIndex)}
+                            disabled={row.components.length === 1}
+                          >
+                            <Trash2 size={16} />
+                          </Button>
+                          {/* )} */}
                         </div>
                       </div>
                     ))}
 
-                    <div className="p-2 flex justify-end border-t">
-                      <Button size="sm" variant="outline" onClick={() => addComponentRow(index)}>
+                    <div className="p-2 flex justify-end gap-2 border-t">
+                      <Button size="sm" variant="destructive" onClick={() => handleDeleteDraft([row.requestId])}>
+                        Delete Draft
+                      </Button>
+                      <Button size="sm" variant="outline" onClick={() => addComponentRow(index)} disabled={isOverBudget(row)}>
                         + Add
                       </Button>
                     </div>
