@@ -47,7 +47,6 @@ const Finance = () => {
         approvedAmount: amount,
         reason: reason || '',
       };
-      console.log(payload);
       const response = await axiosInstance.post('/Finance', payload);
       if (response.data.success) {
         toast.success('Value Submitted successfully');

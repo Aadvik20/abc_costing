@@ -67,7 +67,7 @@ const BudgetRequestList = () => {
 
   const columns = useMemo(
     () => [
-      { header: 'Unit', cell: ({ row }: any) => <div className="px-2 font-semibold">{row.original.unitName}</div> },
+      { header: 'Unit', cell: ({ row }: any) => <div className="px-2 font-semibold">{row.original.unitName.toUpperCase()}</div> },
       { header: 'Department', cell: ({ row }: any) => <div className="px-2 font-semibold">{row.original.departmentName}</div> },
       // {
       //   header: 'Month / Year',

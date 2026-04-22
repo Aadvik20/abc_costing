@@ -58,7 +58,6 @@ const PurchaseOrderV2 = () => {
 
   const onSave = async (payload) => {
     try {
-      console.log(payload);
       const response = await axiosInstance.post('/User/Demand', payload);
       if (response.data.success) {
         toast.success('Demand Raised Successfully');

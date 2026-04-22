@@ -1,6 +1,6 @@
 import { Dialog, DialogContent } from '@/components/ui/dialog';
-import { formatDecimal, formatRupees } from '@/lib/helperFunction';
-import { Calculator, FileText, Info } from 'lucide-react';
+import { formatDecimal, formatRupees, monthOptions } from '@/lib/helperFunction';
+import { BookOpen, Calculator, Calendar, FileText, Info } from 'lucide-react';
 
 const BudgetDetailsDialog = ({ open, onClose, data }) => {
   if (!data) return null;
@@ -19,6 +19,31 @@ const BudgetDetailsDialog = ({ open, onClose, data }) => {
 
         {/* BODY */}
         <div className="flex-1 overflow-y-auto bg-slate-50/50 p-4">
+          <div className="grid grid-cols-2 gap-px border mb-4 border-slate-100">
+            {req.gl != 'null' && req.gl !== '' && (
+              <div className="bg-white p-5 flex items-center gap-4">
+                <div className="p-2 bg-blue-50 rounded-lg text-blue-600">
+                  <BookOpen size={20} />
+                </div>
+                <div>
+                  <p className="text-[10px] text-slate-400 uppercase font-bold leading-none mb-1">GL No.</p>
+                  <p className="text-sm font-semibold text-slate-700 leading-none">{req.gl || '-'}</p>
+                </div>
+              </div>
+            )}
+
+            <div className="bg-white p-5 flex items-center gap-4">
+              <div className="p-2 bg-blue-50 rounded-lg text-blue-600">
+                <Calendar size={20} />
+              </div>
+              <div>
+                <p className="text-[10px] text-slate-400 uppercase font-bold leading-none mb-1">Period</p>
+                <p className="text-sm font-semibold text-slate-700 leading-none">
+                  {monthOptions.find((m) => m.value === req.month)?.label} {req.year}
+                </p>
+              </div>
+            </div>
+          </div>
           <div className="bg-white p-6 rounded-xl border shadow-sm">
             <div className="flex items-center gap-2 mb-3">
               <FileText size={16} />

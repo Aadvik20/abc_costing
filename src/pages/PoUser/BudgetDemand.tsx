@@ -6,8 +6,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Trash2 } from 'lucide-react';
 import { RootState } from '@/app/store';
-import ReactQuill from 'react-quill';
-import 'react-quill/dist/quill.snow.css';
 import axiosInstance from '@/services/axiosInstance';
 import toast from 'react-hot-toast';
 import Loader from '@/components/ui/loader';
@@ -248,50 +246,11 @@ const BudgetDemand = () => {
     );
   };
 
-  // const recalculateRow = (row) => {
-  //   const budget = Number(row.budgetAmount || 0);
-
-  //   let updatedComponents = row.components.map((c, index) => {
-  //     if (c.component === 'Others') return c;
-
-  //     const qty = Number(c.qty);
-  //     const rate = Number(c.rate);
-
-  //     let total = 0;
-
-  //     if (!qty && !rate) {
-  //       total = Number(row.budgetAmount || 0);
-  //     } else {
-  //       total = qty * rate;
-  //     }
-
-  //     return {
-  //       ...c,
-  //       total: Number(total.toFixed(2)),
-  //     };
-  //   });
-
-  //   const othersIndex = updatedComponents.findIndex((c) => c.component === 'Others');
-
-  //   if (othersIndex === -1) return { ...row, components: updatedComponents };
-
-  //   const used = updatedComponents.reduce((sum, c, idx) => {
-  //     if (idx === othersIndex) return sum;
-  //     return sum + (c.total || 0);
-  //   }, 0);
-
-  //   const remaining = Math.max(budget - used, 0);
-
-  //   updatedComponents[othersIndex].total = Number(remaining.toFixed(2));
-
-  //   return { ...row, components: updatedComponents };
-  // };
-
   const recalculateRow = (row) => {
     const budget = Number(row.budgetAmount || 0);
 
     let updatedComponents = row.components.map((c) => {
-      if (c.component === 'Others') return c; 
+      if (c.component === 'Others') return c;
 
       const qty = Number(c.qty || 0);
       const rate = Number(c.rate || 0);
@@ -483,50 +442,6 @@ const BudgetDemand = () => {
       label: String(first.year),
     });
 
-    // const mappedRows = draft.map((item: any) => {
-    //   let components =
-    //     item.componentDetails?.map((comp: any) => ({
-    //       component: comp.componentDescription || '',
-    //       unit: comp.munit || '',
-    //       qty: comp.qty ? String(comp.qty) : '',
-    //       rate: comp.rateOfUnit ? String(comp.rateOfUnit) : '',
-    //       total: comp.amount || 0,
-    //     })) || [];
-
-    //   // const hasOthers = components.some((c) => c.component === 'Others');
-
-    //   // if (!hasOthers) {
-    //   //   components.push({
-    //   //     component: 'Others',
-    //   //     unit: '',
-    //   //     qty: '',
-    //   //     rate: '',
-    //   //     total: 0,
-    //   //   });
-    //   // }
-
-    //   return {
-    //     requestId: item.id,
-
-    //     department: departmentOptions.find((d) => String(d.value) === String(item.departmentId)) || null,
-
-    //     description: item.demandDetails || '',
-
-    //     actualAmount: item.actualAmount ? String(item.actualAmount) : '',
-
-    //     budgetAmount: item.budgetAmount ? String(item.budgetAmount) : '',
-
-    //     gl: item.gl || '',
-
-    //     components,
-    //     hasAddedComponent: false,
-
-    //     file: null,
-    //     existingFileName: item.fileName,
-    //     existingFileUrl: item.fileUrl,
-    //   };
-    // });
-
     const mappedRows = draft.map((item: any) => {
       let components =
         item.componentDetails?.map((comp: any) => ({
@@ -643,7 +558,11 @@ const BudgetDemand = () => {
 
   const handleDeleteAllDrafts = () => {
     if (!draft || draft.length === 0) {
-      toast.error('No drafts available');
+      showCustomToast({
+        title: 'Warning',
+        type: 'warning',
+        message: 'No drafts available to delete',
+      });
       return;
     }
 
@@ -653,9 +572,16 @@ const BudgetDemand = () => {
   };
 
   const handleDeleteDraft = async (ids: number[]) => {
+    if (!draft || draft.length === 0) {
+      showCustomToast({
+        title: 'Warning',
+        type: 'warning',
+        message: 'No drafts available to delete',
+      });
+      return;
+    }
     try {
       setLoading(true);
-
       const res = await axiosInstance.delete('/UnitAmountRequest/delete-drafts', {
         data: {
           requestIds: ids,
@@ -679,11 +605,12 @@ const BudgetDemand = () => {
       }
     } catch (error) {
       console.error(error);
-      toast.error('Delete failed');
+      toast.error(error?.data?.message || 'Delete failed');
     } finally {
       setLoading(false);
     }
   };
+
   return (
     <div className="p-4 md:p-8">
       {loading && <Loader />}
@@ -783,7 +710,18 @@ const BudgetDemand = () => {
                 <div className="grid grid-cols-[60px_200px_1fr_150px_150px_150px_80px] px-4 py-4 gap-3 items-start">
                   <div>{index + 1}</div>
 
-                  <Select options={getFilteredDepartments(index)} value={row.department} onChange={(val) => handleChange(index, 'department', val)} />
+                  <Select
+                    options={getFilteredDepartments(index)}
+                    value={row.department}
+                    onChange={(val) => handleChange(index, 'department', val)}
+                    styles={{
+                      menu: (provided) => ({
+                        ...provided,
+                        maxHeight: 170,
+                        overflow: 'hidden',
+                      }),
+                    }}
+                  />
 
                   <textarea
                     value={row.description}

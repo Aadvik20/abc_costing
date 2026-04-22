@@ -8,7 +8,6 @@ const BudgetDetailsCgmDialog = ({ open, onClose, data, handleApprove }) => {
   if (!data) return null;
 
   const req = data;
-  console.log(req);
 
   const isPending = req.status === statusConst.Pending_CGM.value;
   const hasLongDescription = req.demandDetails && req.demandDetails.length > 400;
@@ -118,7 +117,7 @@ const BudgetDetailsCgmDialog = ({ open, onClose, data, handleApprove }) => {
                 remarksRequired
                 onConfirm={(remarks) => handleApprove(req, statusConst.Reverted_By_CGM.label, remarks)}
               />
-              
+
               <ConfirmDialog
                 triggerClassName="bg-green-600 hover:bg-emerald-700 text-white px-5 py-2 rounded-lg text-sm font-bold"
                 triggerLabel="Approve"

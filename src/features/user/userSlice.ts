@@ -104,7 +104,6 @@ export const fetchUserProfile = createAsyncThunk('user/fetchUserProfile', async 
   try {
     const response = await axiosInstance.get<ProfileResponse>('/User/GetProfile');
     const data: any = response.data;
-    console.log(data.roles);
     if (data.error) {
       throw new Error(data.errorDetail || 'Unknown error occurred');
     }
@@ -179,11 +178,9 @@ const userSlice = createSlice({
             )
           : [];
         state.units = units;
-        state.departments = departments;
+        state.departments = departments as DepartmentOption[];
         state.Roles = roles.length ? [...roles, -1] : [-1];
         state.roleAssigned = data.roles;
-
-        console.log(roles);
       });
   },
 });

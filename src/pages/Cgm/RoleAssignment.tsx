@@ -56,10 +56,6 @@ const RoleAssignment = () => {
     ...filteredDepartments,
   ];
 
-  // useEffect(() => {
-  //   setSelectedDepartments([]);
-  // }, [selectedUnits]);
-
   useEffect(() => {
     if (units.length === 1 && !selectedUnits) {
       setSelectedUnits(units[0].value);
@@ -161,8 +157,8 @@ const RoleAssignment = () => {
 
     valueContainer: (provided: any) => ({
       ...provided,
-      flexWrap: 'wrap', // ✅ allow wrap
-      overflowY: 'auto', // ✅ vertical scroll
+      flexWrap: 'wrap',
+      overflowY: 'auto',
       maxHeight: '80px',
     }),
 

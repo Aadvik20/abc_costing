@@ -11,8 +11,6 @@ const EditRoleDialog = ({ open, onClose, data, unitOptions, departmentOptions, o
   const [formData, setFormData] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   
-  console.log(departmentOptions);
-  
   useEffect(() => {
     if (data) {
       const unit = data.units?.[0];

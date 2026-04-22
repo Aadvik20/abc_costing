@@ -33,11 +33,6 @@ const PurchaseOrder = () => {
   const allowedUnits = new Set(units.map((u) => u.label));
   const allowedDepts = new Set(departments.map((d) => d.label));
 
-  console.log(departments , "udsgfiusgi")
-
-  console.log(allowedUnits);
-  console.log(allowedDepts);
-
   useEffect(() => {
     if (!po.length) {
       dispatch(fetchPoData());

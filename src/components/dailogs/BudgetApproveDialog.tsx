@@ -13,7 +13,6 @@ interface Props {
 }
 
 const BudgetApproveDialog = ({ open, onClose, data, onApprove }: Props) => {
-  console.log(data);
 
   const totalRequests = data.length;
 
