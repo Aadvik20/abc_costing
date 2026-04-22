@@ -1,6 +1,6 @@
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { formatDecimal, formatRupees } from '@/lib/helperFunction';
-import { Calculator, Info } from 'lucide-react';
+import { Calculator, FileText, Info } from 'lucide-react';
 
 const BudgetDetailsDialog = ({ open, onClose, data }) => {
   if (!data) return null;
@@ -21,7 +21,7 @@ const BudgetDetailsDialog = ({ open, onClose, data }) => {
         <div className="flex-1 overflow-y-auto bg-slate-50/50 p-4">
           <div className="bg-white p-6 rounded-xl border shadow-sm">
             <div className="flex items-center gap-2 mb-3">
-              <Info size={16} />
+              <FileText size={16} />
               <span className="text-xs font-bold uppercase">Project Description</span>
             </div>
 
@@ -55,7 +55,7 @@ const BudgetDetailsDialog = ({ open, onClose, data }) => {
                   <tr key={i} className="border-t hover:bg-slate-50">
                     <td className="px-6 py-3 font-medium text-center">{comp.componentDescription}</td>
 
-                    <td className="px-6 py-3 text-center">{comp.munit > 0 ? `${comp.munit || ''}` : '-'}</td>
+                    <td className="px-6 py-3 text-center">{comp.munit || '-'}</td>
 
                     <td className="px-6 py-3 text-right">{comp.qty > 0 ? `${formatDecimal(comp.qty)}` : '-'}</td>
 

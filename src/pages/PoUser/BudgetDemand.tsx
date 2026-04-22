@@ -236,9 +236,9 @@ const BudgetDemand = () => {
 
           let updated = { ...c, [field]: value };
 
-          if (c.component === 'Others') {
-            updated.component = value;
-          }
+          // if (c.component === 'Others') {
+          //   updated.component = value;
+          // }
 
           return updated;
         });
@@ -248,22 +248,55 @@ const BudgetDemand = () => {
     );
   };
 
+  // const recalculateRow = (row) => {
+  //   const budget = Number(row.budgetAmount || 0);
+
+  //   let updatedComponents = row.components.map((c, index) => {
+  //     if (c.component === 'Others') return c;
+
+  //     const qty = Number(c.qty);
+  //     const rate = Number(c.rate);
+
+  //     let total = 0;
+
+  //     if (!qty && !rate) {
+  //       total = Number(row.budgetAmount || 0);
+  //     } else {
+  //       total = qty * rate;
+  //     }
+
+  //     return {
+  //       ...c,
+  //       total: Number(total.toFixed(2)),
+  //     };
+  //   });
+
+  //   const othersIndex = updatedComponents.findIndex((c) => c.component === 'Others');
+
+  //   if (othersIndex === -1) return { ...row, components: updatedComponents };
+
+  //   const used = updatedComponents.reduce((sum, c, idx) => {
+  //     if (idx === othersIndex) return sum;
+  //     return sum + (c.total || 0);
+  //   }, 0);
+
+  //   const remaining = Math.max(budget - used, 0);
+
+  //   updatedComponents[othersIndex].total = Number(remaining.toFixed(2));
+
+  //   return { ...row, components: updatedComponents };
+  // };
+
   const recalculateRow = (row) => {
     const budget = Number(row.budgetAmount || 0);
 
-    let updatedComponents = row.components.map((c, index) => {
-      if (c.component === 'Others') return c;
+    let updatedComponents = row.components.map((c) => {
+      if (c.component === 'Others') return c; 
 
-      const qty = Number(c.qty);
-      const rate = Number(c.rate);
+      const qty = Number(c.qty || 0);
+      const rate = Number(c.rate || 0);
 
-      let total = 0;
-
-      if (!qty && !rate) {
-        total = Number(row.budgetAmount || 0);
-      } else {
-        total = qty * rate;
-      }
+      const total = qty * rate;
 
       return {
         ...c,
@@ -273,16 +306,19 @@ const BudgetDemand = () => {
 
     const othersIndex = updatedComponents.findIndex((c) => c.component === 'Others');
 
-    if (othersIndex === -1) return { ...row, components: updatedComponents };
+    if (othersIndex !== -1) {
+      const used = updatedComponents.reduce((sum, c, idx) => {
+        if (idx === othersIndex) return sum;
+        return sum + (c.total || 0);
+      }, 0);
 
-    const used = updatedComponents.reduce((sum, c, idx) => {
-      if (idx === othersIndex) return sum;
-      return sum + (c.total || 0);
-    }, 0);
+      const remaining = Math.max(budget - used, 0);
 
-    const remaining = Math.max(budget - used, 0);
-
-    updatedComponents[othersIndex].total = Number(remaining.toFixed(2));
+      updatedComponents[othersIndex] = {
+        ...updatedComponents[othersIndex],
+        total: Number(remaining.toFixed(2)),
+      };
+    }
 
     return { ...row, components: updatedComponents };
   };
@@ -355,6 +391,20 @@ const BudgetDemand = () => {
 
         let updated = row.components.filter((c) => c.component !== 'Others');
 
+        // let updated = [...row.components];
+
+        // const hasOthers = updated.some((c) => c.component === 'Others');
+
+        // if (!hasOthers) {
+        //   updated.push({
+        //     component: 'Others',
+        //     unit: '',
+        //     qty: '',
+        //     rate: '',
+        //     total: 0,
+        //   });
+        // }
+
         const used = updated.reduce((sum, c) => sum + (c.total || 0), 0);
 
         const budget = Number(row.budgetAmount || 0);
@@ -397,7 +447,7 @@ const BudgetDemand = () => {
       return sum + (Number(c.total) || 0);
     }, 0);
 
-    return totalUsed > budget;
+    return totalUsed >= budget;
   };
 
   const getDraft = async () => {
@@ -433,48 +483,75 @@ const BudgetDemand = () => {
       label: String(first.year),
     });
 
+    // const mappedRows = draft.map((item: any) => {
+    //   let components =
+    //     item.componentDetails?.map((comp: any) => ({
+    //       component: comp.componentDescription || '',
+    //       unit: comp.munit || '',
+    //       qty: comp.qty ? String(comp.qty) : '',
+    //       rate: comp.rateOfUnit ? String(comp.rateOfUnit) : '',
+    //       total: comp.amount || 0,
+    //     })) || [];
+
+    //   // const hasOthers = components.some((c) => c.component === 'Others');
+
+    //   // if (!hasOthers) {
+    //   //   components.push({
+    //   //     component: 'Others',
+    //   //     unit: '',
+    //   //     qty: '',
+    //   //     rate: '',
+    //   //     total: 0,
+    //   //   });
+    //   // }
+
+    //   return {
+    //     requestId: item.id,
+
+    //     department: departmentOptions.find((d) => String(d.value) === String(item.departmentId)) || null,
+
+    //     description: item.demandDetails || '',
+
+    //     actualAmount: item.actualAmount ? String(item.actualAmount) : '',
+
+    //     budgetAmount: item.budgetAmount ? String(item.budgetAmount) : '',
+
+    //     gl: item.gl || '',
+
+    //     components,
+    //     hasAddedComponent: false,
+
+    //     file: null,
+    //     existingFileName: item.fileName,
+    //     existingFileUrl: item.fileUrl,
+    //   };
+    // });
+
     const mappedRows = draft.map((item: any) => {
       let components =
         item.componentDetails?.map((comp: any) => ({
           component: comp.componentDescription || '',
-          unit: comp.mUnit || '',
-          qty: comp.qty ? String(comp.qty) : '',
-          rate: comp.rateOfUnit ? String(comp.rateOfUnit) : '',
-          total: comp.totalAmount || 0,
+          unit: comp.munit || '',
+          qty: comp.qty ? formatDecimal(String(comp.qty)) : '',
+          rate: comp.rateOfUnit ? formatDecimal(String(comp.rateOfUnit)) : '',
+          total: Number(Number(comp.amount || 0).toFixed(2)),
         })) || [];
 
-      // const hasOthers = components.some((c) => c.component === 'Others');
-
-      // if (!hasOthers) {
-      //   components.push({
-      //     component: 'Others',
-      //     unit: '',
-      //     qty: '',
-      //     rate: '',
-      //     total: 0,
-      //   });
-      // }
-
-      return {
+      const row = {
         requestId: item.id,
-
         department: departmentOptions.find((d) => String(d.value) === String(item.departmentId)) || null,
-
         description: item.demandDetails || '',
-
-        actualAmount: item.actualAmount ? String(item.actualAmount) : '',
-
-        budgetAmount: item.budgetAmount ? String(item.budgetAmount) : '',
-
-        gl: item.generalLedger || '',
-
+        actualAmount: item.actualAmount ? formatDecimal(String(item.actualAmount)) : '',
+        budgetAmount: item.budgetAmount ? formatDecimal(String(item.budgetAmount)) : '',
+        gl: item.gl || '',
         components,
         hasAddedComponent: false,
-
         file: null,
         existingFileName: item.fileName,
         existingFileUrl: item.fileUrl,
       };
+
+      return recalculateRow(row);
     });
 
     setRows(mappedRows);
@@ -660,7 +737,7 @@ const BudgetDemand = () => {
                 onClick={() => {
                   handleDeleteAllDrafts();
                 }}
-                className="bg-red-500 hover:bg-red-500 text-white"
+                className="bg-red-500 hover:bg-red-600 text-white"
               >
                 Delete All Drafts
               </Button>
@@ -669,19 +746,19 @@ const BudgetDemand = () => {
                   if (!validateForm()) return;
                   handleSubmit(true);
                 }}
-                className="bg-yellow-500 hover:bg-yellow-500 text-white"
+                className="bg-yellow-500 hover:bg-yellow-600 text-white"
               >
                 Save as Draft
               </Button>
               <ConfirmDialog
-                triggerClassName="px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue"
+                triggerClassName="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg hover:bg-blue"
                 description="Are you sure you want to raise this demand?"
                 actionLabel="Confirm"
                 triggerLabel="Submit"
                 beforeOpen={() => validateForm()}
                 onConfirm={() => handleSubmit(false)}
               />
-              <Button onClick={addRow} className="bg-green-600 text-white">
+              <Button onClick={addRow} className="bg-green-600 hover:bg-green-700 text-white">
                 + Add Row
               </Button>
             </div>

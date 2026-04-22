@@ -51,9 +51,11 @@ const BudgetApproveFinance = () => {
       matrix[unit] = {};
 
       departments.forEach((dept) => {
-        const match = request.find((d) => d.unitName === unit && d.departmentName === dept);
+        const matches = request.filter((d) => d.unitName === unit && d.departmentName === dept);
 
-        matrix[unit][dept] = match?.budgetAmount || 0;
+        const total = matches.reduce((sum, item) => sum + (item.budgetAmount || 0), 0);
+
+        matrix[unit][dept] = total;
       });
     });
 
@@ -69,7 +71,8 @@ const BudgetApproveFinance = () => {
   // };
 
   const handleCellClick = (unit: string, dept: string, amount: number) => {
-    const filtered = request.filter((r: any) => r.unitName === unit && r.departmentName === dept && r.budgetAmount === amount);
+    // const filtered = request.filter((r: any) => r.unitName === unit && r.departmentName === dept && r.budgetAmount === amount);
+    const filtered = request.filter((r) => r.unitName === unit && r.departmentName === dept);
 
     setSelectedRequests(filtered);
     setFinanceDialogOpen(true);

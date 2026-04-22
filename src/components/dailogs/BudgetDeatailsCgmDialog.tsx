@@ -51,7 +51,7 @@ const BudgetDetailsCgmDialog = ({ open, onClose, data, handleApprove }) => {
           {/* DESCRIPTION */}
           <div className="bg-white p-6 rounded-xl border shadow-sm">
             <div className="flex items-center gap-2 mb-3">
-              <FileText size={16}  />
+              <FileText size={16} />
               <span className="text-xs font-bold uppercase">Project Description</span>
             </div>
 
@@ -109,14 +109,6 @@ const BudgetDetailsCgmDialog = ({ open, onClose, data, handleApprove }) => {
           {isPending ? (
             <div className="flex gap-3 w-full justify-end">
               <ConfirmDialog
-                triggerClassName="bg-green-600 hover:bg-emerald-700 text-white px-5 py-2 rounded-lg text-sm font-bold"
-                triggerLabel="Approve"
-                title="Approve Request"
-                description="Are you sure you want to approve?"
-                onConfirm={() => handleApprove(req, statusConst.Pending_Finance.label)}
-              />
-
-              <ConfirmDialog
                 triggerClassName="bg-amber-600 hover:bg-amber-700 text-white px-5 py-2 rounded-lg text-sm font-bold"
                 triggerLabel="Revert to user"
                 title="Revert Request"
@@ -125,6 +117,14 @@ const BudgetDetailsCgmDialog = ({ open, onClose, data, handleApprove }) => {
                 withRemarks
                 remarksRequired
                 onConfirm={(remarks) => handleApprove(req, statusConst.Reverted_By_CGM.label, remarks)}
+              />
+              
+              <ConfirmDialog
+                triggerClassName="bg-green-600 hover:bg-emerald-700 text-white px-5 py-2 rounded-lg text-sm font-bold"
+                triggerLabel="Approve"
+                title="Approve Request"
+                description="Are you sure you want to approve?"
+                onConfirm={() => handleApprove(req, statusConst.Pending_Finance.label)}
               />
             </div>
           ) : (
