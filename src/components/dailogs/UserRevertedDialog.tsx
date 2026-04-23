@@ -5,7 +5,6 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import axiosInstance from '@/services/axiosInstance';
-import toast from 'react-hot-toast';
 import { status } from '@/constant/status';
 import { formatDecimal, formatRupees } from '@/lib/helperFunction';
 import Loader from '../ui/loader';
@@ -14,6 +13,8 @@ import { showCustomToast } from '../common/showCustomToast';
 const UserRevertedDialog = ({ open, onClose, data, onSuccess }) => {
   const [form, setForm] = useState(null);
   const [loading, setLoading] = useState(false);
+
+  console.log(data);
 
   const mapData = (data) => {
     return {
@@ -39,43 +40,57 @@ const UserRevertedDialog = ({ open, onClose, data, onSuccess }) => {
 
   useEffect(() => {
     if (data) {
-      setForm(mapData(data));
+      setForm(mapData(Array.isArray(data) ? data[0] : data));
     }
   }, [data]);
 
   const recalculate = (components, budget) => {
     const budgetValue = Number(budget || 0);
 
-    // 🔹 Step 1: calculate totals for filled rows
     let updated = components.map((c) => {
-      const qty = Number(c.qty);
-      const rate = Number(c.rate);
+      if (c.component === 'Others') return c;
 
-      let total = 0;
+      const qty = Number(c.qty || 0);
+      const rate = Number(c.rate || 0);
 
-      if (qty && rate) {
-        total = Number((qty * rate).toFixed(2));
-      }
+      const total = qty * rate;
 
-      return { ...c, total };
+      return {
+        ...c,
+        total: Number(total.toFixed(2)),
+      };
     });
 
-    // 🔹 Step 2: calculate used amount
-    const used = updated.reduce((sum, c) => sum + (c.total || 0), 0);
+    // ✅ Step 1: First row = full budget if empty
+    if (updated.length > 0) {
+      const first = updated[0];
 
-    // 🔹 Step 3: assign remaining to last empty row
-    updated = updated.map((c, index) => {
-      const isEmpty = !c.qty && !c.rate;
+      const hasQtyOrRate = Number(first.qty || 0) > 0 || Number(first.rate || 0) > 0;
 
-      if (isEmpty) {
-        return {
-          ...c,
-          total: Math.max(budgetValue - used, 0),
+      if (!hasQtyOrRate) {
+        updated[0] = {
+          ...first,
+          total: Number(budgetValue.toFixed(2)),
         };
       }
+    }
 
-      return c;
-    });
+    // ✅ Step 2: Handle Others row
+    const othersIndex = updated.findIndex((c) => c.component === 'Others');
+
+    if (othersIndex !== -1) {
+      const used = updated.reduce((sum, c, idx) => {
+        if (idx === othersIndex) return sum;
+        return sum + (c.total || 0);
+      }, 0);
+
+      const remaining = Math.max(budgetValue - used, 0);
+
+      updated[othersIndex] = {
+        ...updated[othersIndex],
+        total: Number(remaining.toFixed(2)),
+      };
+    }
 
     return updated;
   };
@@ -83,10 +98,16 @@ const UserRevertedDialog = ({ open, onClose, data, onSuccess }) => {
   const handleDecimalChange = (field, value) => {
     const num = value === '' ? '' : Number(value);
 
-    setForm({
+    let updatedForm = {
       ...form,
       [field]: num,
-    });
+    };
+
+    if (field === 'budgetAmount') {
+      updatedForm.components = recalculate(form.components, num);
+    }
+
+    setForm(updatedForm);
   };
 
   const handleDecimalBlur = (field) => {
@@ -101,16 +122,20 @@ const UserRevertedDialog = ({ open, onClose, data, onSuccess }) => {
 
     updated[index] = {
       ...updated[index],
-      [field]: value === '' ? '' : Number(value),
+      [field]: field === 'qty' || field === 'rate' ? (value === '' ? '' : Number(value)) : value, // 👈 string fields untouched
     };
 
-    updated = recalculate(updated, form.budgetAmount);
+    if (field === 'qty' || field === 'rate') {
+      updated = recalculate(updated, form.budgetAmount);
+    }
 
     setForm({ ...form, components: updated });
   };
 
   const handleComponentBlur = (index, field) => {
     let updated = [...form.components];
+
+    if (updated[index][field] === '') return; // 👈 IMPORTANT
 
     updated[index][field] = formatDecimal(updated[index][field]);
 
@@ -126,11 +151,24 @@ const UserRevertedDialog = ({ open, onClose, data, onSuccess }) => {
       });
       return;
     }
-    const newComponents = [...form.components, { component: '', unit: '', qty: '', rate: '', total: 0 }];
+
+    let updated = form.components.filter((c) => c.component !== 'Others');
+
+    const used = updated.reduce((sum, c) => sum + (c.total || 0), 0);
+    const budget = Number(form.budgetAmount || 0);
+    const remaining = Math.max(budget - used, 0);
+
+    updated.push({
+      component: 'Others',
+      unit: '',
+      qty: '',
+      rate: '',
+      total: Number(remaining.toFixed(2)),
+    });
 
     setForm({
       ...form,
-      components: recalculate(newComponents, form.budgetAmount),
+      components: updated,
     });
   };
 
@@ -285,7 +323,6 @@ const UserRevertedDialog = ({ open, onClose, data, onSuccess }) => {
                           className="border focus-visible:ring-1"
                           value={comp.component}
                           onChange={(e) => handleComponentChange(i, 'component', e.target.value)}
-                          onBlur={() => handleComponentBlur(i, 'component')}
                         />
                       </td>
                       <td className="p-2">

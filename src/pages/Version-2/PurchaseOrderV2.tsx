@@ -62,6 +62,8 @@ const PurchaseOrderV2 = () => {
       if (response.data.success) {
         toast.success('Demand Raised Successfully');
         setShowModal(false);
+        dispatch(fetchPoData());
+        
         // dispatch(removePoByPktblSapDump(Number(sapDump)));
       } else {
         toast.error(response.data.errorMessage);

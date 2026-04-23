@@ -64,6 +64,7 @@ export function FinanceModal({ open, onOpenChange, initialData, onSave }) {
     await onSave?.(payload);
     await dispatch(fetchFinanceData());
     setApproveDemand('');
+    setReason('');
   };
 
   return (
@@ -129,7 +130,7 @@ export function FinanceModal({ open, onOpenChange, initialData, onSave }) {
               variant="outline"
               type="button"
               onClick={() => {
-                (onOpenChange?.(false), setApproveDemand(''), setError(''));
+                (onOpenChange?.(false), setApproveDemand(''), setError(''), setReason(''));
               }}
             >
               Cancel
@@ -148,8 +149,8 @@ export function FinanceModal({ open, onOpenChange, initialData, onSave }) {
           </DialogHeader>
 
           <div className="text-sm text-gray-600">
-            Are you sure you want approve the demand of <span className="font-semibold">{formatRupees(Number(anticipatedDemand || 0))}</span> for
-            this {data.poNo} PO NO. ?
+            Are you sure you want approve the demand of <span className="font-semibold">{formatRupees(Number(approveDemand || 0))}</span> for this {data.poNo}{' '}
+            PO NO. ?
           </div>
 
           <DialogFooter className="gap-2 mt-4">

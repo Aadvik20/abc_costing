@@ -4,7 +4,7 @@ import { useMemo } from 'react';
 import Select from 'react-select';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Trash2 } from 'lucide-react';
+import { Layers3, LayoutList, Trash2 } from 'lucide-react';
 import { RootState } from '@/app/store';
 import axiosInstance from '@/services/axiosInstance';
 import toast from 'react-hot-toast';
@@ -234,14 +234,14 @@ const BudgetDemand = () => {
 
           let updated = { ...c, [field]: value };
 
-          // if (c.component === 'Others') {
-          //   updated.component = value;
-          // }
-
           return updated;
         });
 
-        return recalculateRow({ ...row, components: updatedComponents });
+        if (field === 'qty' || field === 'rate') {
+          return recalculateRow({ ...row, components: updatedComponents });
+        }
+
+        return { ...row, components: updatedComponents };
       })
     );
   };
@@ -262,6 +262,19 @@ const BudgetDemand = () => {
         total: Number(total.toFixed(2)),
       };
     });
+
+    if (updatedComponents.length > 0) {
+      const first = updatedComponents[0];
+
+      const hasQtyOrRate = Number(first.qty || 0) > 0 || Number(first.rate || 0) > 0;
+
+      if (!hasQtyOrRate) {
+        updatedComponents[0] = {
+          ...first,
+          total: Number(budget.toFixed(2)),
+        };
+      }
+    }
 
     const othersIndex = updatedComponents.findIndex((c) => c.component === 'Others');
 
@@ -298,8 +311,12 @@ const BudgetDemand = () => {
       return;
     }
 
-    setRows([
-      ...rows,
+    if (hasValidData()) {
+      saveDraft();
+    }
+
+    setRows((prev) => [
+      ...prev,
       {
         requestId: 0,
         department: null,
@@ -315,12 +332,23 @@ const BudgetDemand = () => {
   };
 
   const deleteRow = (index: number) => {
-    if (rows.length === 1) return;
-    setRows(rows.filter((_, i) => i !== index));
+    setRows((prev) => {
+      const row = prev[index];
+
+      if (row.requestId && row.requestId !== 0) {
+        handleDeleteDraft([row.requestId]);
+      }
+
+      return prev.filter((_, i) => i !== index);
+    });
   };
 
   const isComponentEmpty = (comp) => {
     return !comp.component;
+  };
+
+  const isfullComponentEmpty = (comp) => {
+    return !comp.component && !comp.unit && !comp.qty && !comp.total;
   };
 
   const addComponentRow = (rowIndex) => {
@@ -334,38 +362,22 @@ const BudgetDemand = () => {
       });
       return;
     }
+
+    if (hasValidData()) {
+      saveDraft();
+    }
+
     setRows((prev) =>
       prev.map((row, i) => {
         if (i !== rowIndex) return row;
 
         const hasEmpty = row.components.some((c) => isComponentEmpty(c));
 
-        if (hasEmpty) {
-          toast.dismiss();
-          toast.error('Please fill existing row first ⚠️', {
-            id: 'component-error',
-          });
-          return row;
-        }
+        if (hasEmpty) return row;
 
         let updated = row.components.filter((c) => c.component !== 'Others');
 
-        // let updated = [...row.components];
-
-        // const hasOthers = updated.some((c) => c.component === 'Others');
-
-        // if (!hasOthers) {
-        //   updated.push({
-        //     component: 'Others',
-        //     unit: '',
-        //     qty: '',
-        //     rate: '',
-        //     total: 0,
-        //   });
-        // }
-
         const used = updated.reduce((sum, c) => sum + (c.total || 0), 0);
-
         const budget = Number(row.budgetAmount || 0);
         const remaining = Math.max(budget - used, 0);
 
@@ -377,10 +389,7 @@ const BudgetDemand = () => {
           total: Number(remaining.toFixed(2)),
         });
 
-        return {
-          ...row,
-          components: updated,
-        };
+        return { ...row, components: updated };
       })
     );
   };
@@ -411,7 +420,7 @@ const BudgetDemand = () => {
 
   const getDraft = async () => {
     try {
-      setLoading(true);
+      // setLoading(true);
       const response = await axiosInstance.get('/UnitAmountRequest/Draft');
 
       if (response.data.statusCode === 200) {
@@ -472,9 +481,54 @@ const BudgetDemand = () => {
     setRows(mappedRows);
   }, [draft, departmentOptions]);
 
-  const handleSubmit = async (isDraft: boolean) => {
+  const saveDraft = async () => {
+    const hasData = rows.some((row) => !isRowEmpty(row) || row.components.some((c) => !isfullComponentEmpty(c)));
+
+    if (!hasData) return;
+
+    await handleSubmit(true, { silent: true });
+    await syncDraftIds();
+  };
+
+  const syncDraftIds = async () => {
     try {
-      setLoading(true);
+      const res = await axiosInstance.get('/UnitAmountRequest/Draft');
+
+      if (res.data.statusCode === 200) {
+        const drafts = res.data.data;
+
+        setRows((prev) =>
+          prev.map((row) => {
+            if (row.requestId && row.requestId !== 0) return row;
+
+            const match = drafts.find(
+              (d) => d.departmentId === row.department?.value && d.demandDetails === row.description && Number(d.budgetAmount) === Number(row.budgetAmount)
+            );
+
+            if (match) {
+              return {
+                ...row,
+                requestId: match.id,
+              };
+            }
+
+            return row;
+          })
+        );
+      }
+    } catch (err) {
+      console.error('Sync failed', err);
+    }
+  };
+
+  const submitFinal = async () => {
+    if (!validateForm()) return;
+    await handleSubmit(false, { silent: false });
+  };
+
+  const handleSubmit = async (isDraft: boolean, options = { silent: false }) => {
+    try {
+      if (!options.silent) setLoading(true);
 
       const formData = new FormData();
 
@@ -494,53 +548,36 @@ const BudgetDemand = () => {
 
         row.components.forEach((comp, cIndex) => {
           formData.append(`requests[${index}].componentDetails[${cIndex}].brDetailsId`, '0');
-
           formData.append(`requests[${index}].componentDetails[${cIndex}].componentDescription`, comp.component || '');
-
           formData.append(`requests[${index}].componentDetails[${cIndex}].mUnit`, comp.unit || '');
-
           formData.append(`requests[${index}].componentDetails[${cIndex}].qty`, String(Number(comp.qty || 0)));
-
           formData.append(`requests[${index}].componentDetails[${cIndex}].rateOfUnit`, String(Number(comp.rate || 0)));
-
           formData.append(`requests[${index}].componentDetails[${cIndex}].amount`, String(Number(comp.total || 0)));
-
           formData.append(`requests[${index}].componentDetails[${cIndex}].totalAmount`, String(Number(comp.total || 0)));
         });
-
-        if (row.file) {
-          formData.append(`requests[${index}].file`, row.file);
-        }
       });
 
       const res = await axiosInstance.post('/UnitAmountRequest/raise-bulk', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
+        headers: { 'Content-Type': 'multipart/form-data' },
       });
 
       if (res?.data?.statusCode === 200) {
-        showCustomToast({
-          title: 'Success',
-          type: 'success',
-          message: isDraft ? 'Draft saved successfully' : 'Demand submitted successfully',
-        });
+        if (!options.silent) {
+          showCustomToast({
+            title: 'Success',
+            type: 'success',
+            message: isDraft ? 'Draft saved' : 'Submitted successfully',
+          });
+        }
 
-        if (!isDraft) resetForm();
-        if (isDraft) getDraft();
-      }
-
-      if (res?.data?.statusCode === 409) {
-        showCustomToast({
-          title: 'Failed',
-          type: 'error',
-          message: 'Request already exists for selected unit and department for the current month',
-        });
+        if (!isDraft) {
+          resetForm();
+        }
       }
       if (res?.data?.statusCode === 400) {
         showCustomToast({
-          title: 'Failed',
-          type: 'error',
+          title: 'Warning',
+          type: 'warning',
           message: res?.data?.message,
         });
       }
@@ -572,43 +609,38 @@ const BudgetDemand = () => {
   };
 
   const handleDeleteDraft = async (ids: number[]) => {
-    if (!draft || draft.length === 0) {
-      showCustomToast({
-        title: 'Warning',
-        type: 'warning',
-        message: 'No drafts available to delete',
-      });
-      return;
-    }
+    const validIds = ids.filter((id) => id && id !== 0);
+
+    if (validIds.length === 0) return;
+
     try {
-      setLoading(true);
       const res = await axiosInstance.delete('/UnitAmountRequest/delete-drafts', {
-        data: {
-          requestIds: ids,
-        },
+        data: { requestIds: validIds },
       });
 
       if (res?.data?.statusCode === 200) {
-        showCustomToast({
-          title: 'Success',
-          type: 'success',
-          message: 'Draft deleted successfully',
-        });
-        resetForm();
-        getDraft();
-      } else {
-        showCustomToast({
-          title: 'Failed',
-          type: 'error',
-          message: res?.data?.message || 'Delete failed',
-        });
+        // getDraft();
       }
     } catch (error) {
       console.error(error);
-      toast.error(error?.data?.message || 'Delete failed');
-    } finally {
-      setLoading(false);
+      toast.error('Delete failed');
     }
+  };
+
+  // useEffect(() => {
+  //   const interval = setInterval(() => {
+  //     if (hasValidData()) {
+  //       saveDraft();
+  //     }
+  //   }, 30000);
+
+  //   return () => clearInterval(interval);
+  // }, []);
+
+  const hasValidData = () => {
+    if (!unit) return false;
+
+    return rows.some((row) => row.department || row.description?.trim() || Number(row.actualAmount) > 0 || Number(row.budgetAmount) > 0);
   };
 
   return (
@@ -620,22 +652,36 @@ const BudgetDemand = () => {
           <p className="text-gray-600 mt-1">Raise and track budget requests for departments within your unit</p>
         </div>
       </div>
-      <div className="flex gap-4 pb-2 mt-5">
+      <div className="flex gap-8 border-slate-200 px-2 mt-8">
         <button
           onClick={() => setActiveTab('create')}
-          className={`px-4 py-2 rounded-t-md ${activeTab === 'create' ? 'bg-blue-800 text-white' : 'bg-gray-200'}`}
+          className={`pb-4 px-2 flex items-center gap-2 text-sm font-bold transition-all relative ${
+            activeTab === 'create' ? 'text-blue-600' : 'text-slate-400 hover:text-slate-600'
+          }`}
         >
+          <Layers3 size={18} />
           Raise New
+          {activeTab === 'create' && (
+            <span className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-blue-600 to-blue-400 rounded-t-full shadow-[0_-2px_10px_rgba(37,99,235,0.4)]" />
+          )}
         </button>
-
-        <button onClick={() => setActiveTab('list')} className={`px-4 py-2 rounded-t-md ${activeTab === 'list' ? 'bg-blue-800 text-white' : 'bg-gray-200'}`}>
+        <button
+          onClick={() => setActiveTab('list')}
+          className={`pb-4 px-2 flex items-center gap-2 text-sm font-bold transition-all relative ${
+            activeTab === 'list' ? 'text-blue-600' : 'text-slate-400 hover:text-slate-600'
+          }`}
+        >
+          <LayoutList size={18} />
           Submitted Requests
+          {activeTab === 'list' && (
+            <span className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-blue-600 to-blue-400 rounded-t-full shadow-[0_-2px_10px_rgba(37,99,235,0.4)]" />
+          )}
         </button>
       </div>
       {activeTab === 'create' && (
         <div className="p-6 bg-white rounded-xl shadow">
           {/* Top Section */}
-          <div className="flex justify-between sticky bottom-0 z-10 bg-white  gap-2">
+          <div className="flex justify-between sticky top-0 z-20 bg-white gap-2 py-3 shadow-sm">
             <div className="flex flex-wrap items-end gap-3 mb-5">
               {/* Unit */}
               <div className="w-[220px]">
@@ -660,7 +706,7 @@ const BudgetDemand = () => {
 
             {/* Add Row Button */}
             <div className="flex justify-end gap-2">
-              <Button
+              {/* <Button
                 onClick={() => {
                   handleDeleteAllDrafts();
                 }}
@@ -676,25 +722,25 @@ const BudgetDemand = () => {
                 className="bg-yellow-500 hover:bg-yellow-600 text-white"
               >
                 Save as Draft
-              </Button>
+              </Button> */}
               <ConfirmDialog
                 triggerClassName="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg hover:bg-blue"
                 description="Are you sure you want to raise this demand?"
                 actionLabel="Confirm"
                 triggerLabel="Submit"
                 beforeOpen={() => validateForm()}
-                onConfirm={() => handleSubmit(false)}
+                onConfirm={() => submitFinal()}
               />
               <Button onClick={addRow} className="bg-green-600 hover:bg-green-700 text-white">
-                + Add Row
+                + Add Department
               </Button>
             </div>
           </div>
 
           {/* Table */}
-          <div className="max-h-[60vh] overflow-y-auto border rounded-xl">
+          <div className="border">
             {/* HEADER */}
-            <div className="grid grid-cols-[60px_200px_1fr_150px_150px_150px_80px] bg-gray-100 px-4 py-3 font-semibold text-sm">
+            <div className="grid grid-cols-[50px_200px_1fr_150px_150px_150px_80px] bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 py-3 font-semibold text-sm">
               <div>Sr No.</div>
               <div className="text-center">Department</div>
               <div className="text-center">Project Description</div>
@@ -705,9 +751,9 @@ const BudgetDemand = () => {
             </div>
 
             {rows.map((row, index) => (
-              <div key={index} className="border-t bg-white">
+              <div key={index} className="border">
                 {/* MAIN ROW */}
-                <div className="grid grid-cols-[60px_200px_1fr_150px_150px_150px_80px] px-4 py-4 gap-3 items-start">
+                <div className="grid grid-cols-[50px_200px_1fr_150px_150px_150px_80px] px-4 py-4 gap-3 items-start">
                   <div>{index + 1}</div>
 
                   <Select
@@ -768,7 +814,7 @@ const BudgetDemand = () => {
                 {/* SUB TABLE */}
                 <div className="px-6 pb-4">
                   <div className="border rounded-lg mt-2">
-                    <div className="grid grid-cols-[1fr_150px_150px_150px_150px_80px] bg-gray-100 px-3 py-2 text-xs font-semibold">
+                    <div className="grid grid-cols-[1fr_150px_150px_150px_150px_80px] bg-blue-100 px-3 py-2 text-xs font-semibold">
                       <div className="text-center">Component</div>
                       <div>Measurement Unit</div>
                       <div className="text-center">Qty</div>
@@ -840,11 +886,16 @@ const BudgetDemand = () => {
                     ))}
 
                     <div className="p-2 flex justify-end gap-2 border-t">
-                      <Button size="sm" variant="destructive" onClick={() => handleDeleteDraft([row.requestId])}>
+                      {/* <Button size="sm" variant="destructive" onClick={() => handleDeleteDraft([row.requestId])}>
                         Delete Draft
-                      </Button>
-                      <Button size="sm" variant="outline" onClick={() => addComponentRow(index)} disabled={isOverBudget(row)}>
-                        + Add
+                      </Button> */}
+                      <Button
+                        size="sm"
+                        className="bg-orange-600 hover:bg-orange-700 text-white"
+                        onClick={() => addComponentRow(index)}
+                        disabled={isOverBudget(row)}
+                      >
+                        + Add Component
                       </Button>
                     </div>
                   </div>

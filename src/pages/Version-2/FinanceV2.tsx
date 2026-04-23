@@ -41,6 +41,7 @@ const Finance2 = () => {
       if (response.data.success) {
         toast.success('Demand Approved Successfully');
         setShowModal(false);
+        dispatch(fetchFinanceData());
       } else {
         toast.error(response.data.errorMessage);
       }

@@ -13,39 +13,14 @@ interface Props {
 }
 
 const BudgetApproveDialog = ({ open, onClose, data, onApprove }: Props) => {
-
   const totalRequests = data.length;
 
-  const groupedData = useMemo(() => {
-    const groups = {};
+  const isValidGL = (gl: any) => {
+    if (!gl) return false;
 
-    data.forEach((item) => {
-      const key = item.statusName;
-      if (!groups[key]) groups[key] = [];
-      groups[key].push(item);
-    });
+    const value = String(gl).trim().toLowerCase();
 
-    return groups;
-  }, [data]);
-
-  const statuses = Object.keys(groupedData);
-
-  const [activeTab, setActiveTab] = useState(statuses[0]);
-
-  const currentData = totalRequests > 1 ? groupedData[activeTab] || [] : data;
-  useEffect(() => {
-    if (statuses.length) {
-      setActiveTab(statuses[0]);
-    }
-  }, [data]);
-
-  const isPending = currentData.length > 0 && currentData.every((item) => item.statusName === status.Pending_Finance.label);
-
-  const getTabLabel = (statusName: string) => {
-    if (statusName === status.Pending_Finance.label) {
-      return 'Pending';
-    }
-    return statusName;
+    return value !== 'null' && value !== '';
   };
 
   return (
@@ -60,31 +35,18 @@ const BudgetApproveDialog = ({ open, onClose, data, onApprove }: Props) => {
           <h2 className="text-xl font-bold text-gray-900 tracking-tight">Request Details</h2>
         </div>
 
-        {totalRequests > 1 && (
-          <div className="flex gap-2 px-8 pt-3 border-b bg-white">
-            {statuses.map((statusKey) => (
-              <button
-                key={statusKey}
-                onClick={() => setActiveTab(statusKey)}
-                className={`px-4 py-2 text-sm font-semibold rounded-t-lg transition ${
-                  activeTab === statusKey ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                }`}
-              >
-                {getTabLabel(statusKey)}
-              </button>
-            ))}
-          </div>
-        )}
-
         <div className="flex-1 overflow-y-auto bg-slate-50/50 px-8 py-6">
           {data.length === 0 ? (
             <div className="text-center py-20 text-gray-400 font-medium">No data found</div>
           ) : (
             <div className="space-y-6">
-              {(totalRequests > 1 ? groupedData[activeTab] : data)?.map((req, index) => {
+              {data?.map((req, index) => {
                 const displayStatus = req.statusName === status.Pending_Finance.label ? 'Pending' : req.statusName;
                 return (
                   <div key={index} className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                    {totalRequests > 1 && (
+                      <div className="sticky top-0 z-10 bg-slate-50 px-2 py-1 text-xs font-bold text-gray-600 border-b">Request #{index + 1}</div>
+                    )}
                     {/* CARD HEADER */}
                     <div className="flex justify-between items-center px-6 py-4 bg-white border-b border-slate-100">
                       <div>
@@ -113,7 +75,7 @@ const BudgetApproveDialog = ({ open, onClose, data, onApprove }: Props) => {
                           <p className="text-lg font-bold text-slate-900 tabular-nums leading-none">{formatRupees(req.actualAmount)}</p>
                         </div>
                       </div>
-                      {req.gl != 'null' && req.gl !== '' && (
+                      {isValidGL(req.gl) && (
                         <div className="bg-white p-5 flex items-center gap-4">
                           <div className="p-2 bg-blue-50 rounded-lg text-blue-600">
                             <BookOpen size={20} />
@@ -172,16 +134,16 @@ const BudgetApproveDialog = ({ open, onClose, data, onApprove }: Props) => {
                           <tr>
                             <th className="px-6 py-3 text-center">Component</th>
                             <th className="px-6 py-3 text-center">Unit</th>
-                            <th className="px-6 py-3 text-right">Qty</th>
-                            <th className="px-6 py-3 text-right">Rate</th>
-                            <th className="px-6 py-3 text-right">Total</th>
+                            <th className="px-6 py-3 text-center">Qty</th>
+                            <th className="px-6 py-3 text-center">Rate</th>
+                            <th className="px-6 py-3 text-center">Total</th>
                           </tr>
                         </thead>
 
                         <tbody>
                           {req.componentsDetails?.map((comp, i) => (
                             <tr key={i} className="border-t hover:bg-slate-50">
-                              <td className="px-6 py-3 font-medium">{comp.componentDescription}</td>
+                              <td className="px-6 py-3 font-medium text-center">{comp.componentDescription}</td>
 
                               <td className="px-6 py-3 text-center">{comp.munit || '-'}</td>
 
@@ -203,7 +165,7 @@ const BudgetApproveDialog = ({ open, onClose, data, onApprove }: Props) => {
         </div>
 
         {/* FIXED FOOTER */}
-        {/* {data.length > 0 && (
+        {data.length > 0 && (
           <div className="border-t px-8 py-5 bg-white flex justify-end items-center gap-4 flex-shrink-0">
             {data[0].statusName === status.Pending_Finance.label ? (
               <>
@@ -224,42 +186,6 @@ const BudgetApproveDialog = ({ open, onClose, data, onApprove }: Props) => {
                   title="Approve Request"
                   description="Are you sure you want to approve this amount?"
                   onConfirm={() => onApprove(data[0], status.Approved.label)}
-                />
-              </>
-            ) : (
-              <button onClick={onClose} className="h-10 px-8 bg-slate-900 hover:bg-slate-800 text-white rounded-lg font-bold text-sm transition-all">
-                Close
-              </button>
-            )}
-          </div>
-        )} */}
-        {currentData.length > 0 && (
-          <div className="border-t px-8 py-5 bg-white flex justify-end items-center gap-4 flex-shrink-0">
-            {isPending ? (
-              <>
-                {/* REVERT ALL */}
-                <ConfirmDialog
-                  triggerClassName="h-10 px-8 bg-amber-600 hover:bg-amber-700 text-white rounded-lg font-bold text-sm shadow-md shadow-amber-100 transition-all active:scale-95"
-                  triggerLabel="Revert to User"
-                  title="Revert Requests"
-                  description="Please provide a reason for reverting these budget requests."
-                  actionLabel="Revert"
-                  withRemarks
-                  remarksRequired
-                  onConfirm={(remarks) => {
-                    currentData.forEach((req) => onApprove(req, status.Reverted_By_Finance.label, remarks));
-                  }}
-                />
-
-                {/* APPROVE ALL */}
-                <ConfirmDialog
-                  triggerClassName="h-10 px-8 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold text-sm shadow-md shadow-emerald-100 transition-all active:scale-95"
-                  triggerLabel="Approve"
-                  title="Approve Requests"
-                  description="Are you sure you want to approve these requests?"
-                  onConfirm={() => {
-                    currentData.forEach((req) => onApprove(req, status.Approved.label));
-                  }}
                 />
               </>
             ) : (
