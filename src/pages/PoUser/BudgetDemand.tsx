@@ -4,7 +4,7 @@ import { useMemo } from 'react';
 import Select from 'react-select';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Layers3, LayoutList, Trash2 } from 'lucide-react';
+import { Info, Layers3, LayoutList, Trash2 } from 'lucide-react';
 import { RootState } from '@/app/store';
 import axiosInstance from '@/services/axiosInstance';
 import toast from 'react-hot-toast';
@@ -13,6 +13,7 @@ import { formatDecimal, formatRupees, monthOptions, yearOptions } from '@/lib/he
 import ConfirmDialog from '@/components/common/ConfirmDialog';
 import BudgetRequestList from '@/pages/PoUser/BudgetRequestList';
 import { showCustomToast } from '@/components/common/showCustomToast';
+import { components } from 'react-select';
 
 const BudgetDemand = () => {
   const [loading, setLoading] = useState(false);
@@ -22,15 +23,18 @@ const BudgetDemand = () => {
   const [errors, setErrors] = useState<any>({});
   const [month, setMonth] = useState(monthOptions[new Date().getMonth()]);
   const [activeTab, setActiveTab] = useState<'create' | 'list'>('create');
+  const [subTab, setSubTab] = useState<'O & M' | 'CAPEX'>('O & M');
   const currentYear = new Date().getFullYear();
   const [year, setYear] = useState({
     value: currentYear,
     label: currentYear.toString(),
   });
   const [unit, setUnit] = useState(null);
-  const defaultComponents = [
-    { component: '', unit: '', qty: '', rate: '', total: 0 },
-    // { component: 'Others', unit: '', qty: '', rate: '', total: 0 },
+  const defaultComponents = [{ category: null, subCategory: null, subCategories: [], unit: '', qty: '', rate: '', total: 0 }];
+  const [stage, setStage] = useState(null);
+  const stageOptions = [
+    { value: 'BE', label: 'BE' },
+    { value: 'RE', label: 'RE' },
   ];
 
   const [rows, setRows] = useState([
@@ -44,6 +48,7 @@ const BudgetDemand = () => {
       file: null,
       components: defaultComponents,
       hasAddedComponent: false,
+      categories: [],
     },
   ]);
 
@@ -89,11 +94,11 @@ const BudgetDemand = () => {
       return false;
     }
 
-    if (!month) {
+    if (!stage) {
       showCustomToast({
         title: 'Warning',
         type: 'warning',
-        message: 'Month is required',
+        message: 'Stage is required',
       });
       return false;
     }
@@ -170,6 +175,35 @@ const BudgetDemand = () => {
         throw new Error('stop');
       }
 
+      row.components.forEach((comp, cIndex) => {
+        if (!comp.category) {
+          showCustomToast({
+            title: 'Warning',
+            type: 'warning',
+            message: `Row ${index + 1}, Component ${cIndex + 1}: Category required`,
+          });
+          throw new Error('stop');
+        }
+
+        if (!comp.subCategory) {
+          showCustomToast({
+            title: 'Warning',
+            type: 'warning',
+            message: `Row ${index + 1}, Component ${cIndex + 1}: SubCategory required`,
+          });
+          throw new Error('stop');
+        }
+
+        if (!comp.unit) {
+          showCustomToast({
+            title: 'Warning',
+            type: 'warning',
+            message: `Row ${index + 1}, Component ${cIndex + 1}: Unit required`,
+          });
+          throw new Error('stop');
+        }
+      });
+
       return err;
     });
 
@@ -202,17 +236,103 @@ const BudgetDemand = () => {
         gl: '',
         file: null,
         components: [
-          { component: '', unit: '', qty: '', rate: '', total: 0 },
+          { category: null, subCategory: null, subCategories: [], unit: '', qty: '', rate: '', total: 0 },
           // { component: 'Others', unit: '', qty: '', rate: '', total: 0 },
         ],
         hasAddedComponent: false,
+        categories: [],
       },
     ]);
 
     setErrors({});
   };
 
-  const handleChange = (rowIndex: number, field: string, value: any) => {
+  const fetchCategories = async (departmentId: string, rowIndex: number) => {
+    try {
+      const response = await axiosInstance.get(`/UnitAmountRequest/get-budget-categories?departmentId=${departmentId}`);
+
+      if (response.data.statusCode === 200) {
+        const categoryOptions = response.data.data.map((c: any) => ({
+          label: c.categoryName,
+          value: c.categoryId,
+        }));
+        setRows((prev) =>
+          prev.map((row, i) => {
+            if (i !== rowIndex) return row;
+            return { ...row, categories: categoryOptions };
+          })
+        );
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const fetchSubCategories = async (categoryId, rowIndex, compIndex) => {
+    try {
+      const res = await axiosInstance.get(`/UnitAmountRequest/get-subcategories?categoryId=${categoryId}`);
+
+      if (res.data.statusCode === 200) {
+        const subOptions = res.data.data.map((s: any) => ({
+          label: s.subCategoryName,
+          value: s.subCategoryId,
+          unit: s.unitOfMeasure,
+          description: s.description,
+        }));
+
+        setRows((prev) =>
+          prev.map((row, i) => {
+            if (i !== rowIndex) return row;
+
+            const updatedComponents = row.components.map((c, j) => {
+              if (j !== compIndex) return c;
+
+              return {
+                ...c,
+                subCategories: subOptions,
+                subCategory: null,
+              };
+            });
+
+            return { ...row, components: updatedComponents };
+          })
+        );
+      }
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  const CustomOption = (props) => {
+    return (
+      <components.Option {...props}>
+        <div title={props.data.description}>{props.data.label}</div>
+      </components.Option>
+    );
+  };
+
+  const CustomSingleValue = (props) => {
+    const { data } = props;
+
+    return (
+      <components.SingleValue {...props}>
+        <div className="flex items-center gap-2">
+          <span>{data.label}</span>
+
+          {data.description && (
+            <div className="relative group">
+              <Info size={14} className="text-gray-500 cursor-pointer" />
+
+              {/* FIXED TOOLTIP */}
+              <div className="fixed hidden group-hover:block bg-white border text-xs p-2 rounded z-[9999] w-fit">{data.description}</div>
+            </div>
+          )}
+        </div>
+      </components.SingleValue>
+    );
+  };
+
+  const handleChange = async (rowIndex: number, field: string, value: any) => {
     setRows((prev) =>
       prev.map((row, i) => {
         if (i !== rowIndex) return row;
@@ -222,6 +342,10 @@ const BudgetDemand = () => {
         return recalculateRow(updatedRow);
       })
     );
+
+    if (field === 'department' && value?.value) {
+      await fetchCategories(value.value, rowIndex);
+    }
   };
 
   const handleComponentChange = (rowIndex, compIndex, field, value) => {
@@ -250,8 +374,6 @@ const BudgetDemand = () => {
     const budget = Number(row.budgetAmount || 0);
 
     let updatedComponents = row.components.map((c) => {
-      if (c.component === 'Others') return c;
-
       const qty = Number(c.qty || 0);
       const rate = Number(c.rate || 0);
 
@@ -275,23 +397,6 @@ const BudgetDemand = () => {
         };
       }
     }
-
-    const othersIndex = updatedComponents.findIndex((c) => c.component === 'Others');
-
-    if (othersIndex !== -1) {
-      const used = updatedComponents.reduce((sum, c, idx) => {
-        if (idx === othersIndex) return sum;
-        return sum + (c.total || 0);
-      }, 0);
-
-      const remaining = Math.max(budget - used, 0);
-
-      updatedComponents[othersIndex] = {
-        ...updatedComponents[othersIndex],
-        total: Number(remaining.toFixed(2)),
-      };
-    }
-
     return { ...row, components: updatedComponents };
   };
 
@@ -327,6 +432,7 @@ const BudgetDemand = () => {
         file: null,
         components: JSON.parse(JSON.stringify(defaultComponents)),
         hasAddedComponent: false,
+        categories: [],
       },
     ]);
   };
@@ -343,12 +449,8 @@ const BudgetDemand = () => {
     });
   };
 
-  const isComponentEmpty = (comp) => {
-    return !comp.component;
-  };
-
   const isfullComponentEmpty = (comp) => {
-    return !comp.component && !comp.unit && !comp.qty && !comp.total;
+    return !comp.categories && !comp.subCategories && !comp.unit && !comp.qty && !comp.total;
   };
 
   const addComponentRow = (rowIndex) => {
@@ -371,18 +473,16 @@ const BudgetDemand = () => {
       prev.map((row, i) => {
         if (i !== rowIndex) return row;
 
-        const hasEmpty = row.components.some((c) => isComponentEmpty(c));
-
-        if (hasEmpty) return row;
-
-        let updated = row.components.filter((c) => c.component !== 'Others');
+        let updated = [...row.components];
 
         const used = updated.reduce((sum, c) => sum + (c.total || 0), 0);
         const budget = Number(row.budgetAmount || 0);
         const remaining = Math.max(budget - used, 0);
 
         updated.push({
-          component: 'Others',
+          category: null,
+          subCategory: null,
+          subCategories: [],
           unit: '',
           qty: '',
           rate: '',
@@ -536,24 +636,24 @@ const BudgetDemand = () => {
         formData.append(`requests[${index}].requestId`, String(row.requestId || 0));
         formData.append(`requests[${index}].unitId`, String(unit));
         formData.append(`requests[${index}].departmentId`, String(row.department?.value || 0));
+        formData.append(`requests[${index}].requestType`, subTab);
         formData.append(`requests[${index}].actualAmount`, String(Number(row.actualAmount || 0)));
         formData.append(`requests[${index}].budgetAmount`, String(Number(row.budgetAmount || 0)));
         formData.append(`requests[${index}].generalLedger`, row.gl || '');
-        formData.append(`requests[${index}].frequency`, 'Monthly');
         formData.append(`requests[${index}].year`, String(year.value));
-        formData.append(`requests[${index}].month`, String(month.value));
-        formData.append(`requests[${index}].quarter`, '0');
+        formData.append(`requests[${index}].stage`, stage.value);
         formData.append(`requests[${index}].demandDetails`, row.description || '');
         formData.append(`requests[${index}].isDraft`, String(isDraft));
 
         row.components.forEach((comp, cIndex) => {
           formData.append(`requests[${index}].componentDetails[${cIndex}].brDetailsId`, '0');
-          formData.append(`requests[${index}].componentDetails[${cIndex}].componentDescription`, comp.component || '');
+          formData.append(`requests[${index}].componentDetails[${cIndex}].categoryId`, String(comp.category?.value || 0));
+          formData.append(`requests[${index}].componentDetails[${cIndex}].subCategoryId`, String(comp.subCategory?.value || 0));
           formData.append(`requests[${index}].componentDetails[${cIndex}].mUnit`, comp.unit || '');
           formData.append(`requests[${index}].componentDetails[${cIndex}].qty`, String(Number(comp.qty || 0)));
           formData.append(`requests[${index}].componentDetails[${cIndex}].rateOfUnit`, String(Number(comp.rate || 0)));
-          formData.append(`requests[${index}].componentDetails[${cIndex}].amount`, String(Number(comp.total || 0)));
-          formData.append(`requests[${index}].componentDetails[${cIndex}].totalAmount`, String(Number(comp.total || 0)));
+          formData.append(`requests[${index}].componentDetails[${cIndex}].calculatedAmount`, String(Number(comp.total || 0)));
+          formData.append(`requests[${index}].componentDetails[${cIndex}].finalAmount`, String(Number(comp.total || 0)));
         });
       });
 
@@ -581,6 +681,13 @@ const BudgetDemand = () => {
           message: res?.data?.message,
         });
       }
+      if (res?.data?.statusCode === 409) {
+        showCustomToast({
+          title: 'Warning',
+          type: 'warning',
+          message: res?.data?.message,
+        });
+      }
     } catch (error) {
       console.error(error);
       showCustomToast({
@@ -591,21 +698,6 @@ const BudgetDemand = () => {
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleDeleteAllDrafts = () => {
-    if (!draft || draft.length === 0) {
-      showCustomToast({
-        title: 'Warning',
-        type: 'warning',
-        message: 'No drafts available to delete',
-      });
-      return;
-    }
-
-    const allIds = draft.map((d: any) => d.id);
-
-    handleDeleteDraft(allIds);
   };
 
   const handleDeleteDraft = async (ids: number[]) => {
@@ -680,9 +772,28 @@ const BudgetDemand = () => {
       </div>
       {activeTab === 'create' && (
         <div className="p-6 bg-white rounded-xl shadow">
+          <div className="flex bg-blue-50/50 p-1 rounded-xl w-fit border border-blue-100 mb-2">
+            <button
+              onClick={() => setSubTab('O & M')}
+              className={`flex items-center gap-2 px-5 py-1.5 rounded-lg text-sm font-bold transition-all ${
+                subTab === 'O & M' ? 'bg-blue-500 text-white shadow-lg shadow-blue-200' : 'text-blue-300 hover:text-blue-500 hover:bg-blue-50'
+              }`}
+            >
+              O & M
+            </button>
+
+            <button
+              onClick={() => setSubTab('CAPEX')}
+              className={`flex items-center gap-2 px-5 py-1.5 rounded-lg text-sm font-bold transition-all ${
+                subTab === 'CAPEX' ? 'bg-blue-500 text-white shadow-lg shadow-blue-200' : 'text-blue-300 hover:text-blue-500 hover:bg-blue-50'
+              }`}
+            >
+              CAPEX
+            </button>
+          </div>
           {/* Top Section */}
-          <div className="flex justify-between sticky top-0 z-20 bg-white gap-2 py-3 shadow-sm">
-            <div className="flex flex-wrap items-end gap-3 mb-5">
+          <div className="flex justify-between sticky top-0 z-20 bg-slate-50 gap-2 shadow-sm  flex-wrap items-center p-3 rounded-xl border border-slate-200 mb-4">
+            <div className="flex flex-wrap items-end gap-3">
               {/* Unit */}
               <div className="w-[220px]">
                 <Select
@@ -694,9 +805,7 @@ const BudgetDemand = () => {
               </div>
 
               {/* Month */}
-              <div className="w-[120px]">
-                <Select options={monthOptions} value={month} onChange={(val) => setMonth(val)} placeholder="Month" />
-              </div>
+              <Select options={stageOptions} value={stage} onChange={(val) => setStage(val)} placeholder="Select Stage" />
 
               {/* Year */}
               <div className="w-[120px]">
@@ -738,22 +847,22 @@ const BudgetDemand = () => {
           </div>
 
           {/* Table */}
-          <div className="border">
+          <div className="border rounded-xl">
             {/* HEADER */}
-            <div className="grid grid-cols-[50px_200px_1fr_150px_150px_150px_80px] bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 py-3 font-semibold text-sm">
+            <div className=" rounded-xl grid grid-cols-[50px_200px_1fr_130px_130px_150px_50px] gap-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 py-3 font-semibold text-sm">
               <div>Sr No.</div>
               <div className="text-center">Department</div>
               <div className="text-center">Project Description</div>
-              <div>Actual (₹)</div>
-              <div>Budget (₹)</div>
-              <div>GL</div>
+              <div className="text-center">Actual (₹)</div>
+              <div className="text-center">Budget (₹)</div>
+              <div className="text-center">GL</div>
               <div>Action</div>
             </div>
 
             {rows.map((row, index) => (
               <div key={index} className="border">
                 {/* MAIN ROW */}
-                <div className="grid grid-cols-[50px_200px_1fr_150px_150px_150px_80px] px-4 py-4 gap-3 items-start">
+                <div className="grid grid-cols-[50px_200px_1fr_130px_130px_150px_50px] px-4 py-4 gap-3 items-start">
                   <div>{index + 1}</div>
 
                   <Select
@@ -814,31 +923,57 @@ const BudgetDemand = () => {
                 {/* SUB TABLE */}
                 <div className="px-6 pb-4">
                   <div className="border rounded-lg mt-2">
-                    <div className="grid grid-cols-[1fr_150px_150px_150px_150px_80px] bg-blue-100 px-3 py-2 text-xs font-semibold">
-                      <div className="text-center">Component</div>
-                      <div>Measurement Unit</div>
+                    <div className="grid grid-cols-[250px_250px_175px_70px_70px_160px_50px] bg-blue-100 gap-2 px-3 py-2 text-xs font-semibold">
+                      <div className="text-center">Category</div>
+                      <div className="text-center">Sub Category</div>
+                      <div className="text-center">Unit</div>
                       <div className="text-center">Qty</div>
-                      <div className="text-center">Rate Per Unit (₹)</div>
+                      <div className="text-right">Rate Per Unit (₹)</div>
                       <div className="text-center">Total (₹)</div>
                       <div className="text-center">Action</div>
                     </div>
 
                     {row.components.map((comp, cIndex) => (
-                      <div key={cIndex} className="grid grid-cols-[1fr_150px_150px_150px_150px_80px] px-3 py-2 gap-2 border-t">
+                      <div key={cIndex} className="grid grid-cols-[250px_250px_175px_70px_70px_160px_50px] px-3 py-2 gap-2 border-t">
                         {/* Component */}
-                        <Input
-                          value={comp.component}
-                          placeholder="Component"
-                          onChange={(e) => handleComponentChange(index, cIndex, 'component', e.target.value)}
+                        <Select
+                          options={row.categories || []}
+                          value={comp.category}
+                          onChange={(val) => {
+                            handleComponentChange(index, cIndex, 'category', val);
+
+                            if (val?.value) {
+                              fetchSubCategories(val.value, index, cIndex);
+                            }
+                          }}
+                        />
+
+                        <Select
+                          options={comp.subCategories || []}
+                          value={comp.subCategory}
+                          components={{
+                            Option: CustomOption,
+                            SingleValue: CustomSingleValue,
+                          }}
+                          styles={{
+                            menuPortal: (base) => ({
+                              ...base,
+                              zIndex: 9999,
+                            }),
+                          }}
+                          onChange={(val) => {
+                            handleComponentChange(index, cIndex, 'subCategory', val);
+                            handleComponentChange(index, cIndex, 'unit', val?.unit || '');
+                          }}
                         />
 
                         {/* Unit */}
-                        <Input value={comp.unit} placeholder="Unit" onChange={(e) => handleComponentChange(index, cIndex, 'unit', e.target.value)} />
+                        <Input value={comp.unit} placeholder="Unit" readOnly />
 
                         {/* Qty */}
                         <Input
                           type="number"
-                          placeholder="Quantity"
+                          placeholder="Qty"
                           value={comp.qty}
                           className="text-right"
                           onChange={(e) => {

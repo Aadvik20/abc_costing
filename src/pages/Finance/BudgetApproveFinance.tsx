@@ -19,6 +19,15 @@ const BudgetApproveFinance = () => {
   const { units, departments } = useAppSelector((state: RootState) => state.user);
   const [activeTab, setActiveTab] = useState<'pending' | 'approved'>('pending');
   const [month, setMonth] = useState(monthOptions[new Date().getMonth()]);
+  const [stage, setStage] = useState({
+    value: 'BE',
+    label: 'BE',
+  });
+
+  const stageOptions = [
+    { value: 'BE', label: 'BE' },
+    { value: 'RE', label: 'RE' },
+  ];
   const currentYear = new Date().getFullYear();
   const [year, setYear] = useState({
     value: currentYear,
@@ -48,11 +57,11 @@ const BudgetApproveFinance = () => {
   const filteredRequest = useMemo(() => {
     return request.filter((r) => {
       const matchStatus = activeTab === 'pending' ? r.status === status.Pending_Finance.value : r.status === status.Approved.value;
-      const matchMonth = !month || r.month === month.value;
+      const matchStage = !stage || r.stage === stage.value;
       const matchYear = !year || r.year === year.value;
-      return matchStatus && matchMonth && matchYear;
+      return matchStatus && matchStage && matchYear;
     });
-  }, [request, activeTab, month, year]);
+  }, [request, activeTab, stage, year]);
 
   const transformedData = useMemo(() => {
     if (!filteredRequest?.length) return { units: [], departments: [], matrix: {} };
@@ -87,23 +96,23 @@ const BudgetApproveFinance = () => {
       formData.append('RequestId', String(row.id));
       formData.append('TargetStatus', String(targetStatus));
       formData.append('Remarks', remarks || '');
+      formData.append('RequestType', String(row.budgetType));
       formData.append('BudgetAmount', String(Number(row.budgetAmount || 0)));
       formData.append('ActualAmount', String(Number(row.actualAmount || 0)));
       formData.append('GeneralLedger', row.gl || '');
-      formData.append('Frequency', row.frequency || 'Monthly');
       formData.append('Year', String(row.year));
-      formData.append('Month', String(row.month));
-      formData.append('Quarter', String(row.quarter || 0));
+      formData.append('Stage', String(row.stage));
       formData.append('DemandDetails', row.demandDetails || '');
 
       row.componentsDetails?.forEach((comp: any, index: number) => {
-        formData.append(`ComponentDetails[${index}].brDetailsId`, String(comp.brDetailsId || 0));
-        formData.append(`ComponentDetails[${index}].componentDescription`, comp.componentDescription || '');
-        formData.append(`ComponentDetails[${index}].mUnit`, comp.munit || '');
-        formData.append(`ComponentDetails[${index}].qty`, String(Number(comp.qty || 0)));
-        formData.append(`ComponentDetails[${index}].rateOfUnit`, String(Number(comp.rateOfUnit || 0)));
-        formData.append(`ComponentDetails[${index}].amount`, String(Number(comp.amount || 0)));
-        formData.append(`ComponentDetails[${index}].totalAmount`, String(Number(comp.amount || 0)));
+        formData.append(`componentDetails[${index}].brDetailsId`, '0');
+        formData.append(`componentDetails[${index}].categoryId`, String(comp.categoryId || 0));
+        formData.append(`componentDetails[${index}].subCategoryId`, String(comp.subCategoryId || 0));
+        formData.append(`componentDetails[${index}].mUnit`, comp.munit || '');
+        formData.append(`componentDetails[${index}].qty`, String(Number(comp.qty || 0)));
+        formData.append(`componentDetails[${index}].rateOfUnit`, String(Number(comp.rateOfUnit || 0)));
+        formData.append(`componentDetails[${index}].calculatedAmount`, String(Number(comp.amount || 0)));
+        formData.append(`componentDetails[${index}].finalAmount`, String(Number(comp.amount || 0)));
       });
 
       if (row.file) formData.append('File', row.file);
@@ -162,11 +171,17 @@ const BudgetApproveFinance = () => {
           <div className="min-w-[140px]">
             <Select
               styles={{
-                control: (base) => ({ ...base, border: '1px solid #e2e8f0', borderRadius: '12px', padding: '2px', backgroundColor: '#fff' }),
+                control: (base) => ({
+                  ...base,
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '12px',
+                  padding: '2px',
+                  backgroundColor: '#fff',
+                }),
               }}
-              options={monthOptions}
-              value={month}
-              onChange={(val) => setMonth(val)}
+              options={stageOptions}
+              value={stage}
+              onChange={(val) => setStage(val)}
             />
           </div>
           <div className="min-w-[110px]">

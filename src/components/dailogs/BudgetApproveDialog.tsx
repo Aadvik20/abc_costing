@@ -2,7 +2,7 @@ import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { formatDecimal, formatRupees, monthOptions } from '@/lib/helperFunction';
 import ConfirmDialog from '@/components/common/ConfirmDialog';
 import { status } from '@/constant/status';
-import { FileText, Wallet, Calculator, BookOpen } from 'lucide-react';
+import { FileText, Wallet, Calculator, BookOpen, Landmark } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 
 interface Props {
@@ -28,7 +28,7 @@ const BudgetApproveDialog = ({ open, onClose, data, onApprove }: Props) => {
       <DialogContent
         onPointerDownOutside={(e) => e.preventDefault()}
         onEscapeKeyDown={(e) => e.preventDefault()}
-        className="max-w-3xl max-h-[90vh] flex flex-col p-0 overflow-hidden shadow-2xl border-none"
+        className="max-w-4xl max-h-[90vh] flex flex-col p-0 overflow-hidden shadow-2xl border-none"
       >
         {/* HEADER */}
         <div className="px-8 py-5 border-b bg-white flex-shrink-0">
@@ -65,7 +65,7 @@ const BudgetApproveDialog = ({ open, onClose, data, onApprove }: Props) => {
                     </div>
 
                     {/* INFO GRID */}
-                    <div className="grid grid-cols-2 gap-px  border-b border-slate-100">
+                    <div className="grid grid-cols-3 gap-px  border-b border-slate-100">
                       <div className="bg-white p-5 flex items-center gap-4">
                         <div className="p-2 bg-emerald-50 rounded-lg text-emerald-600">
                           <Wallet size={20} />
@@ -86,18 +86,15 @@ const BudgetApproveDialog = ({ open, onClose, data, onApprove }: Props) => {
                           </div>
                         </div>
                       )}
-
-                      {/* <div className="bg-white p-5 flex items-center gap-4">
-                        <div className="p-2 bg-blue-50 rounded-lg text-blue-600">
-                          <Calendar size={20} />
+                      <div className="bg-white p-5 flex items-center gap-4">
+                        <div className="p-2 bg-orange-50 rounded-lg text-orange-600">
+                          <Landmark size={20} />
                         </div>
                         <div>
-                          <p className="text-[10px] text-slate-400 uppercase font-bold leading-none mb-1">Period</p>
-                          <p className="text-sm font-semibold text-slate-700 leading-none">
-                            {monthOptions.find((m) => m.value === req.month)?.label} {req.year}
-                          </p>
+                          <p className="text-[10px] text-slate-400 uppercase font-bold leading-none mb-1">Budget Type</p>
+                          <p className="text-lg font-bold text-slate-900 tabular-nums leading-none">{req.budgetType}</p>
                         </div>
-                      </div> */}
+                      </div>
                     </div>
 
                     {/* DESCRIPTION SECTION */}
@@ -132,7 +129,8 @@ const BudgetApproveDialog = ({ open, onClose, data, onApprove }: Props) => {
                       <table className="w-full text-sm">
                         <thead className="bg-white text-[10px] uppercase border-b">
                           <tr>
-                            <th className="px-6 py-3 text-center">Component</th>
+                            <th className="px-6 py-3 text-center">Category</th>
+                            <th className="px-6 py-3 text-center">Sub Category</th>
                             <th className="px-6 py-3 text-center">Unit</th>
                             <th className="px-6 py-3 text-center">Qty</th>
                             <th className="px-6 py-3 text-center">Rate</th>
@@ -143,7 +141,9 @@ const BudgetApproveDialog = ({ open, onClose, data, onApprove }: Props) => {
                         <tbody>
                           {req.componentsDetails?.map((comp, i) => (
                             <tr key={i} className="border-t hover:bg-slate-50">
-                              <td className="px-6 py-3 font-medium text-center">{comp.componentDescription}</td>
+                              <td className="px-6 py-3 font-medium text-center">{comp.categoryName}</td>
+
+                              <td className="px-6 py-3 font-medium text-center">{comp.subCategoryName}</td>
 
                               <td className="px-6 py-3 text-center">{comp.munit || '-'}</td>
 

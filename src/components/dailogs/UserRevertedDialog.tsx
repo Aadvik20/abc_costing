@@ -22,14 +22,14 @@ const UserRevertedDialog = ({ open, onClose, data, onSuccess }) => {
       budgetAmount: formatDecimal(data.budgetAmount) || '',
       demandDetails: data.demandDetails || '',
       gl: data.gl || null,
-      frequency: data.frequency,
-      month: data.month,
       year: data.year,
-      quarter: data.quarter,
       revertedRemarks: data.remarks || 'No remarks provided.',
       components: data.componentsDetails?.map((c) => ({
         brDetailsId: c.brdetailsId,
-        component: c.componentDescription || '',
+        category: c.categoryName,
+        categoryId: c.categoryId,
+        subCategory: c.subCategoryName,
+        subCategoryId: c.subCategoryId,
         unit: c.munit || '',
         qty: String(formatDecimal(c.qty) || ''),
         rate: String(formatDecimal(c.rateOfUnit) || ''),
@@ -232,7 +232,7 @@ const UserRevertedDialog = ({ open, onClose, data, onSuccess }) => {
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl h-[90vh] flex flex-col p-0 border-none shadow-2xl bg-slate-50">
+      <DialogContent className="max-w-4xl h-[80vh] flex flex-col p-0 border-none shadow-2xl bg-slate-50">
         {loading && <Loader />}
         {/* Header */}
         <DialogHeader className="p-6 bg-white border-b">
@@ -307,7 +307,8 @@ const UserRevertedDialog = ({ open, onClose, data, onSuccess }) => {
               <table className="w-full text-sm">
                 <thead className="bg-slate-100 border-b">
                   <tr>
-                    <th className="p-3 text-left font-semibold text-slate-600">Component</th>
+                    <th className="p-3 text-left font-semibold text-slate-600">Category</th>
+                    <th className="p-3 text-left font-semibold text-slate-600">Sub Category</th>
                     <th className="p-3 text-left font-semibold text-slate-600 w-20">Unit</th>
                     <th className="p-3 text-left font-semibold text-slate-600 w-24">Qty</th>
                     <th className="p-3 text-left font-semibold text-slate-600 w-28">Rate (₹)</th>

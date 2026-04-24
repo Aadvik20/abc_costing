@@ -21,10 +21,13 @@ export const monthOptions = [
   { value: 12, label: 'Dec' },
 ];
 
-export const yearOptions = Array.from({ length: 7 }, (_, i) => {
+export const yearOptions = Array.from({ length: 4 }, (_, i) => {
   const currentYear = new Date().getFullYear();
-  const y = currentYear - 3 + i;
-  return { value: y, label: y.toString() };
+  const year = currentYear - i;
+  return {
+    value: year,
+    label: year.toString(),
+  };
 });
 export const formatDateTime = (dateString: string): string => {
   if (!dateString) return '';

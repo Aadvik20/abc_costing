@@ -172,7 +172,15 @@ const BudgetRequestList = () => {
   const [openDialog, setOpenDialog] = useState(false);
   const [openRevertedDialog, setOpenRevertedDialog] = useState(false);
   const [selectedRequests, setSelectedRequests] = useState<any[]>([]);
-  const [month, setMonth] = useState(monthOptions[new Date().getMonth()]);
+  const [stage, setStage] = useState({
+    value: 'BE',
+    label: 'BE',
+  });
+
+  const stageOptions = [
+    { value: 'BE', label: 'BE' },
+    { value: 'RE', label: 'RE' },
+  ];
   const currentYear = new Date().getFullYear();
   const [year, setYear] = useState({
     value: currentYear,
@@ -209,17 +217,20 @@ const BudgetRequestList = () => {
     fetchRequests(statusTab);
   }, [statusTab]);
 
+  console.log(requests);
+
   // 1. Filter by User access and Date filters
   const filteredRequests = useMemo(() => {
     return requests.filter((req) => {
       const unitMatch = !units?.length || units.some((u: any) => Number(u.value) === req.unitId);
       const deptMatch = !departments?.length || departments.some((d: any) => Number(d.value) === req.departmentId);
-      const matchMonth = !month || req.month === month.value;
+
+      const matchStage = !stage || req.stage === stage.value;
       const matchYear = !year || req.year === year.value;
 
-      return unitMatch && deptMatch && matchMonth && matchYear;
+      return unitMatch && deptMatch && matchStage && matchYear;
     });
-  }, [requests, units, departments, month, year]);
+  }, [requests, units, departments, stage, year]);
 
   // 2. Transform flat list into Matrix (Units x Departments)
   const transformedData = useMemo(() => {
@@ -295,10 +306,18 @@ const BudgetRequestList = () => {
         <div className="flex items-center gap-3">
           <div className="min-w-[140px]">
             <Select
-              styles={{ control: (base) => ({ ...base, border: '1px solid #e2e8f0', borderRadius: '12px', padding: '2px', backgroundColor: '#fff' }) }}
-              options={monthOptions}
-              value={month}
-              onChange={(val) => setMonth(val)}
+              styles={{
+                control: (base) => ({
+                  ...base,
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '12px',
+                  padding: '2px',
+                  backgroundColor: '#fff',
+                }),
+              }}
+              options={stageOptions}
+              value={stage}
+              onChange={(val) => setStage(val)}
             />
           </div>
           <div className="min-w-[110px]">
