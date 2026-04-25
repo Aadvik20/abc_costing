@@ -9,12 +9,13 @@ import { status } from '@/constant/status';
 import { formatDecimal, formatRupees } from '@/lib/helperFunction';
 import Loader from '../ui/loader';
 import { showCustomToast } from '../common/showCustomToast';
+import { components } from 'react-select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const UserRevertedDialog = ({ open, onClose, data, onSuccess }) => {
   const [form, setForm] = useState(null);
   const [loading, setLoading] = useState(false);
-
-  console.log(data);
+  const [categories, setCategories] = useState([]);
 
   const mapData = (data) => {
     return {
@@ -26,15 +27,20 @@ const UserRevertedDialog = ({ open, onClose, data, onSuccess }) => {
       revertedRemarks: data.remarks || 'No remarks provided.',
       components: data.componentsDetails?.map((c) => ({
         brDetailsId: c.brdetailsId,
-        category: c.categoryName,
-        categoryId: c.categoryId,
-        subCategory: c.subCategoryName,
-        subCategoryId: c.subCategoryId,
+        category: {
+          label: c.categoryName,
+          value: c.categoryId,
+        },
+        subCategory: {
+          label: c.subCategoryName,
+          value: c.subCategoryId,
+        },
+        subCategories: [],
         unit: c.munit || '',
         qty: String(formatDecimal(c.qty) || ''),
         rate: String(formatDecimal(c.rateOfUnit) || ''),
         total: c.amount || 0,
-      })) || [{ component: '', unit: '', qty: '', rate: '', total: 0 }],
+      })) || [{ category: '', subCategory: '', unit: '', qty: '', rate: '', total: 0 }],
     };
   };
 
@@ -44,70 +50,149 @@ const UserRevertedDialog = ({ open, onClose, data, onSuccess }) => {
     }
   }, [data]);
 
+  const fetchCategories = async (departmentId) => {
+    const response = await axiosInstance.get(`/UnitAmountRequest/get-budget-categories?departmentId=${departmentId}`);
+
+    const categoryOptions = response.data.data.map((c) => ({
+      label: c.categoryName,
+      value: c.categoryId,
+    }));
+
+    setCategories(categoryOptions);
+  };
+
+  useEffect(() => {
+    if (open && data?.departmentId) {
+      fetchCategories(data.departmentId);
+    }
+  }, [open]);
+
+  const fetchSubCategories = async (categoryId, index) => {
+    const res = await axiosInstance.get(`/UnitAmountRequest/get-subcategories?categoryId=${categoryId}`);
+
+    const subOptions = res.data.data.map((s) => ({
+      label: s.subCategoryName,
+      value: s.subCategoryId,
+      unit: s.unitOfMeasure,
+    }));
+
+    setForm((prev) => {
+      const updated = [...prev.components];
+
+      const existing = updated[index].subCategory;
+
+      updated[index] = {
+        ...updated[index],
+        subCategories: subOptions,
+
+        subCategory: existing ? subOptions.find((s) => String(s.value) === String(existing.value)) || null : null,
+      };
+
+      return { ...prev, components: updated };
+    });
+  };
+
+  useEffect(() => {
+    if (!form) return;
+
+    form.components.forEach((comp, i) => {
+      if (comp.category?.value) {
+        fetchSubCategories(comp.category.value, i);
+      }
+    });
+  }, [form?.components?.length]);
+
+  const handleCategoryChange = (index, val) => {
+    let updated = [...form.components];
+
+    updated[index] = {
+      ...updated[index],
+      category: val,
+      subCategory: null,
+      subCategories: [],
+      unit: '',
+    };
+
+    setForm((prev) => ({
+      ...prev,
+      components: updated,
+    }));
+
+    if (val?.value) {
+      fetchSubCategories(val.value, index);
+    }
+  };
+
+  const handleSubCategoryChange = (index, val) => {
+    let updated = [...form.components];
+
+    updated[index].subCategory = val;
+    updated[index].unit = val?.unit || '';
+
+    setForm((prev) => ({
+      ...prev,
+      components: updated,
+    }));
+  };
+
   const recalculate = (components, budget) => {
     const budgetValue = Number(budget || 0);
 
+    // 1. Map through and calculate fixed totals (Qty * Rate)
     let updated = components.map((c) => {
-      if (c.component === 'Others') return c;
-
       const qty = Number(c.qty || 0);
       const rate = Number(c.rate || 0);
-
-      const total = qty * rate;
-
       return {
         ...c,
-        total: Number(total.toFixed(2)),
+        total: Number((qty * rate).toFixed(2)),
       };
     });
 
-    // ✅ Step 1: First row = full budget if empty
-    if (updated.length > 0) {
+    // 2. Apply "Remainder" logic
+    if (updated.length === 1) {
       const first = updated[0];
-
-      const hasQtyOrRate = Number(first.qty || 0) > 0 || Number(first.rate || 0) > 0;
-
-      if (!hasQtyOrRate) {
-        updated[0] = {
-          ...first,
-          total: Number(budgetValue.toFixed(2)),
-        };
+      // If first row has no math yet, it equals the full budget
+      if (Number(first.qty || 0) === 0 && Number(first.rate || 0) === 0) {
+        updated[0].total = Number(budgetValue.toFixed(2));
       }
-    }
+    } else {
+      // If multiple rows, the last row (if empty) should absorb the remaining balance
+      const lastIndex = updated.length - 1;
+      const lastComp = updated[lastIndex];
 
-    // ✅ Step 2: Handle Others row
-    const othersIndex = updated.findIndex((c) => c.component === 'Others');
+      if (Number(lastComp.qty || 0) === 0 && Number(lastComp.rate || 0) === 0) {
+        const otherRowsTotal = updated.filter((_, idx) => idx !== lastIndex).reduce((sum, c) => sum + c.total, 0);
 
-    if (othersIndex !== -1) {
-      const used = updated.reduce((sum, c, idx) => {
-        if (idx === othersIndex) return sum;
-        return sum + (c.total || 0);
-      }, 0);
-
-      const remaining = Math.max(budgetValue - used, 0);
-
-      updated[othersIndex] = {
-        ...updated[othersIndex],
-        total: Number(remaining.toFixed(2)),
-      };
+        updated[lastIndex].total = Math.max(0, Number((budgetValue - otherRowsTotal).toFixed(2)));
+      }
     }
 
     return updated;
   };
 
+  const isBudgetFullyUsed = () => {
+    const budget = Number(form.budgetAmount || 0);
+
+    const used = form.components.reduce((sum, c) => sum + Number(c.total || 0), 0);
+
+    return used >= budget;
+  };
+
   const handleDecimalChange = (field, value) => {
     const num = value === '' ? '' : Number(value);
 
-    let updatedForm = {
-      ...form,
-      [field]: num,
-    };
+    setForm((prev) => {
+      let updated = {
+        ...prev,
+        [field]: num,
+      };
 
-    if (field === 'budgetAmount') {
-      updatedForm.components = recalculate(form.components, num);
-    }
+      if (field === 'budgetAmount') {
+        updated.components = recalculate(prev.components, num);
+      }
 
-    setForm(updatedForm);
+      return updated;
+    });
   };
 
   const handleDecimalBlur = (field) => {
@@ -122,28 +207,34 @@ const UserRevertedDialog = ({ open, onClose, data, onSuccess }) => {
 
     updated[index] = {
       ...updated[index],
-      [field]: field === 'qty' || field === 'rate' ? (value === '' ? '' : Number(value)) : value, // 👈 string fields untouched
+      [field]: value,
     };
 
     if (field === 'qty' || field === 'rate') {
       updated = recalculate(updated, form.budgetAmount);
     }
 
-    setForm({ ...form, components: updated });
+    setForm((prev) => ({
+      ...prev,
+      components: updated,
+    }));
   };
 
   const handleComponentBlur = (index, field) => {
     let updated = [...form.components];
 
-    if (updated[index][field] === '') return; // 👈 IMPORTANT
+    if (updated[index][field] === '') return;
 
     updated[index][field] = formatDecimal(updated[index][field]);
 
-    setForm({ ...form, components: updated });
+    setForm((prev) => ({
+      ...prev,
+      components: updated,
+    }));
   };
 
   const addComponent = () => {
-    if (form.components.some((c) => !c.component)) {
+    if (form.components.some((c) => !c.category || !c.subCategory)) {
       showCustomToast({
         title: 'Warning',
         type: 'warning',
@@ -152,24 +243,26 @@ const UserRevertedDialog = ({ open, onClose, data, onSuccess }) => {
       return;
     }
 
-    let updated = form.components.filter((c) => c.component !== 'Others');
+    let updated = [...form.components];
 
     const used = updated.reduce((sum, c) => sum + (c.total || 0), 0);
     const budget = Number(form.budgetAmount || 0);
     const remaining = Math.max(budget - used, 0);
 
     updated.push({
-      component: 'Others',
+      category: null,
+      subCategory: null,
+      subCategories: [],
       unit: '',
       qty: '',
       rate: '',
       total: Number(remaining.toFixed(2)),
     });
 
-    setForm({
-      ...form,
+    setForm((prev) => ({
+      ...prev,
       components: updated,
-    });
+    }));
   };
 
   const deleteComponent = (index) => {
@@ -178,30 +271,75 @@ const UserRevertedDialog = ({ open, onClose, data, onSuccess }) => {
     setForm({ ...form, components: recalculate(updated, form.budgetAmount) });
   };
 
+  const validateForm = () => {
+    if (!form.budgetAmount || Number(form.budgetAmount) <= 0) {
+      showCustomToast({
+        title: 'Warning',
+        type: 'warning',
+        message: 'Budget amount must be greater than 0',
+      });
+      return false;
+    }
+
+    for (let i = 0; i < form.components.length; i++) {
+      const c = form.components[i];
+
+      if (!c.category) {
+        showCustomToast({
+          title: 'Warning',
+          type: 'warning',
+          message: `Row ${i + 1}: Category required`,
+        });
+        return false;
+      }
+
+      if (!c.subCategory) {
+        showCustomToast({
+          title: 'Warning',
+          type: 'warning',
+          message: `Row ${i + 1}: SubCategory required`,
+        });
+        return false;
+      }
+
+      if (!c.unit) {
+        showCustomToast({
+          title: 'Warning',
+          type: 'warning',
+          message: `Row ${i + 1}: Unit required`,
+        });
+        return false;
+      }
+    }
+
+    return true;
+  };
+
   const handleSubmit = async () => {
+    if (!validateForm()) return;
     try {
       setLoading(true);
       const formData = new FormData();
 
       formData.append('RequestId', String(data.id));
       formData.append('TargetStatus', status.Pending_CGM.value.toString());
+      formData.append('RequestType', data.budgetType);
       formData.append('Remarks', '');
       formData.append('GeneralLedger', form.gl);
-      formData.append('Frequency', form.frequency);
       formData.append('Year', String(form.year));
-      formData.append('Month', String(form.month));
-      formData.append('Quarter', String(form.quarter || 0));
       formData.append('ActualAmount', form.actualAmount);
       formData.append('BudgetAmount', form.budgetAmount);
       formData.append('DemandDetails', form.demandDetails);
 
       form.components.forEach((c, i) => {
-        formData.append(`ComponentDetails[${i}].BrDetailsId`, c.brDetailsId || 0);
-        formData.append(`ComponentDetails[${i}].ComponentDescription`, c.component);
-        formData.append(`ComponentDetails[${i}].MUnit`, c.unit);
-        formData.append(`ComponentDetails[${i}].Qty`, c.qty);
-        formData.append(`ComponentDetails[${i}].RateOfUnit`, c.rate);
-        formData.append(`ComponentDetails[${i}].Amount`, c.total);
+        formData.append(`ComponentDetails[${i}].brDetailsId`, c.brDetailsId || 0);
+        formData.append(`ComponentDetails[${i}].categoryId`, c.category?.value);
+        formData.append(`ComponentDetails[${i}].subCategoryId`, c.subCategory?.value);
+        formData.append(`ComponentDetails[${i}].mUnit`, c.unit);
+        formData.append(`ComponentDetails[${i}].qty`, c.qty);
+        formData.append(`ComponentDetails[${i}].rateOfUnit`, c.rate);
+        formData.append(`ComponentDetails[${i}].calculatedAmount`, c.total);
+        formData.append(`ComponentDetails[${i}].finalAmount`, c.total);
       });
 
       const res = await axiosInstance.post('/UnitAmountRequest/action', formData, {
@@ -232,7 +370,7 @@ const UserRevertedDialog = ({ open, onClose, data, onSuccess }) => {
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl h-[80vh] flex flex-col p-0 border-none shadow-2xl bg-slate-50">
+      <DialogContent className="max-w-6xl h-[90vh] flex flex-col p-0 border-none shadow-2xl bg-slate-50">
         {loading && <Loader />}
         {/* Header */}
         <DialogHeader className="p-6 bg-white border-b">
@@ -242,7 +380,7 @@ const UserRevertedDialog = ({ open, onClose, data, onSuccess }) => {
           </DialogTitle>
         </DialogHeader>
 
-        <div className="p-6 overflow-y-auto space-y-6">
+        <div className="px-6 overflow-y-auto space-y-4">
           <div className="bg-amber-50 border-l-4 border-amber-500 p-4 rounded-r-lg shadow-sm">
             <div className="flex items-center gap-2 mb-1">
               <MessageSquare className="w-4 h-4 text-amber-600" />
@@ -282,7 +420,7 @@ const UserRevertedDialog = ({ open, onClose, data, onSuccess }) => {
             )}
 
             <div className="col-span-3 space-y-2">
-              <label className="text-xs font-bold text-slate-500 uppercase">Demand Details</label>
+              <label className="text-xs font-bold text-slate-500 uppercase">Project Description</label>
               <Textarea
                 className="min-h-[80px] bg-slate-50 border"
                 placeholder="Enter details here..."
@@ -298,20 +436,20 @@ const UserRevertedDialog = ({ open, onClose, data, onSuccess }) => {
               <h3 className="font-bold text-slate-700 flex items-center gap-2">
                 <Info className="w-4 h-4" /> Component Breakdown
               </h3>
-              <Button size="sm" variant="outline" className="h-8 gap-1 text-blue-600 border-blue-200" onClick={addComponent}>
-                <Plus size={14} /> Add Row
+              <Button size="sm" variant="outline" className="h-8 gap-1 text-blue-600 border-blue-200" onClick={addComponent} disabled={isBudgetFullyUsed()}>
+                <Plus size={14} /> Add Component
               </Button>
             </div>
 
-            <div className="bg-white border rounded-xl overflow-hidden shadow-sm">
+            <div className="bg-white border rounded-xl shadow-sm">
               <table className="w-full text-sm">
                 <thead className="bg-slate-100 border-b">
                   <tr>
                     <th className="p-3 text-left font-semibold text-slate-600">Category</th>
                     <th className="p-3 text-left font-semibold text-slate-600">Sub Category</th>
-                    <th className="p-3 text-left font-semibold text-slate-600 w-20">Unit</th>
+                    <th className="p-3 text-left font-semibold text-slate-600">Unit</th>
                     <th className="p-3 text-left font-semibold text-slate-600 w-24">Qty</th>
-                    <th className="p-3 text-left font-semibold text-slate-600 w-28">Rate (₹)</th>
+                    <th className="p-3 text-left font-semibold text-slate-600 w-24">Rate (₹)</th>
                     <th className="p-3 text-left font-semibold text-slate-600 w-28">Total (₹)</th>
                     <th className="p-3 text-center font-semibold text-slate-600 w-16"></th>
                   </tr>
@@ -320,14 +458,58 @@ const UserRevertedDialog = ({ open, onClose, data, onSuccess }) => {
                   {form.components.map((comp, i) => (
                     <tr key={i} className="hover:bg-slate-50/50 transition-colors">
                       <td className="p-2">
-                        <Input
-                          className="border focus-visible:ring-1"
-                          value={comp.component}
-                          onChange={(e) => handleComponentChange(i, 'component', e.target.value)}
-                        />
+                        <div className="relative">
+                          <select
+                            className="w-full h-9 rounded-lg border border-slate-300 bg-white px-3 text-sm 
+                 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+                 hover:border-slate-400 transition-all"
+                            value={comp.category?.value || ''}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              const selected = categories.find((c) => String(c.value) === val);
+
+                              handleCategoryChange(i, selected);
+                            }}
+                          >
+                            <option value="">Select Category</option>
+                            {categories.map((cat) => (
+                              <option key={cat.value} value={cat.value}>
+                                {cat.label}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      </td>
+
+                      <td className="p-2">
+                        <div className="relative">
+                          <select
+                            className="w-full h-9 rounded-lg border border-slate-300 bg-white px-3 text-sm 
+                 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+                 hover:border-slate-400 transition-all disabled:bg-slate-100"
+                            value={comp.subCategory?.value || ''}
+                            disabled={!comp.category}
+                            onChange={(e) => {
+                              const val = e.target.value;
+
+                              const selected = comp.subCategories?.find((s) => String(s.value) === val);
+
+                              if (selected) {
+                                handleSubCategoryChange(i, selected);
+                              }
+                            }}
+                          >
+                            <option value="">Select Sub Category</option>
+                            {comp.subCategories?.map((sub) => (
+                              <option key={sub.value} value={sub.value}>
+                                {sub.label}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
                       </td>
                       <td className="p-2">
-                        <Input className="border focus-visible:ring-1" value={comp.unit} onChange={(e) => handleComponentChange(i, 'unit', e.target.value)} />
+                        <Input className="border focus-visible:ring-1" value={comp.unit} readOnly />
                       </td>
                       <td className="p-2">
                         <Input
