@@ -30,7 +30,6 @@ const Omform = ({ setLoading }) => {
     { value: 'BE', label: 'BE' },
     { value: 'RE', label: 'RE' },
   ];
-
   const [rows, setRows] = useState([
     {
       requestId: 0,
@@ -279,10 +278,12 @@ const Omform = ({ setLoading }) => {
             const updatedComponents = row.components.map((c, j) => {
               if (j !== compIndex) return c;
 
+              const existing = row.components[compIndex].subCategory;
+
               return {
                 ...c,
                 subCategories: subOptions,
-                subCategory: null,
+                subCategory: existing ? subOptions.find((s) => String(s.value) === String(existing.value)) || null : null,
               };
             });
 
@@ -412,9 +413,9 @@ const Omform = ({ setLoading }) => {
       return;
     }
 
-    // if (hasValidData()) {
-    //   saveDraft();
-    // }
+    if (hasValidData()) {
+      saveDraft();
+    }
 
     setRows((prev) => [
       ...prev,
@@ -433,16 +434,16 @@ const Omform = ({ setLoading }) => {
     ]);
   };
 
-  const deleteRow = (index: number) => {
+  const deleteRow = async (index: number) => {
     setRows((prev) => {
       const row = prev[index];
 
-      if (row.requestId && row.requestId !== 0) {
-        handleDeleteDraft([row.requestId]);
-      }
-
+      // if (row.requestId && row.requestId !== 0) {
+      //   handleDeleteDraft([row.requestId]);
+      // }
       return prev.filter((_, i) => i !== index);
     });
+    await saveDraft();
   };
 
   const isfullComponentEmpty = (comp) => {
@@ -490,7 +491,7 @@ const Omform = ({ setLoading }) => {
     );
   };
 
-  const deleteComponentRow = (rowIndex, compIndex) => {
+  const deleteComponentRow = async (rowIndex, compIndex) => {
     setRows((prev) =>
       prev.map((row, i) => {
         if (i !== rowIndex) return row;
@@ -502,6 +503,7 @@ const Omform = ({ setLoading }) => {
         return recalculateRow({ ...row, components: updated });
       })
     );
+    await saveDraft();
   };
 
   const isOverBudget = (row) => {
@@ -517,7 +519,11 @@ const Omform = ({ setLoading }) => {
   const getDraft = async () => {
     try {
       // setLoading(true);
-      const response = await axiosInstance.get('/UnitAmountRequest/Draft');
+      const response = await axiosInstance.get(`/UnitAmountRequest/Draft`, {
+        params: {
+          RequestType: 'O & M',
+        },
+      });
 
       if (response.data.statusCode === 200) {
         setDraft(response.data.data);
@@ -539,7 +545,7 @@ const Omform = ({ setLoading }) => {
     const first = draft[0];
 
     setUnit(String(first.unitId));
-
+    setStage(stageOptions.find((s) => s.value === first.stage) || null);
     setYear({
       value: first.year,
       label: String(first.year),
@@ -548,7 +554,9 @@ const Omform = ({ setLoading }) => {
     const mappedRows = draft.map((item: any) => {
       let components =
         item.componentDetails?.map((comp: any) => ({
-          component: comp.componentDescription || '',
+          category: comp.categoryId ? { value: comp.categoryId, label: comp.categoryName || 'Category' } : null,
+          subCategory: comp.subCategoryId ? { value: comp.subCategoryId, label: comp.subCategoryName || 'Sub Category' } : null,
+          subCategories: [],
           unit: comp.munit || '',
           qty: comp.qty ? formatDecimal(String(comp.qty)) : '',
           rate: comp.rateOfUnit ? formatDecimal(String(comp.rateOfUnit)) : '',
@@ -575,6 +583,16 @@ const Omform = ({ setLoading }) => {
     setRows(mappedRows);
   }, [draft, departmentOptions]);
 
+  useEffect(() => {
+    if (!draft || draft.length === 0) return;
+
+    draft.forEach((item, i) => {
+      if (item.departmentId) {
+        fetchCategories(item.departmentId, i);
+      }
+    });
+  }, [draft]);
+
   const saveDraft = async () => {
     const hasData = rows.some((row) => !isRowEmpty(row) || row.components.some((c) => !isfullComponentEmpty(c)));
 
@@ -586,7 +604,11 @@ const Omform = ({ setLoading }) => {
 
   const syncDraftIds = async () => {
     try {
-      const res = await axiosInstance.get('/UnitAmountRequest/Draft');
+      const res = await axiosInstance.get(`/UnitAmountRequest/Draft`, {
+        params: {
+          RequestType: 'O & M',
+        },
+      });
 
       if (res.data.statusCode === 200) {
         const drafts = res.data.data;
@@ -627,7 +649,7 @@ const Omform = ({ setLoading }) => {
       const formData = new FormData();
 
       rows.forEach((row, index) => {
-        formData.append(`requests[${index}].requestId`, String(row.requestId || 0));
+        formData.append(`requests[${index}].requestId`, String(0));
         formData.append(`requests[${index}].unitId`, String(unit));
         formData.append(`requests[${index}].departmentId`, String(row.department?.value || 0));
         formData.append(`requests[${index}].requestType`, 'O & M');
@@ -635,7 +657,7 @@ const Omform = ({ setLoading }) => {
         formData.append(`requests[${index}].budgetAmount`, String(Number(row.budgetAmount || 0)));
         formData.append(`requests[${index}].generalLedger`, row.gl || '');
         formData.append(`requests[${index}].year`, String(year.value));
-        formData.append(`requests[${index}].stage`, stage.value);
+        formData.append(`requests[${index}].stage`, stage.value || '');
         formData.append(`requests[${index}].demandDetails`, row.description || '');
         formData.append(`requests[${index}].isDraft`, String(isDraft));
 
@@ -668,19 +690,21 @@ const Omform = ({ setLoading }) => {
           resetForm();
         }
       }
-      if (res?.data?.statusCode === 400) {
-        showCustomToast({
-          title: 'Warning',
-          type: 'warning',
-          message: res?.data?.message,
-        });
-      }
-      if (res?.data?.statusCode === 409) {
-        showCustomToast({
-          title: 'Warning',
-          type: 'warning',
-          message: res?.data?.message,
-        });
+      if (!options.silent) {
+        if (res?.data?.statusCode === 400) {
+          showCustomToast({
+            title: 'Warning',
+            type: 'warning',
+            message: res?.data?.message,
+          });
+        }
+        if (res?.data?.statusCode === 409) {
+          showCustomToast({
+            title: 'Warning',
+            type: 'warning',
+            message: res?.data?.message,
+          });
+        }
       }
     } catch (error) {
       console.error(error);
@@ -691,25 +715,6 @@ const Omform = ({ setLoading }) => {
       });
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleDeleteDraft = async (ids: number[]) => {
-    const validIds = ids.filter((id) => id && id !== 0);
-
-    if (validIds.length === 0) return;
-
-    try {
-      const res = await axiosInstance.delete('/UnitAmountRequest/delete-drafts', {
-        data: { requestIds: validIds },
-      });
-
-      if (res?.data?.statusCode === 200) {
-        // getDraft();
-      }
-    } catch (error) {
-      console.error(error);
-      toast.error('Delete failed');
     }
   };
 
@@ -724,8 +729,6 @@ const Omform = ({ setLoading }) => {
   // }, []);
 
   const hasValidData = () => {
-    if (!unit) return false;
-
     return rows.some((row) => row.department || row.description?.trim() || Number(row.actualAmount) > 0 || Number(row.budgetAmount) > 0);
   };
   return (
@@ -990,7 +993,7 @@ const Omform = ({ setLoading }) => {
       </div>
       <div className="flex justify-end mt-2">
         <Button onClick={addRow} className="bg-green-600 hover:bg-green-700 text-white">
-          + Add Department
+          + Add Project
         </Button>
       </div>
     </>
