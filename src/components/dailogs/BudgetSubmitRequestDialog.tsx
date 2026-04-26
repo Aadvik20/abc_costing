@@ -2,8 +2,10 @@ import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { status } from '@/constant/status';
 import { formatDecimal, formatRupees, monthOptions } from '@/lib/helperFunction';
 import { BookOpen, Calculator, Calendar, FileText, Info, Landmark, Wallet } from 'lucide-react';
+import { useState } from 'react';
 
 const BudgetDetailsDialog = ({ open, onClose, data }) => {
+  const [activeTab, setActiveTab] = useState(0);
   const totalRequests = data.length;
 
   const isValidGL = (gl: any) => {
@@ -13,7 +15,7 @@ const BudgetDetailsDialog = ({ open, onClose, data }) => {
 
     return value !== 'null' && value !== '';
   };
-
+  const filteredRequest = totalRequests > 1 ? [data[activeTab]] : data;
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent
@@ -26,18 +28,35 @@ const BudgetDetailsDialog = ({ open, onClose, data }) => {
           <h2 className="text-xl font-bold text-gray-900 tracking-tight">Request Details</h2>
         </div>
 
-        <div className="flex-1 overflow-y-auto bg-slate-50/50 px-8 py-6">
+        {totalRequests > 1 && (
+          <div className="px-8 bg-white">
+            <div className="flex gap-2 bg-gray-100/50 rounded-lg p-1 w-fit">
+              {data.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => setActiveTab(index)}
+                  className={`px-6 py-2 rounded-lg text-sm font-bold transition-all
+          ${activeTab === index ? 'bg-white text-blue-600 shadow-sm border border-gray-200' : 'text-gray-400 hover:text-gray-600'}`}
+                >
+                  Project {index + 1}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <div className="flex-1 overflow-y-auto bg-slate-50/50 px-8 pt-2 pb-6">
           {data.length === 0 ? (
             <div className="text-center py-20 text-gray-400 font-medium">No data found</div>
           ) : (
             <div className="space-y-6">
-              {data?.map((req, index) => {
+              {filteredRequest?.map((req, index) => {
                 const displayStatus = req.statusName === status.Pending_CGM.label ? 'Pending' : req.statusName;
                 return (
                   <div key={index} className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-                    {totalRequests > 1 && (
+                    {/* {totalRequests > 1 && (
                       <div className="sticky top-0 z-10 bg-slate-50 px-2 py-1 text-xs font-bold text-gray-600 border-b">Request #{index + 1}</div>
-                    )}
+                    )} */}
                     {/* CARD HEADER */}
                     <div className="flex justify-between items-center px-6 py-4 bg-white border-b border-slate-100">
                       <div>

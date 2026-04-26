@@ -399,7 +399,7 @@ const BudgetRequestList = () => {
 
       <BudgetDetailsDialog open={openDialog} onClose={setOpenDialog} data={selectedRequests} />
 
-      <UserRevertedDialog open={openRevertedDialog} onClose={setOpenRevertedDialog} data={selectedRequests[0]} onSuccess={() => fetchRequests(statusTab)} />
+      <UserRevertedDialog open={openRevertedDialog} onClose={setOpenRevertedDialog} data={selectedRequests} onSuccess={() => fetchRequests(statusTab)} />
     </div>
   );
 };

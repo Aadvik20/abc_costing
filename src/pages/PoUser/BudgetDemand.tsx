@@ -72,7 +72,7 @@ const BudgetDemand = () => {
                   >
                     <Wrench className="h-4 w-4" /> O & M
                   </TabsTrigger>
-                  
+
                   <TabsTrigger
                     value="CAPEX"
                     className="flex items-center gap-2 px-6 py-2 rounded-full text-sm font-bold

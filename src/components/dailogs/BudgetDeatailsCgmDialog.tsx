@@ -3,6 +3,7 @@ import { formatDecimal, formatRupees } from '@/lib/helperFunction';
 import { status } from '@/constant/status';
 import { BookOpen, Calculator, FileText, Landmark, Wallet } from 'lucide-react';
 import ConfirmDialog from '@/components/common/ConfirmDialog';
+import { useState } from 'react';
 
 interface Props {
   open: boolean;
@@ -12,6 +13,7 @@ interface Props {
 }
 
 const BudgetDetailsCgmDialog = ({ open, onClose, data, handleApprove }: Props) => {
+  const [activeTab, setActiveTab] = useState(0);
   const totalRequests = data.length;
 
   const isValidGL = (gl: any) => {
@@ -21,6 +23,9 @@ const BudgetDetailsCgmDialog = ({ open, onClose, data, handleApprove }: Props) =
 
     return value !== 'null' && value !== '';
   };
+
+  const filteredRequest = totalRequests > 1 ? [data[activeTab]] : data;
+  const currentRequest = totalRequests > 1 ? data[activeTab] : data[0];
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent
@@ -33,18 +38,35 @@ const BudgetDetailsCgmDialog = ({ open, onClose, data, handleApprove }: Props) =
           <h2 className="text-xl font-bold text-gray-900 tracking-tight">Request Details</h2>
         </div>
 
-        <div className="flex-1 overflow-y-auto bg-slate-50/50 px-8 py-6">
+        {totalRequests > 1 && (
+          <div className="px-8 bg-white">
+            <div className="flex gap-2 bg-gray-100/50 rounded-lg p-1 w-fit">
+              {data.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => setActiveTab(index)}
+                  className={`px-6 py-2 rounded-lg text-sm font-bold transition-all
+          ${activeTab === index ? 'bg-white text-blue-600 shadow-sm border border-gray-200' : 'text-gray-400 hover:text-gray-600'}`}
+                >
+                  Project {index + 1}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <div className="flex-1 overflow-y-auto bg-slate-50/50 px-8 pt-2 pb-6">
           {data.length === 0 ? (
             <div className="text-center py-20 text-gray-400 font-medium">No data found</div>
           ) : (
             <div className="space-y-6">
-              {data?.map((req, index) => {
+              {filteredRequest?.map((req, index) => {
                 const displayStatus = req.statusName === status.Pending_CGM.label ? 'Pending' : req.statusName;
                 return (
                   <div key={index} className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-                    {totalRequests > 1 && (
+                    {/* {totalRequests > 1 && (
                       <div className="sticky top-0 z-10 bg-slate-50 px-2 py-1 text-xs font-bold text-gray-600 border-b">Request #{index + 1}</div>
-                    )}
+                    )} */}
                     {/* CARD HEADER */}
                     <div className="flex justify-between items-center px-6 py-4 bg-white border-b border-slate-100">
                       <div>
@@ -73,6 +95,17 @@ const BudgetDetailsCgmDialog = ({ open, onClose, data, handleApprove }: Props) =
                           <p className="text-lg font-bold text-slate-900 tabular-nums leading-none">{formatRupees(req.actualAmount)}</p>
                         </div>
                       </div>
+
+                      <div className="bg-white p-5 flex items-center gap-4">
+                        <div className="p-2 bg-emerald-50 rounded-lg text-emerald-600">
+                          <Wallet size={20} />
+                        </div>
+                        <div>
+                          <p className="text-[10px] text-slate-400 uppercase font-bold leading-none mb-1">Budget Amount</p>
+                          <p className="text-lg font-bold text-slate-900 tabular-nums leading-none">{formatRupees(req.budgetAmount)}</p>
+                        </div>
+                      </div>
+
                       {isValidGL(req.gl) && (
                         <div className="bg-white p-5 flex items-center gap-4">
                           <div className="p-2 bg-blue-50 rounded-lg text-blue-600">
@@ -175,7 +208,7 @@ const BudgetDetailsCgmDialog = ({ open, onClose, data, handleApprove }: Props) =
                   actionLabel="Revert"
                   withRemarks
                   remarksRequired
-                  onConfirm={(remarks) => handleApprove(data[0], status.Reverted_By_CGM.label, remarks)}
+                  onConfirm={(remarks) => handleApprove(currentRequest, status.Reverted_By_CGM.label, remarks)}
                 />
 
                 <ConfirmDialog
@@ -183,7 +216,7 @@ const BudgetDetailsCgmDialog = ({ open, onClose, data, handleApprove }: Props) =
                   triggerLabel="Approve Budget"
                   title="Approve Request"
                   description="Are you sure you want to approve this amount?"
-                  onConfirm={() => handleApprove(data[0], status.Pending_Finance.label)}
+                  onConfirm={() => handleApprove(currentRequest, status.Pending_Finance.label)}
                 />
               </>
             ) : (

@@ -16,6 +16,10 @@ const UserRevertedDialog = ({ open, onClose, data, onSuccess }) => {
   const [form, setForm] = useState(null);
   const [loading, setLoading] = useState(false);
   const [categories, setCategories] = useState([]);
+  const [activeTab, setActiveTab] = useState(0);
+  const totalRequests = data.length;
+  const filteredRequest = totalRequests > 1 ? [data[activeTab]] : data;
+  const currentRequest = totalRequests > 1 ? data[activeTab] : data[0];
 
   const mapData = (data) => {
     return {
@@ -44,11 +48,17 @@ const UserRevertedDialog = ({ open, onClose, data, onSuccess }) => {
     };
   };
 
+  // useEffect(() => {
+  //   if (data) {
+  //     setForm(mapData(Array.isArray(data) ? data[0] : data));
+  //   }
+  // }, [data]);
+
   useEffect(() => {
-    if (data) {
-      setForm(mapData(Array.isArray(data) ? data[0] : data));
+    if (currentRequest) {
+      setForm(mapData(currentRequest));
     }
-  }, [data]);
+  }, [currentRequest]);
 
   const fetchCategories = async (departmentId) => {
     const response = await axiosInstance.get(`/UnitAmountRequest/get-budget-categories?departmentId=${departmentId}`);
@@ -62,8 +72,8 @@ const UserRevertedDialog = ({ open, onClose, data, onSuccess }) => {
   };
 
   useEffect(() => {
-    if (open && data?.departmentId) {
-      fetchCategories(data.departmentId);
+    if (open && currentRequest?.departmentId) {
+      fetchCategories(currentRequest.departmentId);
     }
   }, [open]);
 
@@ -321,9 +331,9 @@ const UserRevertedDialog = ({ open, onClose, data, onSuccess }) => {
       setLoading(true);
       const formData = new FormData();
 
-      formData.append('RequestId', String(data.id));
+      formData.append('RequestId', String(currentRequest.id));
       formData.append('TargetStatus', status.Pending_CGM.value.toString());
-      formData.append('RequestType', data.budgetType);
+      formData.append('RequestType', currentRequest.budgetType);
       formData.append('Remarks', '');
       formData.append('GeneralLedger', form.gl);
       formData.append('Year', String(form.year));
@@ -366,7 +376,7 @@ const UserRevertedDialog = ({ open, onClose, data, onSuccess }) => {
     }
   };
 
-  if (!data || !form) return null;
+  if (!currentRequest || !form) return null;
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -379,6 +389,23 @@ const UserRevertedDialog = ({ open, onClose, data, onSuccess }) => {
             Review & Resubmit Request
           </DialogTitle>
         </DialogHeader>
+        
+        {totalRequests > 1 && (
+          <div className="px-8 bg-white">
+            <div className="flex gap-2 bg-gray-100/50 rounded-lg p-1 w-fit">
+              {data.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => setActiveTab(index)}
+                  className={`px-6 py-2 rounded-lg text-sm font-bold transition-all
+          ${activeTab === index ? 'bg-white text-blue-600 shadow-sm border border-gray-200' : 'text-gray-400 hover:text-gray-600'}`}
+                >
+                  Project {index + 1}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className="px-6 overflow-y-auto space-y-4">
           <div className="bg-amber-50 border-l-4 border-amber-500 p-4 rounded-r-lg shadow-sm">
@@ -412,7 +439,7 @@ const UserRevertedDialog = ({ open, onClose, data, onSuccess }) => {
               />
             </div>
 
-            {data.gl != 'null' && data.gl !== '' && (
+            {currentRequest.gl != 'null' && currentRequest.gl !== '' && (
               <div className="space-y-2">
                 <label className="text-xs font-bold text-slate-500 uppercase">GL No.</label>
                 <Input className="bg-slate-50 border" value={form.gl} onChange={(e) => setForm({ ...form, gl: e.target.value })} />

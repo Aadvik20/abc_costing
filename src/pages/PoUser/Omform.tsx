@@ -12,6 +12,8 @@ import { formatDecimal, formatRupees, yearOptions } from '@/lib/helperFunction';
 import ConfirmDialog from '@/components/common/ConfirmDialog';
 import { showCustomToast } from '@/components/common/showCustomToast';
 import { components } from 'react-select';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { TooltipPortal } from '@radix-ui/react-tooltip';
 
 const Omform = ({ setLoading }) => {
   const { units } = useAppSelector((state: RootState) => state.user);
@@ -238,6 +240,27 @@ const Omform = ({ setLoading }) => {
     setErrors({});
   };
 
+  // const fetchCategories = async (departmentId: string, rowIndex: number) => {
+  //   try {
+  //     const response = await axiosInstance.get(`/UnitAmountRequest/get-budget-categories?departmentId=${departmentId}`);
+
+  //     if (response.data.statusCode === 200) {
+  //       const categoryOptions = response.data.data.map((c: any) => ({
+  //         label: c.categoryName,
+  //         value: c.categoryId,
+  //       }));
+  //       setRows((prev) =>
+  //         prev.map((row, i) => {
+  //           if (i !== rowIndex) return row;
+  //           return { ...row, categories: categoryOptions };
+  //         })
+  //       );
+  //     }
+  //   } catch (error) {
+  //     console.log(error);
+  //   }
+  // };
+
   const fetchCategories = async (departmentId: string, rowIndex: number) => {
     try {
       const response = await axiosInstance.get(`/UnitAmountRequest/get-budget-categories?departmentId=${departmentId}`);
@@ -247,10 +270,31 @@ const Omform = ({ setLoading }) => {
           label: c.categoryName,
           value: c.categoryId,
         }));
+
         setRows((prev) =>
           prev.map((row, i) => {
             if (i !== rowIndex) return row;
-            return { ...row, categories: categoryOptions };
+
+            const updatedComponents = row.components.map((comp, j) => {
+              const existing = comp.category;
+
+              const matchedCategory = existing ? categoryOptions.find((c) => String(c.value) === String(existing.value)) || null : null;
+
+              if (matchedCategory?.value) {
+                fetchSubCategories(matchedCategory.value, rowIndex, j);
+              }
+
+              return {
+                ...comp,
+                category: matchedCategory,
+              };
+            });
+
+            return {
+              ...row,
+              categories: categoryOptions,
+              components: updatedComponents,
+            };
           })
         );
       }
@@ -301,27 +345,6 @@ const Omform = ({ setLoading }) => {
       <components.Option {...props}>
         <div title={props.data.description}>{props.data.label}</div>
       </components.Option>
-    );
-  };
-
-  const CustomSingleValue = (props) => {
-    const { data } = props;
-
-    return (
-      <components.SingleValue {...props}>
-        <div className="flex items-center gap-2">
-          <span>{data.label}</span>
-
-          {data.description && (
-            <div className="relative group">
-              <Info size={14} className="text-gray-500 cursor-pointer" />
-
-              {/* FIXED TOOLTIP */}
-              <div className="absolute hidden group-hover:block bg-white border text-xs p-2 rounded z-50 mt-1 whitespace-nowrap shadow">{data.description}</div>
-            </div>
-          )}
-        </div>
-      </components.SingleValue>
     );
   };
 
@@ -401,24 +424,41 @@ const Omform = ({ setLoading }) => {
     return !row.department && !row.description && !row.actualAmount && !row.budgetAmount && !row.gl;
   };
 
-  const addRow = () => {
-    const hasEmpty = rows.some((row) => isRowEmpty(row));
+  const isMandatoryMissing = (row) => {
+    return !row.department || !row.description || row.description.trim() === '';
+  };
+
+  const addRow = async () => {
+    if (!unit) {
+      showCustomToast({
+        title: 'Warning',
+        type: 'warning',
+        message: 'Please select Unit first',
+      });
+      return;
+    }
+
+    if (!stage) {
+      showCustomToast({
+        title: 'Warning',
+        type: 'warning',
+        message: 'Please select Stage first',
+      });
+      return;
+    }
+    const hasEmpty = rows.some((row) => isRowEmpty(row) || isMandatoryMissing(row));
 
     if (hasEmpty) {
       showCustomToast({
         title: 'Warning',
         type: 'warning',
-        message: 'Please fill existing row first',
+        message: 'Please fill existing row first at least dept and desp.',
       });
       return;
     }
 
-    if (hasValidData()) {
-      saveDraft();
-    }
-
-    setRows((prev) => [
-      ...prev,
+    const updatedRows = [
+      ...rows,
       {
         requestId: 0,
         department: null,
@@ -431,26 +471,27 @@ const Omform = ({ setLoading }) => {
         hasAddedComponent: false,
         categories: [],
       },
-    ]);
+    ];
+
+    setRows(updatedRows);
+    if (hasValidData) {
+      await saveDraft(updatedRows);
+    }
   };
 
   const deleteRow = async (index: number) => {
-    setRows((prev) => {
-      const row = prev[index];
+    const updatedRows = rows.filter((_, i) => i !== index);
 
-      // if (row.requestId && row.requestId !== 0) {
-      //   handleDeleteDraft([row.requestId]);
-      // }
-      return prev.filter((_, i) => i !== index);
-    });
-    await saveDraft();
+    setRows(updatedRows);
+
+    await saveDraft(updatedRows);
   };
 
   const isfullComponentEmpty = (comp) => {
     return !comp.categories && !comp.subCategories && !comp.unit && !comp.qty && !comp.total;
   };
 
-  const addComponentRow = (rowIndex) => {
+  const addComponentRow = async (rowIndex) => {
     const row = rows[rowIndex];
 
     if (isOverBudget(row)) {
@@ -462,48 +503,47 @@ const Omform = ({ setLoading }) => {
       return;
     }
 
-    if (hasValidData()) {
-      saveDraft();
-    }
+    const updatedRows = rows.map((r, i) => {
+      if (i !== rowIndex) return r;
 
-    setRows((prev) =>
-      prev.map((row, i) => {
-        if (i !== rowIndex) return row;
+      let updated = [...r.components];
 
-        let updated = [...row.components];
+      const used = updated.reduce((sum, c) => sum + (c.total || 0), 0);
+      const budget = Number(r.budgetAmount || 0);
+      const remaining = Math.max(budget - used, 0);
 
-        const used = updated.reduce((sum, c) => sum + (c.total || 0), 0);
-        const budget = Number(row.budgetAmount || 0);
-        const remaining = Math.max(budget - used, 0);
+      updated.push({
+        category: null,
+        subCategory: null,
+        subCategories: [],
+        unit: '',
+        qty: '',
+        rate: '',
+        total: Number(remaining.toFixed(2)),
+      });
 
-        updated.push({
-          category: null,
-          subCategory: null,
-          subCategories: [],
-          unit: '',
-          qty: '',
-          rate: '',
-          total: Number(remaining.toFixed(2)),
-        });
+      return { ...r, components: updated };
+    });
 
-        return { ...row, components: updated };
-      })
-    );
+    setRows(updatedRows);
+
+    await saveDraft(updatedRows);
   };
 
   const deleteComponentRow = async (rowIndex, compIndex) => {
-    setRows((prev) =>
-      prev.map((row, i) => {
-        if (i !== rowIndex) return row;
+    const updatedRows = rows.map((row, i) => {
+      if (i !== rowIndex) return row;
 
-        if (row.components.length == 1) return row;
+      if (row.components.length === 1) return row;
 
-        const updated = row.components.filter((_, idx) => idx !== compIndex);
+      const updated = row.components.filter((_, idx) => idx !== compIndex);
 
-        return recalculateRow({ ...row, components: updated });
-      })
-    );
-    await saveDraft();
+      return recalculateRow({ ...row, components: updated });
+    });
+
+    setRows(updatedRows);
+
+    await saveDraft(updatedRows);
   };
 
   const isOverBudget = (row) => {
@@ -557,7 +597,7 @@ const Omform = ({ setLoading }) => {
           category: comp.categoryId ? { value: comp.categoryId, label: comp.categoryName || 'Category' } : null,
           subCategory: comp.subCategoryId ? { value: comp.subCategoryId, label: comp.subCategoryName || 'Sub Category' } : null,
           subCategories: [],
-          unit: comp.munit || '',
+          unit: comp.mUnit || '',
           qty: comp.qty ? formatDecimal(String(comp.qty)) : '',
           rate: comp.rateOfUnit ? formatDecimal(String(comp.rateOfUnit)) : '',
           total: Number(Number(comp.amount || 0).toFixed(2)),
@@ -593,13 +633,20 @@ const Omform = ({ setLoading }) => {
     });
   }, [draft]);
 
-  const saveDraft = async () => {
-    const hasData = rows.some((row) => !isRowEmpty(row) || row.components.some((c) => !isfullComponentEmpty(c)));
+  const isRowValidForDraft = (row) => {
+    return row.department && row.description?.trim();
+  };
+
+  const saveDraft = async (customRows = rows) => {
+    const hasData = customRows.some((row) => !isRowEmpty(row) || row.components.some((c) => !isfullComponentEmpty(c)));
 
     if (!hasData) return;
 
-    await handleSubmit(true, { silent: true });
-    await syncDraftIds();
+    const validRows = customRows.filter(isRowValidForDraft);
+
+    if (validRows.length === 0) return;
+
+    await handleSubmit(true, { silent: true }, validRows);
   };
 
   const syncDraftIds = async () => {
@@ -642,13 +689,13 @@ const Omform = ({ setLoading }) => {
     await handleSubmit(false, { silent: false });
   };
 
-  const handleSubmit = async (isDraft: boolean, options = { silent: false }) => {
+  const handleSubmit = async (isDraft: boolean, options = { silent: false }, customRows = rows) => {
     try {
       if (!options.silent) setLoading(true);
 
       const formData = new FormData();
 
-      rows.forEach((row, index) => {
+      customRows.forEach((row, index) => {
         formData.append(`requests[${index}].requestId`, String(0));
         formData.append(`requests[${index}].unitId`, String(unit));
         formData.append(`requests[${index}].departmentId`, String(row.department?.value || 0));
@@ -805,7 +852,7 @@ const Omform = ({ setLoading }) => {
                 <div>{index + 1}</div>
 
                 <Select
-                  options={getFilteredDepartments(index)}
+                  options={departmentOptions}
                   value={row.department}
                   onChange={(val) => handleChange(index, 'department', val)}
                   styles={{
@@ -898,7 +945,7 @@ const Omform = ({ setLoading }) => {
                         }}
                       />
 
-                      <Select
+                      {/* <Select
                         options={comp.subCategories || []}
                         value={comp.subCategory}
                         components={{
@@ -917,7 +964,43 @@ const Omform = ({ setLoading }) => {
                             zIndex: 9999,
                           }),
                         }}
-                      />
+                      /> */}
+
+                      <div className="flex items-center gap-2">
+                        <div className="flex-1">
+                          <Select
+                            options={comp.subCategories || []}
+                            value={comp.subCategory}
+                            components={{
+                              Option: CustomOption,
+                            }}
+                            onChange={(val) => {
+                              handleComponentChange(index, cIndex, 'subCategory', val);
+                              handleComponentChange(index, cIndex, 'unit', val?.unit || '');
+                            }}
+                            menuPortalTarget={document.body}
+                            styles={{
+                              menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+                            }}
+                          />
+                        </div>
+                        {comp.subCategory?.description && (
+                          <TooltipProvider delayDuration={0}>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <div className="shrink-0 p-1 bg-blue-50 rounded-full hover:bg-blue-100 transition-colors cursor-pointer">
+                                  <Info size={16} className="text-blue-600" />
+                                </div>
+                              </TooltipTrigger>
+                              <TooltipPortal>
+                                <TooltipContent side="top" className="z-[9999] max-w-xs bg-slate-800 text-white p-2">
+                                  <p className="text-xs">{comp.subCategory.description}</p>
+                                </TooltipContent>
+                              </TooltipPortal>
+                            </Tooltip>
+                          </TooltipProvider>
+                        )}
+                      </div>
 
                       {/* Unit */}
                       <Input value={comp.unit} placeholder="Unit" readOnly />
