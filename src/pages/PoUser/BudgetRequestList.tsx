@@ -173,13 +173,13 @@ const BudgetRequestList = () => {
   const [openRevertedDialog, setOpenRevertedDialog] = useState(false);
   const [selectedRequests, setSelectedRequests] = useState<any[]>([]);
   const [stage, setStage] = useState({
-    value: 'BE',
-    label: 'BE',
+    value: 'Budget Estimate',
+    label: 'Budget Estimate',
   });
 
   const stageOptions = [
-    { value: 'BE', label: 'BE' },
-    { value: 'RE', label: 'RE' },
+    { value: 'Budget Estimate', label: 'Budget Estimate' },
+    { value: 'Revised Estimate', label: 'Revised Estimate' },
   ];
   const currentYear = new Date().getFullYear();
   const [year, setYear] = useState({

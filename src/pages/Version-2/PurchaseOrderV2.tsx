@@ -63,7 +63,7 @@ const PurchaseOrderV2 = () => {
         toast.success('Demand Raised Successfully');
         setShowModal(false);
         dispatch(fetchPoData());
-        
+
         // dispatch(removePoByPktblSapDump(Number(sapDump)));
       } else {
         toast.error(response.data.errorMessage);
@@ -75,16 +75,16 @@ const PurchaseOrderV2 = () => {
 
   const columns = useMemo(
     () => [
-      {
-        accessorKey: 'unit',
-        header: 'Unit',
-        cell: ({ row }) => <div className="px-2 font-semibold">{row.original.unit || '-'}</div>,
-      },
-      {
-        accessorKey: 'department',
-        header: 'Department',
-        cell: ({ row }) => <div className="px-2 font-semibold">{row.original.department || '-'}</div>,
-      },
+      // {
+      //   accessorKey: 'unit',
+      //   header: 'Unit',
+      //   cell: ({ row }) => <div className="px-2 font-semibold">{row.original.unit || '-'}</div>,
+      // },
+      // {
+      //   accessorKey: 'department',
+      //   header: 'Department',
+      //   cell: ({ row }) => <div className="px-2 font-semibold">{row.original.department || '-'}</div>,
+      // },
       {
         accessorKey: 'supplierCode',
         header: 'Supplier Code',
@@ -97,8 +97,13 @@ const PurchaseOrderV2 = () => {
       },
       {
         accessorKey: 'capexOpex',
-        header: 'Capex Opex',
+        header: 'Capex/Opex',
         cell: ({ row }) => <div className="px-2 font-semibold">{row.original.capexOpex || '-'}</div>,
+      },
+      {
+        accessorKey: 'gl',
+        header: 'GL No.',
+        cell: ({ row }) => <div className="px-2 font-semibold">{row.original.gl || '-'}</div>,
       },
       {
         accessorKey: 'action',
@@ -129,7 +134,6 @@ const PurchaseOrderV2 = () => {
     ],
     []
   );
-
   const tableData = useMemo(() => {
     let data = po || [];
 

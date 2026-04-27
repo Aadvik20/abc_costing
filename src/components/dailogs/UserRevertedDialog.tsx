@@ -95,7 +95,7 @@ const UserRevertedDialog = ({ open, onClose, data, onSuccess }) => {
         ...updated[index],
         subCategories: subOptions,
 
-        subCategory: existing ? subOptions.find((s) => String(s.value) === String(existing.value)) || null : null,
+        subCategory: existing ? subOptions.find((s) => String(s.value) === String(existing.value)) || existing : null,
       };
 
       return { ...prev, components: updated };
@@ -110,7 +110,7 @@ const UserRevertedDialog = ({ open, onClose, data, onSuccess }) => {
         fetchSubCategories(comp.category.value, i);
       }
     });
-  }, [form?.components?.length]);
+  }, [form]);
 
   const handleCategoryChange = (index, val) => {
     let updated = [...form.components];
@@ -389,7 +389,7 @@ const UserRevertedDialog = ({ open, onClose, data, onSuccess }) => {
             Review & Resubmit Request
           </DialogTitle>
         </DialogHeader>
-        
+
         {totalRequests > 1 && (
           <div className="px-8 bg-white">
             <div className="flex gap-2 bg-gray-100/50 rounded-lg p-1 w-fit">

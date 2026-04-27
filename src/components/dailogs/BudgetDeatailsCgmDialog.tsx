@@ -31,7 +31,7 @@ const BudgetDetailsCgmDialog = ({ open, onClose, data, handleApprove }: Props) =
       <DialogContent
         onPointerDownOutside={(e) => e.preventDefault()}
         onEscapeKeyDown={(e) => e.preventDefault()}
-        className="max-w-4xl max-h-[90vh] flex flex-col p-0 overflow-hidden shadow-2xl border-none"
+        className="max-w-7xl max-h-[90vh] flex flex-col p-0 overflow-hidden shadow-2xl border-none"
       >
         {/* HEADER */}
         <div className="px-8 py-5 border-b bg-white flex-shrink-0">
@@ -85,7 +85,7 @@ const BudgetDetailsCgmDialog = ({ open, onClose, data, handleApprove }: Props) =
                     </div>
 
                     {/* INFO GRID */}
-                    <div className="grid grid-cols-3 gap-px  border-b border-slate-100">
+                    <div className="grid grid-cols-5 gap-px  border-b border-slate-100">
                       <div className="bg-white p-5 flex items-center gap-4">
                         <div className="p-2 bg-emerald-50 rounded-lg text-emerald-600">
                           <Wallet size={20} />

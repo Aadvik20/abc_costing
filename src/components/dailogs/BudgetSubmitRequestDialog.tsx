@@ -85,6 +85,17 @@ const BudgetDetailsDialog = ({ open, onClose, data }) => {
                           <p className="text-lg font-bold text-slate-900 tabular-nums leading-none">{formatRupees(req.actualAmount)}</p>
                         </div>
                       </div>
+
+                      <div className="bg-white p-5 flex items-center gap-4">
+                        <div className="p-2 bg-emerald-50 rounded-lg text-emerald-600">
+                          <Wallet size={20} />
+                        </div>
+                        <div>
+                          <p className="text-[10px] text-slate-400 uppercase font-bold leading-none mb-1">Budget Amount</p>
+                          <p className="text-lg font-bold text-slate-900 tabular-nums leading-none">{formatRupees(req.budgetAmount)}</p>
+                        </div>
+                      </div>
+                      
                       {isValidGL(req.gl) && (
                         <div className="bg-white p-5 flex items-center gap-4">
                           <div className="p-2 bg-blue-50 rounded-lg text-blue-600">

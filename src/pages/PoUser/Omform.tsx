@@ -7,7 +7,6 @@ import { Input } from '@/components/ui/input';
 import { Info, Trash2 } from 'lucide-react';
 import { RootState } from '@/app/store';
 import axiosInstance from '@/services/axiosInstance';
-import toast from 'react-hot-toast';
 import { formatDecimal, formatRupees, yearOptions } from '@/lib/helperFunction';
 import ConfirmDialog from '@/components/common/ConfirmDialog';
 import { showCustomToast } from '@/components/common/showCustomToast';
@@ -26,16 +25,17 @@ const Omform = ({ setLoading }) => {
     label: currentYear.toString(),
   });
   const [unit, setUnit] = useState(null);
+  const [department, setDepartment] = useState(null);
   const defaultComponents = [{ category: null, subCategory: null, subCategories: [], unit: '', qty: '', rate: '', total: 0 }];
   const [stage, setStage] = useState(null);
   const stageOptions = [
-    { value: 'BE', label: 'BE' },
-    { value: 'RE', label: 'RE' },
+    { value: 'Budget Estimate', label: 'Budget Estimate' },
+    { value: 'Revised Estimate', label: 'Revised Estimate' },
   ];
+  const [categories, setCategories] = useState([]);
   const [rows, setRows] = useState([
     {
       requestId: 0,
-      department: null,
       description: '',
       actualAmount: '',
       budgetAmount: '',
@@ -43,7 +43,6 @@ const Omform = ({ setLoading }) => {
       file: null,
       components: defaultComponents,
       hasAddedComponent: false,
-      categories: [],
     },
   ]);
 
@@ -71,11 +70,16 @@ const Omform = ({ setLoading }) => {
     }
   }, [units, unit]);
 
-  const getFilteredDepartments = (currentIndex: number) => {
-    const selectedDepartments = rows.map((r, i) => (i !== currentIndex ? r.department?.value : null)).filter(Boolean);
+  useEffect(() => {
+    if (departments?.length === 1 && !department) {
+      const d = departments[0];
 
-    return departmentOptions.filter((d) => !selectedDepartments.includes(d.value));
-  };
+      setDepartment({
+        value: d.value,
+        label: d.label,
+      });
+    }
+  }, [departments]);
 
   const validateForm = () => {
     let newErrors: any = {};
@@ -85,6 +89,15 @@ const Omform = ({ setLoading }) => {
         title: 'Warning',
         type: 'warning',
         message: 'Unit is required',
+      });
+      return false;
+    }
+
+    if (!department) {
+      showCustomToast({
+        title: 'Warning',
+        type: 'warning',
+        message: 'Department is required',
       });
       return false;
     }
@@ -109,16 +122,6 @@ const Omform = ({ setLoading }) => {
 
     const rowErrors = rows.map((row, index) => {
       let err: any = {};
-
-      if (!row.department) {
-        err.department = 'Department required';
-        showCustomToast({
-          title: 'Warning',
-          type: 'warning',
-          message: `Row ${index + 1}: Department is required`,
-        });
-        throw new Error('stop');
-      }
 
       if (!row.description || row.description.trim() === '') {
         err.description = 'Description required';
@@ -212,6 +215,8 @@ const Omform = ({ setLoading }) => {
   const resetForm = () => {
     setUnit(null);
 
+    setDepartment(null);
+
     const currentYear = new Date().getFullYear();
 
     setYear({
@@ -222,86 +227,56 @@ const Omform = ({ setLoading }) => {
     setRows([
       {
         requestId: 0,
-        department: null,
         description: '',
         actualAmount: '',
         budgetAmount: '',
         gl: '',
         file: null,
-        components: [
-          { category: null, subCategory: null, subCategories: [], unit: '', qty: '', rate: '', total: 0 },
-          // { component: 'Others', unit: '', qty: '', rate: '', total: 0 },
-        ],
+        components: [{ category: null, subCategory: null, subCategories: [], unit: '', qty: '', rate: '', total: 0 }],
         hasAddedComponent: false,
-        categories: [],
       },
     ]);
 
     setErrors({});
   };
 
-  // const fetchCategories = async (departmentId: string, rowIndex: number) => {
-  //   try {
-  //     const response = await axiosInstance.get(`/UnitAmountRequest/get-budget-categories?departmentId=${departmentId}`);
+  useEffect(() => {
+    if (!department?.value) return;
 
-  //     if (response.data.statusCode === 200) {
-  //       const categoryOptions = response.data.data.map((c: any) => ({
-  //         label: c.categoryName,
-  //         value: c.categoryId,
-  //       }));
-  //       setRows((prev) =>
-  //         prev.map((row, i) => {
-  //           if (i !== rowIndex) return row;
-  //           return { ...row, categories: categoryOptions };
-  //         })
-  //       );
-  //     }
-  //   } catch (error) {
-  //     console.log(error);
-  //   }
-  // };
+    const fetchCategoriesGlobal = async () => {
+      try {
+        const res = await axiosInstance.get(`/UnitAmountRequest/get-budget-categories?departmentId=${department.value}`);
 
-  const fetchCategories = async (departmentId: string, rowIndex: number) => {
-    try {
-      const response = await axiosInstance.get(`/UnitAmountRequest/get-budget-categories?departmentId=${departmentId}`);
+        if (res.data.statusCode === 200) {
+          const options = res.data.data.map((c: any) => ({
+            label: c.categoryName,
+            value: c.categoryId,
+          }));
 
-      if (response.data.statusCode === 200) {
-        const categoryOptions = response.data.data.map((c: any) => ({
-          label: c.categoryName,
-          value: c.categoryId,
-        }));
+          setCategories(options);
 
-        setRows((prev) =>
-          prev.map((row, i) => {
-            if (i !== rowIndex) return row;
-
-            const updatedComponents = row.components.map((comp, j) => {
-              const existing = comp.category;
-
-              const matchedCategory = existing ? categoryOptions.find((c) => String(c.value) === String(existing.value)) || null : null;
-
-              if (matchedCategory?.value) {
-                fetchSubCategories(matchedCategory.value, rowIndex, j);
-              }
-
-              return {
-                ...comp,
-                category: matchedCategory,
-              };
-            });
-
-            return {
-              ...row,
-              categories: categoryOptions,
-              components: updatedComponents,
-            };
-          })
-        );
+          if (draft.length === 0) {
+            setRows((prev) =>
+              prev.map((row) => ({
+                ...row,
+                components: row.components.map((comp) => ({
+                  ...comp,
+                  category: null,
+                  subCategory: null,
+                  subCategories: [],
+                  unit: '',
+                })),
+              }))
+            );
+          }
+        }
+      } catch (err) {
+        console.log(err);
       }
-    } catch (error) {
-      console.log(error);
-    }
-  };
+    };
+
+    fetchCategoriesGlobal();
+  }, [department]);
 
   const fetchSubCategories = async (categoryId, rowIndex, compIndex) => {
     try {
@@ -358,10 +333,6 @@ const Omform = ({ setLoading }) => {
         return recalculateRow(updatedRow);
       })
     );
-
-    if (field === 'department' && value?.value) {
-      await fetchCategories(value.value, rowIndex);
-    }
   };
 
   const handleComponentChange = (rowIndex, compIndex, field, value) => {
@@ -421,11 +392,11 @@ const Omform = ({ setLoading }) => {
     return { ...row, components: updatedComponents };
   };
   const isRowEmpty = (row) => {
-    return !row.department && !row.description && !row.actualAmount && !row.budgetAmount && !row.gl;
+    return !row.description && !row.actualAmount && !row.budgetAmount && !row.gl;
   };
 
   const isMandatoryMissing = (row) => {
-    return !row.department || !row.description || row.description.trim() === '';
+    return !row.description || row.description.trim() === '';
   };
 
   const addRow = async () => {
@@ -434,6 +405,15 @@ const Omform = ({ setLoading }) => {
         title: 'Warning',
         type: 'warning',
         message: 'Please select Unit first',
+      });
+      return;
+    }
+
+    if (!department) {
+      showCustomToast({
+        title: 'Warning',
+        type: 'warning',
+        message: 'Please select Department first',
       });
       return;
     }
@@ -452,7 +432,7 @@ const Omform = ({ setLoading }) => {
       showCustomToast({
         title: 'Warning',
         type: 'warning',
-        message: 'Please fill existing row first at least dept and desp.',
+        message: 'Please fill existing row first at least desp.',
       });
       return;
     }
@@ -461,7 +441,6 @@ const Omform = ({ setLoading }) => {
       ...rows,
       {
         requestId: 0,
-        department: null,
         description: '',
         actualAmount: '',
         budgetAmount: '',
@@ -469,11 +448,11 @@ const Omform = ({ setLoading }) => {
         file: null,
         components: JSON.parse(JSON.stringify(defaultComponents)),
         hasAddedComponent: false,
-        categories: [],
       },
     ];
 
     setRows(updatedRows);
+
     if (hasValidData) {
       await saveDraft(updatedRows);
     }
@@ -585,6 +564,7 @@ const Omform = ({ setLoading }) => {
     const first = draft[0];
 
     setUnit(String(first.unitId));
+    setDepartment(departmentOptions.find((d) => String(d.value) === String(first.departmentId)) || null);
     setStage(stageOptions.find((s) => s.value === first.stage) || null);
     setYear({
       value: first.year,
@@ -605,7 +585,6 @@ const Omform = ({ setLoading }) => {
 
       const row = {
         requestId: item.id,
-        department: departmentOptions.find((d) => String(d.value) === String(item.departmentId)) || null,
         description: item.demandDetails || '',
         actualAmount: item.actualAmount ? formatDecimal(String(item.actualAmount)) : '',
         budgetAmount: item.budgetAmount ? formatDecimal(String(item.budgetAmount)) : '',
@@ -626,15 +605,17 @@ const Omform = ({ setLoading }) => {
   useEffect(() => {
     if (!draft || draft.length === 0) return;
 
-    draft.forEach((item, i) => {
-      if (item.departmentId) {
-        fetchCategories(item.departmentId, i);
-      }
+    draft.forEach((item, rowIndex) => {
+      item.componentDetails?.forEach((comp, compIndex) => {
+        if (comp.categoryId) {
+          fetchSubCategories(comp.categoryId, rowIndex, compIndex);
+        }
+      });
     });
   }, [draft]);
 
   const isRowValidForDraft = (row) => {
-    return row.department && row.description?.trim();
+    return row.description?.trim();
   };
 
   const saveDraft = async (customRows = rows) => {
@@ -647,41 +628,6 @@ const Omform = ({ setLoading }) => {
     if (validRows.length === 0) return;
 
     await handleSubmit(true, { silent: true }, validRows);
-  };
-
-  const syncDraftIds = async () => {
-    try {
-      const res = await axiosInstance.get(`/UnitAmountRequest/Draft`, {
-        params: {
-          RequestType: 'O & M',
-        },
-      });
-
-      if (res.data.statusCode === 200) {
-        const drafts = res.data.data;
-
-        setRows((prev) =>
-          prev.map((row) => {
-            if (row.requestId && row.requestId !== 0) return row;
-
-            const match = drafts.find(
-              (d) => d.departmentId === row.department?.value && d.demandDetails === row.description && Number(d.budgetAmount) === Number(row.budgetAmount)
-            );
-
-            if (match) {
-              return {
-                ...row,
-                requestId: match.id,
-              };
-            }
-
-            return row;
-          })
-        );
-      }
-    } catch (err) {
-      console.error('Sync failed', err);
-    }
   };
 
   const submitFinal = async () => {
@@ -698,7 +644,7 @@ const Omform = ({ setLoading }) => {
       customRows.forEach((row, index) => {
         formData.append(`requests[${index}].requestId`, String(0));
         formData.append(`requests[${index}].unitId`, String(unit));
-        formData.append(`requests[${index}].departmentId`, String(row.department?.value || 0));
+        formData.append(`requests[${index}].departmentId`, String(department?.value));
         formData.append(`requests[${index}].requestType`, 'O & M');
         formData.append(`requests[${index}].actualAmount`, String(Number(row.actualAmount || 0)));
         formData.append(`requests[${index}].budgetAmount`, String(Number(row.budgetAmount || 0)));
@@ -776,7 +722,7 @@ const Omform = ({ setLoading }) => {
   // }, []);
 
   const hasValidData = () => {
-    return rows.some((row) => row.department || row.description?.trim() || Number(row.actualAmount) > 0 || Number(row.budgetAmount) > 0);
+    return rows.some((row) => row.description?.trim() || Number(row.actualAmount) > 0 || Number(row.budgetAmount) > 0);
   };
   return (
     <>
@@ -793,7 +739,23 @@ const Omform = ({ setLoading }) => {
             />
           </div>
 
-          {/* Month */}
+          <div className="w-[220px]">
+            <Select
+              options={departmentOptions}
+              value={department}
+              onChange={(val) => setDepartment(val)}
+              placeholder="Select Department"
+              styles={{
+                menu: (provided) => ({
+                  ...provided,
+                  maxHeight: 170,
+                  overflow: 'hidden',
+                }),
+              }}
+            />
+          </div>
+
+          {/* Stage */}
           <Select options={stageOptions} value={stage} onChange={(val) => setStage(val)} placeholder="Select Stage" />
 
           {/* Year */}
@@ -835,12 +797,11 @@ const Omform = ({ setLoading }) => {
       <div className="border rounded-xl overflow-x-auto">
         <div className="mx-auto min-w-[1100px]">
           {/* HEADER */}
-          <div className="rounded-xl grid grid-cols-[60px_0.7fr_3fr_0.5fr_0.5fr_0.5fr_60px] gap-3 bg-gradient-to-r from-emerald-600 to-teal-700 text-white px-4 py-3 font-semibold text-sm">
+          <div className="rounded-xl grid grid-cols-[50px_3fr_0.6fr_0.6fr_0.5fr_60px] gap-3 bg-gradient-to-r from-emerald-600 to-teal-700 text-white px-4 py-3 font-semibold text-sm">
             <div>Sr No.</div>
-            <div className="text-center">Department</div>
             <div className="text-center">Project Description</div>
-            <div className="text-center">Actual (₹)</div>
-            <div className="text-center">Budget (₹)</div>
+            <div className="text-center">Actual Amount (₹)</div>
+            <div className="text-center">Budget Amount (₹)</div>
             <div className="text-center">GL</div>
             <div>Action</div>
           </div>
@@ -848,21 +809,8 @@ const Omform = ({ setLoading }) => {
           {rows.map((row, index) => (
             <div key={index} className="border">
               {/* MAIN ROW */}
-              <div className="grid grid-cols-[60px_0.7fr_3fr_0.5fr_0.5fr_0.5fr_60px] px-4 py-4 gap-3 items-start">
+              <div className="grid grid-cols-[50px_3fr_0.6fr_0.6fr_0.5fr_60px] px-4 py-4 gap-3 items-start">
                 <div>{index + 1}</div>
-
-                <Select
-                  options={departmentOptions}
-                  value={row.department}
-                  onChange={(val) => handleChange(index, 'department', val)}
-                  styles={{
-                    menu: (provided) => ({
-                      ...provided,
-                      maxHeight: 170,
-                      overflow: 'hidden',
-                    }),
-                  }}
-                />
 
                 <textarea
                   value={row.description}
@@ -909,7 +857,7 @@ const Omform = ({ setLoading }) => {
               {/* SUB TABLE */}
               <div className="px-6 pb-4 max-w-[1050px]">
                 <div className="border rounded-lg mt-2 overflow-x-auto">
-                  <div className="grid grid-cols-[2fr_2fr_1.2fr_0.8fr_1fr_1.2fr_0.5fr] bg-emerald-50 border-b border-emerald-100 gap-2 px-3 py-2 text-xs font-bold text-emerald-800">
+                  <div className="grid grid-cols-[2fr_2fr_1.2fr_0.8fr_1fr_1.4fr_0.5fr] bg-emerald-50 border-b border-emerald-100 gap-2 px-3 py-2 text-xs font-bold text-emerald-800">
                     <div className="text-center">Category</div>
                     <div className="text-center">Sub Category</div>
                     <div className="text-center">Unit</div>
@@ -920,10 +868,10 @@ const Omform = ({ setLoading }) => {
                   </div>
 
                   {row.components.map((comp, cIndex) => (
-                    <div key={cIndex} className="grid grid-cols-[2fr_2fr_1.2fr_0.8fr_1fr_1.2fr_0.5fr] px-3 py-2 gap-2 border-t">
+                    <div key={cIndex} className="grid grid-cols-[2fr_2fr_1.2fr_0.8fr_1fr_1.4fr_0.5fr] px-3 py-2 gap-2 border-t">
                       {/* Component */}
                       <Select
-                        options={row.categories || []}
+                        options={categories}
                         value={comp.category}
                         onChange={(val) => {
                           handleComponentChange(index, cIndex, 'category', val);
@@ -944,27 +892,6 @@ const Omform = ({ setLoading }) => {
                           }),
                         }}
                       />
-
-                      {/* <Select
-                        options={comp.subCategories || []}
-                        value={comp.subCategory}
-                        components={{
-                          Option: CustomOption,
-                          SingleValue: CustomSingleValue,
-                        }}
-                        onChange={(val) => {
-                          handleComponentChange(index, cIndex, 'subCategory', val);
-                          handleComponentChange(index, cIndex, 'unit', val?.unit || '');
-                        }}
-                        menuPortalTarget={document.body}
-                        menuPosition="fixed"
-                        styles={{
-                          menuPortal: (base) => ({
-                            ...base,
-                            zIndex: 9999,
-                          }),
-                        }}
-                      /> */}
 
                       <div className="flex items-center gap-2">
                         <div className="flex-1">
@@ -993,7 +920,7 @@ const Omform = ({ setLoading }) => {
                                 </div>
                               </TooltipTrigger>
                               <TooltipPortal>
-                                <TooltipContent side="top" className="z-[9999] max-w-xs bg-slate-800 text-white p-2">
+                                <TooltipContent side="top" className="z-[9999] max-w-xs bg-emerald-600 text-white p-2">
                                   <p className="text-xs">{comp.subCategory.description}</p>
                                 </TooltipContent>
                               </TooltipPortal>

@@ -52,11 +52,11 @@ const Finance2 = () => {
 
   const columns = useMemo(
     () => [
-      {
-        accessorKey: 'unit',
-        header: 'Unit',
-        cell: ({ row }) => <div className="px-2 font-semibold">{row.original.unit || '-'}</div>,
-      },
+      // {
+      //   accessorKey: 'unit',
+      //   header: 'Unit',
+      //   cell: ({ row }) => <div className="px-2 font-semibold">{row.original.unit || '-'}</div>,
+      // },
       {
         accessorKey: 'department',
         header: 'Department',

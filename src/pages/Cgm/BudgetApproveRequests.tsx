@@ -20,13 +20,13 @@ const BudgetApproveRequests = () => {
   const [selectedRequests, setSelectedRequests] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState<'pending' | 'approved'>('pending');
   const [stage, setStage] = useState({
-    value: 'BE',
-    label: 'BE',
+    value: 'Budget Estimate',
+    label: 'Budget Estimate',
   });
 
   const stageOptions = [
-    { value: 'BE', label: 'BE' },
-    { value: 'RE', label: 'RE' },
+    { value: 'Budget Estimate', label: 'Budget Estimate' },
+    { value: 'Revised Estimate', label: 'Revised Estimate' },
   ];
   const currentYear = new Date().getFullYear();
   const [year, setYear] = useState({
@@ -235,11 +235,11 @@ const BudgetApproveRequests = () => {
                 <tr className="bg-gradient-to-r from-blue-600 to-blue-700 text-white">
                   <th className="sticky left-0 px-6 py-5 text-left font-bold uppercase tracking-wider">Location</th>
                   {transformedData.departments.map((dept, idx) => (
-                    <th key={idx} className="px-6 py-5 text-center font-bold uppercase tracking-wider">
+                    <th key={idx} className="px-6 py-5 text-right font-bold uppercase tracking-wider">
                       {dept}
                     </th>
                   ))}
-                  <th className="px-6 py-5 text-center uppercase tracking-wider">Total</th>
+                  <th className="px-6 py-5 text-right uppercase tracking-wider">Total</th>
                 </tr>
               </thead>
 

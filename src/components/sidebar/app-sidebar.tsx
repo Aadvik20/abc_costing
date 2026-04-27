@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { ChevronLeft, ChevronRight, LogOut, Hotel, User, Inbox } from 'lucide-react';
+import { ChevronLeft, ChevronRight, LogOut, Hotel, User, Inbox, ClipboardList } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import { NavMain } from '@/components/nav-main';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarMenu, SidebarMenuButton, SidebarRail, SidebarSeparator, useSidebar } from '@/components/ui/sidebar';
@@ -64,6 +64,12 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
       url: '/budgetApproveFinance',
       icon: Inbox,
       roles: [1, 0], // financeAdmin
+    },
+    {
+      title: 'Category List',
+      url: '/listofcategory/subcategory',
+      icon: ClipboardList,
+      roles: [0], // superAdmin
     },
   ];
 

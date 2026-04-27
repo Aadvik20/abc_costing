@@ -26,6 +26,7 @@ import BudgetDemand from '@/pages/PoUser/BudgetDemand';
 import Dashboard from '@/pages/user/Dashboard';
 import BudgetApproveRequests from '@/pages/Cgm/BudgetApproveRequests';
 import BudgetApproveFinance from '@/pages/Finance/BudgetApproveFinance';
+import CategoryDetails from '@/pages/admin/CategoryDetails';
 
 const AppRoutes = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -69,6 +70,9 @@ const AppRoutes = () => {
             <Route path="/finance" element={<Finance />} />
             <Route path="/financeV2" element={<FinanceV2 />} />
             <Route path="/budgetApproveFinance" element={<BudgetApproveFinance />} />
+          </Route>
+          <Route element={<PrivateRoute allowedRoles={[0]} />}>
+            <Route path="/listofcategory/subcategory" element={<CategoryDetails />} />
           </Route>
         </Route>
         <Route element={<AppLayout isAdmin={true} />}>

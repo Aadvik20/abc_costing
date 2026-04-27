@@ -19,6 +19,9 @@ const Dashboard = () => {
     if (Roles.includes(0)) {
       navigate('/roleAssignment');
     }
+    // if (Roles.includes(-1) && Roles.length === 1) {
+    //   navigate('/unauthorized');
+    // }
   }, [Roles]);
   return <div></div>;
 };
