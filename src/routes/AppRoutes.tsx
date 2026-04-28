@@ -27,6 +27,7 @@ import Dashboard from '@/pages/user/Dashboard';
 import BudgetApproveRequests from '@/pages/Cgm/BudgetApproveRequests';
 import BudgetApproveFinance from '@/pages/Finance/BudgetApproveFinance';
 import CategoryDetails from '@/pages/admin/CategoryDetails';
+import BudgetApproveRequestsHod from '@/pages/hod/BudgetApproveRequestsHod';
 
 const AppRoutes = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -57,18 +58,23 @@ const AppRoutes = () => {
             <Route path="/" element={<HomePage />} />
             <Route path="/dashboard" element={<Dashboard />} />
           </Route>
-          <Route element={<PrivateRoute allowedRoles={[1000, 0]} />}>
+          <Route element={<PrivateRoute allowedRoles={[1000, 0, 2000]} />}>
             <Route path="/roleAssignment" element={<RoleAssignment />} />
+          </Route>
+          <Route element={<PrivateRoute allowedRoles={[1000, 0]} />}>
             <Route path="/approvalRequestsCgm" element={<BudgetApproveRequests />} />
+          </Route>
+          <Route element={<PrivateRoute allowedRoles={[2000, 0]} />}>
+            <Route path="/approvalRequestshod" element={<BudgetApproveRequestsHod />} />
           </Route>
           <Route element={<PrivateRoute allowedRoles={[2, 0]} />}>
             <Route path="/purchaseOrder" element={<PurchaseOrder />} />
-            <Route path="/purchaseOrderV2" element={<PurchaseOrderV2 />} />
+            {/* <Route path="/purchaseOrderV2" element={<PurchaseOrderV2 />} /> */}
             <Route path="/budgetDemand" element={<BudgetDemand />} />
           </Route>
           <Route element={<PrivateRoute allowedRoles={[1, 0]} />}>
             <Route path="/finance" element={<Finance />} />
-            <Route path="/financeV2" element={<FinanceV2 />} />
+            {/* <Route path="/financeV2" element={<FinanceV2 />} /> */}
             <Route path="/budgetApproveFinance" element={<BudgetApproveFinance />} />
           </Route>
           <Route element={<PrivateRoute allowedRoles={[0]} />}>

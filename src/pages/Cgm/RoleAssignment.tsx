@@ -129,10 +129,14 @@ const RoleAssignment = () => {
     if (!assignRoles?.length) return [];
 
     const hasCgm = Roles?.includes(1000);
+    const hasHod = Roles?.includes(2000);
 
     let filteredRoles = assignRoles;
 
     if (hasCgm) {
+      filteredRoles = assignRoles.filter((role: any) => role.roleId === 2);
+    }
+    if (hasHod) {
       filteredRoles = assignRoles.filter((role: any) => role.roleId === 2);
     }
 

@@ -27,7 +27,7 @@ const BudgetDemand = () => {
       {loading && <Loader />}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Demand Budget</h1>
+          <h1 className="text-3xl font-bold text-gray-900">Budget Demand</h1>
           <p className="text-gray-600 mt-1">Raise and track budget requests for departments within your unit</p>
         </div>
       </div>

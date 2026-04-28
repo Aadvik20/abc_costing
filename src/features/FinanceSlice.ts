@@ -2,41 +2,41 @@ import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import axiosInstance from '@/services/axiosInstance';
 
 export type ApprovalHistory = {
-  approvedAmount : number;
-  approvedBy : number ; 
-  approvedOn : string;
-  decisionReason : string;
-  decisionType : string;
-}
+  approvedAmount: number;
+  approvedBy: number;
+  approvedOn: string;
+  decisionReason: string;
+  decisionType: string;
+};
 
 export type Finance = {
   approvalHistory: ApprovalHistory[];
-  poNo: string; 
-  supplierCode : string;
-  contractNo : string;
-  capexOpex : string;
+  poNo: string;
+  supplierCode: string;
+  contractNo: string;
+  capexOpex: string;
   createdBy: string;
-  unit : string;
-  department : string ; 
-  poOrderValue : number;
-  currency : string;
-  deliveredValue : number;
-  balanceToBeInvoice : number;
+  unit: string;
+  department: string;
+  poOrderValue: number;
+  currency: string;
+  deliveredValue: number;
+  balanceToBeInvoice: number;
   demandAmount: number;
-  approvedAmount : number;
-  pendingAmount : number;
-}
-
-interface FinanceState {
-    finance : Finance[];
-    loading : boolean;
-    error : string | null
+  approvedAmount: number;
+  pendingAmount: number;
 };
 
-const initialState : FinanceState = {
-    finance:[],
-    loading:false,
-    error:null,
+interface FinanceState {
+  finance: Finance[];
+  loading: boolean;
+  error: string | null;
+}
+
+const initialState: FinanceState = {
+  finance: [],
+  loading: false,
+  error: null,
 };
 
 export const fetchFinanceData = createAsyncThunk<Finance[], void, { rejectValue: string }>('/finance/fetchFinanceData', async (_, { rejectWithValue }) => {
@@ -50,12 +50,12 @@ export const fetchFinanceData = createAsyncThunk<Finance[], void, { rejectValue:
 });
 
 const FinanceSlice = createSlice({
-    name:'finance',
-    initialState,
-    reducers:{},
-    extraReducers : (builder) => {
-        builder
-         .addCase(fetchFinanceData.pending, (state) => {
+  name: 'finance',
+  initialState,
+  reducers: {},
+  extraReducers: (builder) => {
+    builder
+      .addCase(fetchFinanceData.pending, (state) => {
         state.loading = true;
       })
       .addCase(fetchFinanceData.fulfilled, (state, action) => {
@@ -66,8 +66,8 @@ const FinanceSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       });
-    }
-})
+  },
+});
 
 export const {} = FinanceSlice.actions;
 

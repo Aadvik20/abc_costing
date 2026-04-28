@@ -20,16 +20,16 @@ const UserRevertedDialog = ({ open, onClose, data, onSuccess }) => {
   const totalRequests = data.length;
   const filteredRequest = totalRequests > 1 ? [data[activeTab]] : data;
   const currentRequest = totalRequests > 1 ? data[activeTab] : data[0];
-
+  console.log(currentRequest);
   const mapData = (data) => {
     return {
-      actualAmount: formatDecimal(data.actualAmount) || '',
-      budgetAmount: formatDecimal(data.budgetAmount) || '',
-      demandDetails: data.demandDetails || '',
-      gl: data.gl || null,
-      year: data.year,
-      revertedRemarks: data.remarks || 'No remarks provided.',
-      components: data.componentsDetails?.map((c) => ({
+      actualAmount: formatDecimal(data?.actualAmount) || '',
+      budgetAmount: formatDecimal(data?.budgetAmount) || '',
+      demandDetails: data?.demandDetails || '',
+      gl: data?.gl || null,
+      year: data?.year,
+      revertedRemarks: data?.remarks || 'No remarks provided.',
+      components: data?.componentsDetails?.map((c) => ({
         brDetailsId: c.brdetailsId,
         category: {
           label: c.categoryName,
@@ -102,15 +102,28 @@ const UserRevertedDialog = ({ open, onClose, data, onSuccess }) => {
     });
   };
 
-  useEffect(() => {
-    if (!form) return;
+  // useEffect(() => {
+  //   if (!form) return;
 
-    form.components.forEach((comp, i) => {
+  //   form.components.forEach((comp, i) => {
+  //     if (comp.category?.value) {
+  //       fetchSubCategories(comp.category.value, i);
+  //     }
+  //   });
+  // }, [form?.components]);
+
+  useEffect(() => {
+    if (!data) return;
+
+    const mapped = mapData(currentRequest);
+    setForm(mapped);
+
+    mapped.components.forEach((comp, i) => {
       if (comp.category?.value) {
         fetchSubCategories(comp.category.value, i);
       }
     });
-  }, [form]);
+  }, [currentRequest]);
 
   const handleCategoryChange = (index, val) => {
     let updated = [...form.components];
@@ -331,8 +344,14 @@ const UserRevertedDialog = ({ open, onClose, data, onSuccess }) => {
       setLoading(true);
       const formData = new FormData();
 
+      let targetStatus = status.Pending_CGM.value;
+
+      if (currentRequest.status === 7) {
+        targetStatus = status.Pending_HOD?.value;
+      }
+
       formData.append('RequestId', String(currentRequest.id));
-      formData.append('TargetStatus', status.Pending_CGM.value.toString());
+      formData.append('TargetStatus', targetStatus.toString());
       formData.append('RequestType', currentRequest.budgetType);
       formData.append('Remarks', '');
       formData.append('GeneralLedger', form.gl);

@@ -192,11 +192,11 @@ const BudgetRequestList = () => {
       setLoading(true);
       let statusList = '';
       if (currentTab === 'pending') {
-        statusList = `${status.Pending_CGM.value},${status.Pending_Finance.value}`;
+        statusList = `${status.Pending_CGM.value},${status.Pending_Finance.value},${status.Pending_HOD.value}`;
       } else if (currentTab === 'approved') {
         statusList = `${status.Approved.value}`;
       } else if (currentTab === 'reverted') {
-        statusList = `${status.Reverted_By_CGM.value},${status.Reverted_By_Finance.value}`;
+        statusList = `${status.Reverted_By_CGM.value},${status.Reverted_By_Finance.value},${status.Reverted_By_HOD.value}`;
       }
 
       const response = await axiosInstance.get(`/UnitAmountRequest/list-by-status`, {
@@ -216,8 +216,6 @@ const BudgetRequestList = () => {
   useEffect(() => {
     fetchRequests(statusTab);
   }, [statusTab]);
-
-  console.log(requests);
 
   // 1. Filter by User access and Date filters
   const filteredRequests = useMemo(() => {
@@ -264,7 +262,7 @@ const BudgetRequestList = () => {
 
     // Functionality preserved: If reverted, open RevertedDialog, else open BudgetDetails
     const firstReq = filtered[0];
-    if (firstReq.status === 4 || firstReq.status === 5) {
+    if (firstReq.status === 4 || firstReq.status === 5 || firstReq.status === 7) {
       setOpenRevertedDialog(true);
     } else {
       setOpenDialog(true);
@@ -397,7 +395,7 @@ const BudgetRequestList = () => {
         </div>
       )}
 
-      <BudgetDetailsDialog open={openDialog} onClose={setOpenDialog} data={selectedRequests} />
+      <BudgetDetailsDialog open={openDialog} onClose={() => setOpenDialog(false)} data={selectedRequests} />
 
       <UserRevertedDialog open={openRevertedDialog} onClose={setOpenRevertedDialog} data={selectedRequests} onSuccess={() => fetchRequests(statusTab)} />
     </div>

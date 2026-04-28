@@ -192,14 +192,14 @@ const Omform = ({ setLoading }) => {
           throw new Error('stop');
         }
 
-        if (!comp.unit) {
-          showCustomToast({
-            title: 'Warning',
-            type: 'warning',
-            message: `Row ${index + 1}, Component ${cIndex + 1}: Unit required`,
-          });
-          throw new Error('stop');
-        }
+        // if (!comp.unit) {
+        //   showCustomToast({
+        //     title: 'Warning',
+        //     type: 'warning',
+        //     message: `Row ${index + 1}, Component ${cIndex + 1}: Unit required`,
+        //   });
+        //   throw new Error('stop');
+        // }
       });
 
       return err;
@@ -730,7 +730,7 @@ const Omform = ({ setLoading }) => {
       <div className="flex justify-between sticky top-0 z-20 bg-slate-50 gap-2 shadow-sm  flex-wrap items-center p-3 rounded-xl border border-slate-200 mb-4">
         <div className="flex flex-wrap items-end gap-3">
           {/* Unit */}
-          <div className="w-[220px]">
+          <div className="w-[190px]">
             <Select
               options={unitOptions}
               value={unitOptions.find((u) => u.value === unit) || null}
@@ -739,12 +739,12 @@ const Omform = ({ setLoading }) => {
             />
           </div>
 
-          <div className="w-[220px]">
+          <div className="w-[180px]">
             <Select
               options={departmentOptions}
               value={department}
               onChange={(val) => setDepartment(val)}
-              placeholder="Select Department"
+              placeholder="Select Dept"
               styles={{
                 menu: (provided) => ({
                   ...provided,
@@ -759,7 +759,7 @@ const Omform = ({ setLoading }) => {
           <Select options={stageOptions} value={stage} onChange={(val) => setStage(val)} placeholder="Select Stage" />
 
           {/* Year */}
-          <div className="w-[120px]">
+          <div className="w-[100px]">
             <Select options={yearOptions} value={year} onChange={(val) => setYear(val)} placeholder="Year" />
           </div>
         </div>
@@ -795,9 +795,9 @@ const Omform = ({ setLoading }) => {
       </div>
       {/* Table */}
       <div className="border rounded-xl overflow-x-auto">
-        <div className="mx-auto min-w-[1100px]">
+        <div className="w-full">
           {/* HEADER */}
-          <div className="rounded-xl grid grid-cols-[50px_3fr_0.6fr_0.6fr_0.5fr_60px] gap-3 bg-gradient-to-r from-emerald-600 to-teal-700 text-white px-4 py-3 font-semibold text-sm">
+          <div className="rounded-xl grid grid-cols-[50px_3fr_0.7fr_0.7fr_0.5fr_60px] gap-3 bg-gradient-to-r from-emerald-600 to-teal-700 text-white px-4 py-3 font-semibold text-sm">
             <div>Sr No.</div>
             <div className="text-center">Project Description</div>
             <div className="text-center">Actual Amount (₹)</div>
@@ -809,7 +809,7 @@ const Omform = ({ setLoading }) => {
           {rows.map((row, index) => (
             <div key={index} className="border">
               {/* MAIN ROW */}
-              <div className="grid grid-cols-[50px_3fr_0.6fr_0.6fr_0.5fr_60px] px-4 py-4 gap-3 items-start">
+              <div className="grid grid-cols-[50px_3fr_0.7fr_0.7fr_0.5fr_60px] px-4 py-4 gap-3 items-start">
                 <div>{index + 1}</div>
 
                 <textarea
@@ -930,7 +930,7 @@ const Omform = ({ setLoading }) => {
                       </div>
 
                       {/* Unit */}
-                      <Input value={comp.unit} placeholder="Unit" readOnly />
+                      <Input value={comp.unit} readOnly className="w-fit max-w-[150px] px-2 whitespace-nowrap" />
 
                       {/* Qty */}
                       <Input

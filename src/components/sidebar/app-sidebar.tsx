@@ -18,34 +18,16 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   const canAccessAdminDashboard = false;
   const allNavItems: NavItem[] = [
     {
+      title: 'Role Assignment',
+      url: '/roleAssignment',
+      icon: User,
+      roles: [1000, 0, 2000], // cgm
+    },
+    {
       title: 'Purchase Order',
       url: '/purchaseOrder',
       icon: Home,
       roles: [2, 0], // pouser
-    },
-    {
-      title: 'Finance',
-      url: '/Finance',
-      icon: Landmark,
-      roles: [1, 0], // financeAdmin
-    },
-    {
-      title: 'Role Assignment',
-      url: '/roleAssignment',
-      icon: User,
-      roles: [1000, 0], // cgm
-    },
-    {
-      title: 'Purchase Order V2',
-      url: '/purchaseOrderv2',
-      icon: Home,
-      roles: [2, 0], // pouser
-    },
-    {
-      title: 'Finance V2',
-      url: '/financeV2',
-      icon: Landmark,
-      roles: [1, 0], // financeAdmin
     },
     {
       title: 'Demand Budget',
@@ -53,11 +35,35 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
       icon: Landmark,
       roles: [2, 0], // pouser
     },
+    // {
+    //   title: 'Purchase Order V2',
+    //   url: '/purchaseOrderv2',
+    //   icon: Home,
+    //   roles: [2, 0], // pouser
+    // },
+    // {
+    //   title: 'Finance V2',
+    //   url: '/financeV2',
+    //   icon: Landmark,
+    //   roles: [1, 0], // financeAdmin
+    // },
     {
       title: 'Budget Approval',
       url: '/approvalRequestsCgm',
       icon: Inbox,
       roles: [1000, 0], // cgm
+    },
+    {
+      title: 'Budget Approval',
+      url: '/approvalRequestshod',
+      icon: Inbox,
+      roles: [2000, 0], // ggm , gm
+    },
+    {
+      title: 'Finance',
+      url: '/Finance',
+      icon: Landmark,
+      roles: [1, 0], // financeAdmin
     },
     {
       title: 'Budget Approval',
@@ -90,15 +96,14 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
       <SidebarSeparator />
 
       <SidebarContent className="flex justify-between">
-        {/* <NavMain items={navMainItems} /> */}
-        <div>
+        <NavMain items={navMainItems} />
+        {/* <div>
           <NavMain items={navMainItems.slice(0, 3)} />
 
-          {/* Temporary separator */}
           <SidebarSeparator className="my-2" />
 
           <NavMain items={navMainItems.slice(3)} />
-        </div>
+        </div> */}
       </SidebarContent>
       <SidebarFooter>
         <SidebarMenu>

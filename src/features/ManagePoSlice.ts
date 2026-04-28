@@ -31,7 +31,7 @@ const initialState: PoState = {
 export const fetchPoData = createAsyncThunk<PO[], void, { rejectValue: string }>('po/fetchPoData', async (_, { rejectWithValue }) => {
   try {
     const response = await axiosInstance.get('/Util/po-details?unitId=0&DeptId=0');
-    return response.data.data as PO[];``
+    return response.data.data as PO[];
   } catch (err: any) {
     const errorMessage = err.response?.data?.message || 'Failed to fetch Data';
     return rejectWithValue(errorMessage);

@@ -20,7 +20,7 @@ const CategoryDetails = () => {
   const fetchContract = async () => {
     try {
       setLoading(true);
-      const response = await axiosInstance.get('/ContractManagement/get-all-contrac');
+      const response = await axiosInstance.get('/UnitAmountRequest/get-budget-categories');
       setContracts(response.data.data);
     } catch (error) {
       console.log(error);
@@ -78,7 +78,7 @@ const CategoryDetails = () => {
                 className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
               >
                 <Plus className="w-4 h-4" />
-                Add Contract
+                Add Category
               </Button>
             </div>
             <ExpandableTableList
