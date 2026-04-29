@@ -100,35 +100,35 @@ const PurchaseOrder = () => {
         header: 'Capex/Opex',
         cell: ({ row }) => <div className="px-2 font-semibold">{row.original.capexOpex || '-'}</div>,
       },
+      // {
+      //   accessorKey: 'bankPayment',
+      //   header: 'Bank Payment',
+      //   cell: ({ row }) => <div className="px-2 font-semibold">{row.original.bankPayment || '-'}</div>,
+      // },
+      // {
+      //   accessorKey: 'cgst',
+      //   header: 'CGST',
+      //   cell: ({ row }) => <div className="px-2 font-semibold">{row.original.cgst || '-'}</div>,
+      // },
+      // {
+      //   accessorKey: 'sgst',
+      //   header: 'SGST',
+      //   cell: ({ row }) => <div className="px-2 font-semibold">{row.original.sgst || '-'}</div>,
+      // },
+      // {
+      //   accessorKey: 'igst',
+      //   header: 'ISGT',
+      //   cell: ({ row }) => <div className="px-2 font-semibold">{row.original.igst || '-'}</div>,
+      // },
+      // {
+      //   accessorKey: 'tds',
+      //   header: 'TDS',
+      //   cell: ({ row }) => <div className="px-2 font-semibold">{row.original.tds || '-'}</div>,
+      // },
       {
-        accessorKey: 'bankPayment',
-        header: 'Bank Payment',
-        cell: ({ row }) => <div className="px-2 font-semibold">{row.original.bankPayment || '-'}</div>,
-      },
-      {
-        accessorKey: 'cgst',
-        header: 'CGST',
-        cell: ({ row }) => <div className="px-2 font-semibold">{row.original.cgst || '-'}</div>,
-      },
-      {
-        accessorKey: 'sgst',
-        header: 'SGST',
-        cell: ({ row }) => <div className="px-2 font-semibold">{row.original.sgst || '-'}</div>,
-      },
-      {
-        accessorKey: 'igst',
-        header: 'ISGT',
-        cell: ({ row }) => <div className="px-2 font-semibold">{row.original.igst || '-'}</div>,
-      },
-      {
-        accessorKey: 'tds',
-        header: 'TDS',
-        cell: ({ row }) => <div className="px-2 font-semibold">{row.original.tds || '-'}</div>,
-      },
-      {
-        accessorKey: 'gl',
+        accessorKey: 'glaccount',
         header: 'GL Account',
-        cell: ({ row }) => <div className="px-2 font-semibold">{row.original.gl || '-'}</div>,
+        cell: ({ row }) => <div className="px-2 font-semibold">{row.original.glaccount || '-'}</div>,
       },
       {
         accessorKey: 'action',
@@ -163,7 +163,7 @@ const PurchaseOrder = () => {
     let data = po || [];
 
     // data = data.filter((r) => allowedUnits.has(r.unit) && allowedDepts.has(r.department));
-      data = data.filter((r) => allowedUnits.has(r.unit));
+    data = data.filter((r) => allowedUnits.has(r.unit));
 
     const selectedUnitLabel = units.find((u) => u.value === selectedUnit)?.label;
 

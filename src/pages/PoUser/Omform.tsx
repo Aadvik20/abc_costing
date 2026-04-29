@@ -586,7 +586,7 @@ const Omform = ({ setLoading }) => {
       const row = {
         requestId: item.id,
         description: item.demandDetails || '',
-        actualAmount: item.actualAmount ? formatDecimal(String(item.actualAmount)) : '',
+        actualAmount: item.actualAmount !== null && item.actualAmount !== undefined ? formatDecimal(String(item.actualAmount)) : '',
         budgetAmount: item.budgetAmount ? formatDecimal(String(item.budgetAmount)) : '',
         gl: item.gl || '',
         components,
@@ -601,6 +601,20 @@ const Omform = ({ setLoading }) => {
 
     setRows(mappedRows);
   }, [draft, departmentOptions]);
+
+  useEffect(() => {
+    if (!categories.length) return;
+
+    setRows((prev) =>
+      prev.map((row) => ({
+        ...row,
+        components: row.components.map((comp) => ({
+          ...comp,
+          category: comp.category ? categories.find((c) => String(c.value) === String(comp.category.value)) || null : null,
+        })),
+      }))
+    );
+  }, [categories]);
 
   useEffect(() => {
     if (!draft || draft.length === 0) return;
@@ -746,10 +760,10 @@ const Omform = ({ setLoading }) => {
               onChange={(val) => setDepartment(val)}
               placeholder="Select Dept"
               styles={{
-                menu: (provided) => ({
+                menuList: (provided) => ({
                   ...provided,
                   maxHeight: 170,
-                  overflow: 'hidden',
+                  overflowY: 'auto',
                 }),
               }}
             />
