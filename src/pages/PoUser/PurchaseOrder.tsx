@@ -136,7 +136,7 @@ const PurchaseOrder = () => {
         cell: ({ row }) => (
           <div className="px-2 gap-4 flex font-semibold">
             <Button
-              variant="outline"
+              variant="outline"   
               onClick={() => {
                 setSelectedRow(row.original);
                 setShowModal(true);
