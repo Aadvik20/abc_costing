@@ -11,16 +11,18 @@ import { PurchaseOrderModal } from '@/components/dailogs/PurchaseOrderModal';
 import { ApproveHistoryModal } from '@/components/dailogs/ApproveHistoryModal';
 import { FileStack, History, RefreshCw, Truck, Wallet } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
-import { formatRupees, formatRupeesInWords } from '@/lib/helperFunction';
+import { formatDecimal, formatRupees, formatRupeesInWords } from '@/lib/helperFunction';
 
 const PurchaseOrder = () => {
   // const [units, setUnits] = useState([]);
   // const [departments, setDepartments] = useState([]);
   const [supplier, setSupplier] = useState([]);
+  const [capex, setCapex] = useState([]);
 
   const [selectedUnit, setSelectedUnit] = useState('');
   const [selectedDepartment, setSelectedDepartment] = useState('');
   const [selectedSupplier, setSelectedSupplier] = useState('');
+  const [selectedCapex, setSelectedCapex] = useState('');
 
   const [selectedRow, setSelectedRow] = React.useState(null);
   const [showModal, setShowModal] = useState(false);
@@ -45,6 +47,7 @@ const PurchaseOrder = () => {
       setSelectedUnit(units[0].value);
       setSelectedDepartment('');
       setSelectedSupplier('');
+      setSelectedCapex('');
     }
   }, [units]);
 
@@ -53,6 +56,7 @@ const PurchaseOrder = () => {
       // setUnits([...new Set(po.map((r) => r.unit).filter(Boolean))]);
       // setDepartments([...new Set(po.map((r) => r.department).filter(Boolean))]);
       setSupplier([...new Set(po.map((r) => r.supplierCode).filter(Boolean))]);
+      setCapex([...new Set(po.map((r) => r.capexOpex).filter(Boolean))]);
     }
   }, [po]);
 
@@ -100,35 +104,35 @@ const PurchaseOrder = () => {
         header: 'Capex/Opex',
         cell: ({ row }) => <div className="px-2 font-semibold">{row.original.capexOpex || '-'}</div>,
       },
-      // {
-      //   accessorKey: 'bankPayment',
-      //   header: 'Bank Payment',
-      //   cell: ({ row }) => <div className="px-2 font-semibold">{row.original.bankPayment || '-'}</div>,
-      // },
-      // {
-      //   accessorKey: 'cgst',
-      //   header: 'CGST',
-      //   cell: ({ row }) => <div className="px-2 font-semibold">{row.original.cgst || '-'}</div>,
-      // },
-      // {
-      //   accessorKey: 'sgst',
-      //   header: 'SGST',
-      //   cell: ({ row }) => <div className="px-2 font-semibold">{row.original.sgst || '-'}</div>,
-      // },
-      // {
-      //   accessorKey: 'igst',
-      //   header: 'ISGT',
-      //   cell: ({ row }) => <div className="px-2 font-semibold">{row.original.igst || '-'}</div>,
-      // },
-      // {
-      //   accessorKey: 'tds',
-      //   header: 'TDS',
-      //   cell: ({ row }) => <div className="px-2 font-semibold">{row.original.tds || '-'}</div>,
-      // },
+      {
+        accessorKey: 'bankPayment',
+        header: 'Bank Payment',
+        cell: ({ row }) => <div className="px-2 font-semibold text-right">{formatRupees(row?.original?.bankPayment)}</div>,
+      },
+      {
+        accessorKey: 'cgst',
+        header: 'CGST',
+        cell: ({ row }) => <div className="px-2 font-semibold text-right">{formatDecimal(row?.original?.cgst)}</div>,
+      },
+      {
+        accessorKey: 'sgst',
+        header: 'SGST',
+        cell: ({ row }) => <div className="px-2 font-semibold text-right">{formatDecimal(row?.original?.sgst)}</div>,
+      },
+      {
+        accessorKey: 'igst',
+        header: 'ISGT',
+        cell: ({ row }) => <div className="px-2 font-semibold text-right">{formatDecimal(row?.original?.igst)}</div>,
+      },
+      {
+        accessorKey: 'tds',
+        header: 'TDS',
+        cell: ({ row }) => <div className="px-2 font-semibold text-right">{formatDecimal(row?.original?.tds)}</div>,
+      },
       {
         accessorKey: 'glaccount',
         header: 'GL Account',
-        cell: ({ row }) => <div className="px-2 font-semibold">{row.original.glaccount || '-'}</div>,
+        cell: ({ row }) => <div className="px-2 font-semibold">{row?.original?.glaccount || '-'}</div>,
       },
       {
         accessorKey: 'action',
@@ -136,7 +140,7 @@ const PurchaseOrder = () => {
         cell: ({ row }) => (
           <div className="px-2 gap-4 flex font-semibold">
             <Button
-              variant="outline"   
+              variant="outline"
               onClick={() => {
                 setSelectedRow(row.original);
                 setShowModal(true);
@@ -180,8 +184,12 @@ const PurchaseOrder = () => {
       data = data.filter((r) => r.supplierCode === selectedSupplier);
     }
 
+    if (selectedCapex) {
+      data = data.filter((r) => r.capexOpex === selectedCapex);
+    }
+
     return data;
-  }, [po, selectedUnit, selectedDepartment, selectedSupplier, units, departments]);
+  }, [po, selectedUnit, selectedDepartment, selectedSupplier, units, departments, selectedCapex]);
 
   // const filteredDepartments = useMemo(() => {
   //   if (!selectedUnit) return departments;
@@ -200,6 +208,22 @@ const PurchaseOrder = () => {
         po
           .filter((r) => r.unit === selectedUnitLabel && r.department === selectedDeptLabel)
           .map((r) => r.supplierCode)
+          .filter(Boolean)
+      ),
+    ];
+  }, [selectedUnit, selectedDepartment, po, units, departments]);
+
+  const filteredCapex = useMemo(() => {
+    const selectedUnitLabel = units.find((u) => u.value === selectedUnit)?.label;
+    const selectedDeptLabel = departments.find((d) => d.value === Number(selectedDepartment))?.label;
+
+    if (!selectedDepartment) return capex;
+
+    return [
+      ...new Set(
+        po
+          .filter((r) => r.unit === selectedUnitLabel && r.department === selectedDeptLabel)
+          .map((r) => r.capexOpex)
           .filter(Boolean)
       ),
     ];
@@ -389,6 +413,22 @@ const PurchaseOrder = () => {
                       {filteredSuppliers.map((s, i) => (
                         <option key={i} value={s}>
                           {s}
+                        </option>
+                      ))}
+                    </select>
+
+                    {/* Capex */}
+                    <select
+                      value={selectedCapex}
+                      onChange={(e) => {
+                        setSelectedCapex(e.target.value);
+                      }}
+                      className="w-[200px] px-3 py-2 border-2 rounded outline-none"
+                    >
+                      <option value="">Capex/Opex</option>
+                      {filteredCapex.map((c, i) => (
+                        <option key={i} value={c}>
+                          {c}
                         </option>
                       ))}
                     </select>

@@ -7,12 +7,12 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const { Roles } = useAppSelector((state: RootState) => state.user);
   useEffect(() => {
-    if (Roles.includes(2000)) {
-      navigate('/roleAssignment');
-    }
-    if (Roles.includes(1000)) {
-      navigate('/roleAssignment');
-    }
+    // if (Roles.includes(2000)) {
+    //   navigate('/roleAssignment');
+    // }
+    // if (Roles.includes(1000)) {
+    //   navigate('/roleAssignment');
+    // }
     if (Roles.includes(2)) {
       navigate('/purchaseOrder');
     }
@@ -20,7 +20,7 @@ const Dashboard = () => {
       navigate('/finance');
     }
     if (Roles.includes(0)) {
-      navigate('/roleAssignment');
+      navigate('/purchaseOrder');
     }
     // if (Roles.includes(-1) && Roles.length === 1) {
     //   navigate('/unauthorized');

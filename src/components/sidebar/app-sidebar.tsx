@@ -17,24 +17,24 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   const { Roles } = useAppSelector((state: RootState) => state.user);
   const canAccessAdminDashboard = false;
   const allNavItems: NavItem[] = [
-    {
-      title: 'Role Assignment',
-      url: '/roleAssignment',
-      icon: User,
-      roles: [1000, 0, 2000], // cgm
-    },
+    // {
+    //   title: 'Role Assignment',
+    //   url: '/roleAssignment',
+    //   icon: User,
+    //   roles: [1000, 0, 2000], // cgm
+    // },
     {
       title: 'Purchase Order',
       url: '/purchaseOrder',
       icon: Home,
       roles: [2, 0], // pouser
     },
-    {
-      title: 'Demand Budget',
-      url: '/budgetDemand',
-      icon: Landmark,
-      roles: [2, 0], // pouser
-    },
+    // {
+    //   title: 'Demand Budget',
+    //   url: '/budgetDemand',
+    //   icon: Landmark,
+    //   roles: [2, 0], // pouser
+    // },
     // {
     //   title: 'Purchase Order V2',
     //   url: '/purchaseOrderv2',
@@ -47,36 +47,36 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
     //   icon: Landmark,
     //   roles: [1, 0], // financeAdmin
     // },
-    {
-      title: 'Budget Approval',
-      url: '/approvalRequestsCgm',
-      icon: Inbox,
-      roles: [1000, 0], // cgm
-    },
-    {
-      title: 'Budget Approval',
-      url: '/approvalRequestshod',
-      icon: Inbox,
-      roles: [2000, 0], // ggm , gm
-    },
+    // {
+    //   title: 'Budget Approval',
+    //   url: '/approvalRequestsCgm',
+    //   icon: Inbox,
+    //   roles: [1000, 0], // cgm
+    // },
+    // {
+    //   title: 'Budget Approval',
+    //   url: '/approvalRequestshod',
+    //   icon: Inbox,
+    //   roles: [2000, 0], // ggm , gm
+    // },
     {
       title: 'Finance',
       url: '/Finance',
       icon: Landmark,
       roles: [1, 0], // financeAdmin
     },
-    {
-      title: 'Budget Approval',
-      url: '/budgetApproveFinance',
-      icon: Inbox,
-      roles: [1, 0], // financeAdmin
-    },
-    {
-      title: 'Category List',
-      url: '/listofcategory/subcategory',
-      icon: ClipboardList,
-      roles: [0], // superAdmin
-    },
+    // {
+    //   title: 'Budget Approval',
+    //   url: '/budgetApproveFinance',
+    //   icon: Inbox,
+    //   roles: [1, 0], // financeAdmin
+    // },
+    // {
+    //   title: 'Category List',
+    //   url: '/listofcategory/subcategory',
+    //   icon: ClipboardList,
+    //   roles: [0], // superAdmin
+    // },
   ];
 
   const navMainItems = allNavItems.filter((item) => item.roles.some((role) => Roles.includes(role)));
