@@ -59,12 +59,12 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
     //   icon: Inbox,
     //   roles: [2000, 0], // ggm , gm
     // },
-    {
-      title: 'Finance',
-      url: '/Finance',
-      icon: Landmark,
-      roles: [1, 0], // financeAdmin
-    },
+    // {
+    //   title: 'Finance',
+    //   url: '/Finance',
+    //   icon: Landmark,
+    //   roles: [1, 0], // financeAdmin
+    // },
     // {
     //   title: 'Budget Approval',
     //   url: '/budgetApproveFinance',
