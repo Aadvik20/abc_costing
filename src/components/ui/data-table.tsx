@@ -15,7 +15,6 @@ import { ArrowUp, ArrowDown, ArrowUpDown, ListFilter, Search, ChevronRight, Chev
 
 import { Input } from './input';
 import { Button } from './button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './select';
 import { Checkbox } from './checkbox';
 
 interface TableListProps {

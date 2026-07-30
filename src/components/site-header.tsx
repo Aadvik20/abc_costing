@@ -37,7 +37,7 @@ const SiteHeader: React.FC<{ showtoggle?: boolean }> = () => {
                       <p className="text-xs font-medium text-red-600">Delegated Access Active</p>
                     </div>
                   )}
-                  {decoded?.IsB === 'True' && (
+                  {decoded?.IsReadOnly === 'True' && (
                     <div className="flex items-center gap-1">
                       <Info className="h-3 w-3 text-red-600" />
                       <p className="text-xs font-medium text-red-600">Impersonate User Active</p>

@@ -28,6 +28,7 @@ import BudgetApproveRequests from '@/pages/Cgm/BudgetApproveRequests';
 import BudgetApproveFinance from '@/pages/Finance/BudgetApproveFinance';
 import CategoryDetails from '@/pages/admin/CategoryDetails';
 import BudgetApproveRequestsHod from '@/pages/hod/BudgetApproveRequestsHod';
+import PurchaseOrderExcelFormate from '@/pages/user/PurchaseOrderExcelFormate';
 
 const AppRoutes = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -68,7 +69,8 @@ const AppRoutes = () => {
             <Route path="/approvalRequestshod" element={<BudgetApproveRequestsHod />} />
           </Route> */}
           <Route element={<PrivateRoute allowedRoles={[2, 0]} />}>
-            <Route path="/purchaseOrder" element={<PurchaseOrder />} />
+            <Route path="/purchaseOrder" element={<PurchaseOrderExcelFormate />} />
+            {/* <Route path="/purchaseOrder-excel" element={<PurchaseOrderExcelFormate />} /> */}
             {/* <Route path="/purchaseOrderV2" element={<PurchaseOrderV2 />} /> */}
             {/* <Route path="/budgetDemand" element={<BudgetDemand />} /> */}
           </Route>

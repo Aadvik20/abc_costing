@@ -1,11 +1,10 @@
 import * as React from 'react';
-import { ChevronLeft, ChevronRight, LogOut, Hotel, User, Inbox, ClipboardList } from 'lucide-react';
+import { ChevronLeft, ChevronRight, LogOut, Hotel, Home } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import { NavMain } from '@/components/nav-main';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarMenu, SidebarMenuButton, SidebarRail, SidebarSeparator, useSidebar } from '@/components/ui/sidebar';
 import { environment } from '@/config';
 import { clearAllStorage } from '@/lib/helperFunction';
-import { Home, Landmark } from 'lucide-react';
 import { NavItem } from '@/types/types';
 import { Separator } from '../ui/separator';
 import { useAppSelector } from '@/app/hooks';
@@ -18,10 +17,10 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   const canAccessAdminDashboard = false;
   const allNavItems: NavItem[] = [
     // {
-    //   title: 'Role Assignment',
-    //   url: '/roleAssignment',
-    //   icon: User,
-    //   roles: [1000, 0, 2000], // cgm
+    //   title: 'Purchase Order',
+    //   url: '/purchaseOrder',
+    //   icon: Home,
+    //   roles: [2, 0], // pouser
     // },
     {
       title: 'Purchase Order',
@@ -94,16 +93,8 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
         <ToggleIcon onClick={toggleSidebar} className="w-8 h-8 cursor-pointer" />
       </div>
       <SidebarSeparator />
-
       <SidebarContent className="flex justify-between">
         <NavMain items={navMainItems} />
-        {/* <div>
-          <NavMain items={navMainItems.slice(0, 3)} />
-
-          <SidebarSeparator className="my-2" />
-
-          <NavMain items={navMainItems.slice(3)} />
-        </div> */}
       </SidebarContent>
       <SidebarFooter>
         <SidebarMenu>
