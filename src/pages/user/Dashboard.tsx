@@ -19,9 +19,12 @@ const Dashboard = () => {
     if (Roles.includes(1)) {
       navigate('/finance');
     }
-    if (Roles.includes(0)) {
+    if (Roles.includes(-1)) {
       navigate('/purchaseOrder');
     }
+    // if (Roles.includes(0)) {
+    //   navigate('/purchaseOrder');
+    // }
     // if (Roles.includes(-1) && Roles.length === 1) {
     //   navigate('/unauthorized');
     // }

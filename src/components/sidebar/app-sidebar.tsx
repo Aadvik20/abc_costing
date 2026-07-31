@@ -9,7 +9,7 @@ import { NavItem } from '@/types/types';
 import { Separator } from '../ui/separator';
 import { useAppSelector } from '@/app/hooks';
 import { RootState } from '@/app/store';
-
+ 
 export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   const navigate = useNavigate();
   const { state, toggleSidebar } = useSidebar();
@@ -26,7 +26,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
       title: 'Purchase Order',
       url: '/purchaseOrder',
       icon: Home,
-      roles: [2, 0], // pouser
+      roles: [2, 0,-1], // pouser
     },
     // {
     //   title: 'Demand Budget',

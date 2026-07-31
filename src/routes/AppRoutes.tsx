@@ -68,7 +68,7 @@ const AppRoutes = () => {
           <Route element={<PrivateRoute allowedRoles={[2000, 0]} />}>
             <Route path="/approvalRequestshod" element={<BudgetApproveRequestsHod />} />
           </Route> */}
-          <Route element={<PrivateRoute allowedRoles={[2, 0]} />}>
+          <Route element={<PrivateRoute allowedRoles={[2, 0,-1]} />}>
             <Route path="/purchaseOrder" element={<PurchaseOrderExcelFormate />} />
             {/* <Route path="/purchaseOrder-excel" element={<PurchaseOrderExcelFormate />} /> */}
             {/* <Route path="/purchaseOrderV2" element={<PurchaseOrderV2 />} /> */}

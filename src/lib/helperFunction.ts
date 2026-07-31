@@ -56,8 +56,6 @@ export const findEmployeeDetails = (employees: any, empCode: string) => {
 export const extractUniqueUnits = (employees) => {
   // Create a Map to track unique units by unitId
   const uniqueUnitsMap = new Map();
-
-  // Process each employee
   employees.forEach((employee) => {
     // Only add if both unitId and unitName exist
     if (employee.unitId && employee.unitName) {
@@ -67,8 +65,6 @@ export const extractUniqueUnits = (employees) => {
       });
     }
   });
-
-  // Convert Map values to array
   return Array.from(uniqueUnitsMap.values());
 };
 
@@ -96,7 +92,7 @@ export function clearAllStorage(): void {
 }
 
 export const formatRupees = (amount: number | null | undefined): string => {
-  if (typeof amount !== 'number' || isNaN(amount)) {
+  if (typeof amount !== 'number' || Number.isNaN(amount)) {
     return '-';
   }
 
@@ -117,7 +113,7 @@ export const formatDecimal = (value: string | number) => {
   if (value === null || value === undefined || value === '') return '';
 
   const num = Number(value);
-  if (isNaN(num)) return '';
+  if (Number.isNaN(num)) return '';
 
   return num.toFixed(2);
 };
@@ -225,7 +221,7 @@ export function getDelegationInfoFromSession(): {
 }
 
 export const formatRupeesInWords = (amount: number): string => {
-  if (amount === null || amount === undefined || isNaN(amount)) {
+  if (amount === null || amount === undefined || Number.isNaN(amount)) {
     return '';
   }
 

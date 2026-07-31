@@ -31,7 +31,6 @@ export const usePoDetails = (poNumber?: string | number): UsePoDetailsReturn => 
   const [error, setError] = useState<string | null>(null);
 
   const fetchPoDetails = useCallback(async () => {
-    // Prevent fetching if no PO number is supplied
     if (!poNumber) {
       setData([]);
       setLoading(false);
