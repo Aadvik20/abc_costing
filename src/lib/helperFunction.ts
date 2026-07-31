@@ -1,6 +1,5 @@
 import { oidcConfig } from '@/auth/config';
-import { format, parseISO } from 'date-fns';
-import { Currency } from 'lucide-react';
+import { format, isValid, parse, parseISO } from 'date-fns';
 
 export const setSessionItem = (key: string, value: any) => {
   const valueToStore = typeof value === 'object' ? JSON.stringify(value) : value;
@@ -36,12 +35,18 @@ export const formatDateTime = (dateString: string): string => {
 
   return format(date, 'dd-MMM-yyyy | hh:mm a');
 };
-export const formatDate = (dateString: string): string => {
-  if (!dateString) return '';
 
-  const date = parseISO(dateString);
-
-  return format(date, 'dd-MMM-yyyy');
+export const formatDate = (dateString?: string | null): string => {
+  if (!dateString?.trim()) {
+    return 'N/A';
+  }
+  let date: Date;
+  if (dateString.includes('T') || /^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+    date = parseISO(dateString);
+  } else {
+    date = parse(dateString, 'dd-MM-yyyy', new Date());
+  }
+  return isValid(date) ? format(date, 'dd-MMM-yyyy') : 'N/A';
 };
 export const findEmployeeDetails = (employees: any, empCode: string) => {
   const employee = employees.find((emp) => emp?.empCode === empCode);

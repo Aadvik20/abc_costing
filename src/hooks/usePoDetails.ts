@@ -1,7 +1,5 @@
-import axios from 'axios';
+import TransferAxiosInstance from '@/services/TransferAxiosInstance';
 import { useState, useEffect, useCallback } from 'react';
-
-// Type definition for the PO Detail item
 export interface PoDetailItem {
   poNo: string;
   invoice: string;
@@ -42,7 +40,7 @@ export const usePoDetails = (poNumber?: string | number): UsePoDetailsReturn => 
     setError(null);
 
     try {
-      const response = await axios.get(`https://uattransferapi.dfccil.com/api/SapPo/details/${poNumber}`);
+      const response = await TransferAxiosInstance.get(`/SapPo/details/${poNumber}`);
       setData(response.data || []);
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'An error occurred while fetching PO details.';

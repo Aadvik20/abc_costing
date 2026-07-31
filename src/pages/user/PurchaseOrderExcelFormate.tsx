@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import axios from 'axios';
 import Loader from '@/components/ui/loader';
 import PoDetailsContent from '@/components/dailogs/PoDetailsContent';
-import { formatDecimal, formatRupees } from '@/lib/helperFunction';
+import { formatDate, formatDecimal, formatRupees } from '@/lib/helperFunction';
 import { ChevronDown, ChevronRight } from 'lucide-react';
+import TransferAxiosInstance from '@/services/TransferAxiosInstance';
 
 export interface PurchaseOrderRow {
   srNo?: number;
@@ -16,6 +16,7 @@ export interface PurchaseOrderRow {
   bankPayment?: number;
   itTds?: number;
   cgstAmount?: number;
+  poDate?: string;
   sgstAmount?: number;
   igstAmount?: number;
   cgsttds?: number;
@@ -51,6 +52,7 @@ const TableRowItem: React.FC<TableRowItemProps> = React.memo(({ row, index, isEx
         </td>
         <td className="px-3 py-3 border-r border-gray-200 text-left font-bold">{index + 1}</td>
         <td className="px-4 py-3 border-r border-gray-200 font-bold text-blue-700">{poNo || '-'}</td>
+        <td className="px-4 py-3 border-r border-gray-200 font-bold text-blue-700">{formatDate(row.poDate) || '-'}</td>
         <td className="px-4 py-3 border-r border-gray-200 text-right">{formatRupees(row.poOrderValue)}</td>
         <td className="px-4 py-3 border-r border-gray-200" onClick={(e) => e.stopPropagation()}>
           <TooltipProvider>
@@ -123,25 +125,30 @@ const PurchaseOrderExcelFormate: React.FC = () => {
       setDateError(null);
     }
   };
-
   useEffect(() => {
     const fetchPurchaseOrders = async () => {
       setLoading(true);
+
       try {
-        const res = await axios.get('https://uattransferapi.dfccil.com/api/SapPo');
+        let url = '/SapPo';
+
+        if (fromDate && toDate) {
+          url += `?fromDate=${fromDate}&toDate=${toDate}`;
+        }
+        const res = await TransferAxiosInstance.get(url);
         setData(res.data.data ?? []);
-        setUnits(res?.data?.units ?? []);
+        setUnits(res.data.units ?? []);
         setError(null);
       } catch (err) {
         const message = err instanceof Error ? err.message : 'Failed to fetch Purchase Order data.';
+
         setError(message);
       } finally {
         setLoading(false);
       }
     };
-
     fetchPurchaseOrders();
-  }, []);
+  }, [fromDate, toDate]);
 
   const toggleRowExpansion = useCallback((poNo?: string) => {
     if (!poNo) return;
@@ -278,6 +285,7 @@ const PurchaseOrderExcelFormate: React.FC = () => {
                   <th className="w-10 px-3 py-3 text-center border-r border-gray-200"></th>
                   <th className="w-16 px-3 py-3 text-left border-r border-gray-200">Sr. No.</th>
                   <th className="px-4 py-3 text-left border-r border-gray-200 min-w-[120px]">PO No</th>
+                  <th className="px-4 py-3 text-left border-r border-gray-200 min-w-[140px]">PO Date</th>
                   <th className="px-4 py-3 text-right border-r border-gray-200 min-w-[160px]">PO Amount</th>
                   <th className="px-4 py-3 text-left border-r border-gray-200 min-w-[180px]">
                     <div className="flex flex-col">
@@ -308,7 +316,9 @@ const PurchaseOrderExcelFormate: React.FC = () => {
                     const poNo = row.poNo || '';
                     const isExpanded = expandedPoNumbers.has(poNo);
                     const globalIndex = (currentPage - 1) * pageSize + index;
-                    return <TableRowItem key={poNo || index} row={row} index={globalIndex} isExpanded={isExpanded} onToggleExpand={toggleRowExpansion} />;
+                    return (
+                      <TableRowItem key={poNo+index} row={row} index={globalIndex} isExpanded={isExpanded} onToggleExpand={toggleRowExpansion} />
+                    );
                   })
                 )}
               </tbody>

@@ -1,6 +1,6 @@
 import React from 'react';
 import { usePoDetails } from '@/hooks/usePoDetails';
-import { formatDecimal, formatRupees } from '@/lib/helperFunction';
+import { formatDate, formatDecimal, formatRupees } from '@/lib/helperFunction';
 interface PoDetailsProps {
   poNumber?: string | number;
 }
@@ -52,7 +52,7 @@ const PoDetailsContent: React.FC<PoDetailsProps> = ({ poNumber }) => {
                   <td className="px-3 py-2 border-r border-gray-200 text-left whitespace-nowrap font-bold text-blue-700">{item.invoice}</td>
                   <td className="px-3 py-2 border-r border-gray-200 text-right whitespace-nowrap">{formatRupees(item.invoiceValue)}</td>
                   <td className="px-3 py-2 border-r border-gray-200 text-right whitespace-nowrap">{formatRupees(item.bankPayment)}</td>
-                  <td className="px-3 py-2 border-r border-gray-200 text-center whitespace-nowrap">{item.augdt}</td>
+                  <td className="px-3 py-2 border-r border-gray-200 text-center whitespace-nowrap">{formatDate(item.augdt)}</td>
                   <td className="px-3 py-2 border-r border-gray-200 text-right whitespace-nowrap">{formatDecimal(item.cgstAmount)}</td>
                   <td className="px-3 py-2 border-r border-gray-200 text-right whitespace-nowrap">{formatDecimal(item.sgstAmount)}</td>
                   <td className="px-3 py-2 border-r border-gray-200 text-right whitespace-nowrap">{formatDecimal(item.igstAmount)}</td>
