@@ -125,30 +125,29 @@ const PurchaseOrderExcelFormate: React.FC = () => {
       setDateError(null);
     }
   };
-  useEffect(() => {
-    const fetchPurchaseOrders = async () => {
-      setLoading(true);
+  const fetchPurchaseOrders = async () => {
+    setLoading(true);
+    try {
+      let url = '/SapPo';
 
-      try {
-        let url = '/SapPo';
-
-        if (fromDate && toDate) {
-          url += `?fromDate=${fromDate}&toDate=${toDate}`;
-        }
-        const res = await TransferAxiosInstance.get(url);
-        setData(res.data.data ?? []);
-        setUnits(res.data.units ?? []);
-        setError(null);
-      } catch (err) {
-        const message = err instanceof Error ? err.message : 'Failed to fetch Purchase Order data.';
-
-        setError(message);
-      } finally {
-        setLoading(false);
+      if (fromDate && toDate) {
+        url += `?fromDate=${fromDate}&toDate=${toDate}`;
       }
-    };
+      const res = await TransferAxiosInstance.get(url);
+      setData(res.data.data ?? []);
+      setUnits(res.data.units ?? []);
+      setError(null);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to fetch Purchase Order data.';
+
+      setError(message);
+    } finally {
+      setLoading(false);
+    }
+  };
+  useEffect(() => {
     fetchPurchaseOrders();
-  }, [fromDate, toDate]);
+  }, []);
 
   const toggleRowExpansion = useCallback((poNo?: string) => {
     if (!poNo) return;
@@ -162,7 +161,32 @@ const PurchaseOrderExcelFormate: React.FC = () => {
       return next;
     });
   }, []);
+  // Expand all rows currently visible in paginatedData
+  const expandAllRows = useCallback((dataToExpand: PurchaseOrderRow[]) => {
+    setExpandedPoNumbers((prev) => {
+      const next = new Set(prev);
+      dataToExpand.forEach((row) => {
+        if (row.poNo) {
+          next.add(row.poNo);
+        }
+      });
+      return next;
+    });
+  }, []);
 
+  // Collapse all rows currently visible in paginatedData (or all)
+  const collapseAllRows = useCallback((dataToCollapse?: PurchaseOrderRow[]) => {
+    setExpandedPoNumbers((prev) => {
+      if (!dataToCollapse) return new Set(); // Clears everything
+      const next = new Set(prev);
+      dataToCollapse.forEach((row) => {
+        if (row.poNo) {
+          next.delete(row.poNo);
+        }
+      });
+      return next;
+    });
+  }, []);
   const filteredData = useMemo(() => {
     return data.filter((row) => {
       if (selectedUnit && row.unit !== selectedUnit) return false;
@@ -208,18 +232,24 @@ const PurchaseOrderExcelFormate: React.FC = () => {
 
   const startIndex = filteredData.length === 0 ? 0 : (currentPage - 1) * pageSize + 1;
   const endIndex = Math.min(currentPage * pageSize, filteredData.length);
-
+  const isAllPageExpanded = useMemo(() => {
+    if (!paginatedData || paginatedData.length === 0) return false;
+    return paginatedData.every((row) => row.poNo && expandedPoNumbers.has(row.poNo));
+  }, [paginatedData, expandedPoNumbers]);
   return (
     <div className="p-4 sm:p-6 space-y-5 bg-gray-50 min-h-screen">
       <h1 className="text-xl sm:text-2xl font-extrabold text-gray-900 tracking-tight">Purchase Order Excel Format</h1>
       <div className="p-4 sm:p-5 bg-white rounded-xl shadow-sm border border-gray-200 space-y-3">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-          <div>
-            <span className="block text-sm font-semibold text-gray-800 mb-1">Select Unit</span>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3 items-end">
+          <div className="lg:col-span-3">
+            <label htmlFor="unit-select" className="block text-xs font-semibold text-gray-700 mb-1">
+              Unit <span className="text-gray-400 font-normal">(Instant Filter)</span>
+            </label>
             <select
+              id="unit-select"
               value={selectedUnit}
               onChange={(e) => setSelectedUnit(e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded-lg text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              className="w-full h-10 px-3 border border-gray-300 rounded-lg text-sm font-medium text-gray-800 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition"
             >
               <option value="">All Units</option>
               {units.map((unit) => (
@@ -229,50 +259,88 @@ const PurchaseOrderExcelFormate: React.FC = () => {
               ))}
             </select>
           </div>
-          <div>
-            <span className="block text-sm font-semibold text-gray-800 mb-1">From Date</span>
+          <div className="lg:col-span-3">
+            <label htmlFor="search-query" className="block text-xs font-semibold text-gray-700 mb-1">
+              Search Query
+            </label>
+            <div className="relative">
+              <input
+                id="search-query"
+                type="text"
+                placeholder="PO, Profit Center..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full h-10 pl-9 pr-3 border border-gray-300 rounded-lg text-sm font-medium text-gray-800 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition"
+              />
+              <svg className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </div>
+          </div>
+          <div className="lg:col-span-2">
+            <label htmlFor="from-date" className="block text-xs font-semibold text-gray-700 mb-1">
+              From Date
+            </label>
             <input
+              id="from-date"
               type="date"
               value={fromDate}
               max={toDate || undefined}
               onChange={handleFromDateChange}
-              className={`w-full p-2 border rounded-lg text-sm font-medium focus:ring-2 focus:outline-none ${
-                dateError ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'
+              className={`w-full h-10 px-2.5 border rounded-lg text-sm font-medium text-gray-800 focus:ring-2 focus:outline-none transition ${
+                dateError ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
               }`}
             />
           </div>
-          <div>
-            <span className="block text-sm font-semibold text-gray-800 mb-1">To Date</span>
+          <div className="lg:col-span-2">
+            <label htmlFor="to-date" className="block text-xs font-semibold text-gray-700 mb-1">
+              To Date
+            </label>
             <input
+              id="to-date"
               type="date"
               value={toDate}
               min={fromDate || undefined}
               onChange={handleToDateChange}
-              className={`w-full p-2 border rounded-lg text-sm font-medium focus:ring-2 focus:outline-none ${
-                dateError ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'
+              className={`w-full h-10 px-2.5 border rounded-lg text-sm font-medium text-gray-800 focus:ring-2 focus:outline-none transition ${
+                dateError ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
               }`}
             />
           </div>
-          <div>
-            <span className="block text-sm font-semibold text-gray-800 mb-1">Search</span>
-            <input
-              type="text"
-              placeholder="Search PO, Profit Center, etc..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded-lg text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none"
-            />
-          </div>
-          <div className="flex items-end sm:col-span-2 lg:col-span-1">
+          <div className="lg:col-span-2 flex items-center gap-1.5 sm:col-span-2">
             <button
-              onClick={handleResetFilters}
-              className="w-full sm:w-auto h-[38px] px-4 py-2 text-xs sm:text-sm bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold rounded-lg transition whitespace-nowrap"
+              type="button"
+              onClick={fetchPurchaseOrders}
+              disabled={Boolean(dateError)}
+              className="flex-1 h-10 px-3 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white font-semibold text-sm rounded-lg shadow-sm transition duration-150 flex items-center justify-center gap-1.5"
             >
-              Clear Filters
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+              <span>Search</span>
+            </button>
+            <button
+              type="button"
+              onClick={handleResetFilters}
+              title="Clear all filters"
+              className="h-10 px-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium text-sm rounded-lg border border-gray-300 transition duration-150 whitespace-nowrap"
+            >
+              Clear
             </button>
           </div>
         </div>
-        {dateError && <div className="text-xs font-semibold text-red-600 pt-1">{dateError}</div>}
+        {dateError && (
+          <div className="flex items-center gap-1.5 text-xs font-medium text-red-600 pt-0.5">
+            <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+              <path
+                fillRule="evenodd"
+                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                clipRule="evenodd"
+              />
+            </svg>
+            {dateError}
+          </div>
+        )}
       </div>
       {loading && <Loader />}
       {!loading && error && <div className="p-8 text-center text-red-600 font-bold bg-white rounded-xl border border-gray-200 shadow-sm">{error}</div>}
@@ -282,7 +350,19 @@ const PurchaseOrderExcelFormate: React.FC = () => {
             <table className="min-w-full text-sm border-collapse">
               <thead className="bg-primary text-white sticky top-0 z-10 font-bold text-xs uppercase border-b border-gray-300">
                 <tr>
-                  <th className="w-10 px-3 py-3 text-center border-r border-gray-200"></th>
+                  <th 
+                    className="w-10 px-3 py-3 text-center border-r border-gray-200 cursor-pointer select-none hover:bg-primary-dark transition-colors"
+                    title={isAllPageExpanded ? 'Collapse all on page' : 'Expand all on page'}
+                    onClick={() => {
+                      if (isAllPageExpanded) {
+                        collapseAllRows(paginatedData);
+                      } else {
+                        expandAllRows(paginatedData);
+                      }
+                    }}
+                  >
+                    {isAllPageExpanded ? <ChevronDown className="h-5 w-5 text-white mx-auto" /> : <ChevronRight className="h-5 w-5 text-white mx-auto" />}
+                  </th>
                   <th className="w-16 px-3 py-3 text-left border-r border-gray-200">Sr. No.</th>
                   <th className="px-4 py-3 text-left border-r border-gray-200 min-w-[120px]">PO No</th>
                   <th className="px-4 py-3 text-left border-r border-gray-200 min-w-[140px]">PO Date</th>
@@ -316,9 +396,7 @@ const PurchaseOrderExcelFormate: React.FC = () => {
                     const poNo = row.poNo || '';
                     const isExpanded = expandedPoNumbers.has(poNo);
                     const globalIndex = (currentPage - 1) * pageSize + index;
-                    return (
-                      <TableRowItem key={poNo+index} row={row} index={globalIndex} isExpanded={isExpanded} onToggleExpand={toggleRowExpansion} />
-                    );
+                    return <TableRowItem key={poNo + index} row={row} index={globalIndex} isExpanded={isExpanded} onToggleExpand={toggleRowExpansion} />;
                   })
                 )}
               </tbody>
