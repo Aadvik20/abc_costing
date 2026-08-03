@@ -3,9 +3,10 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import Loader from '@/components/ui/loader';
 import PoDetailsContent from '@/components/dailogs/PoDetailsContent';
 import { formatDate, formatDecimal, formatRupees } from '@/lib/helperFunction';
-import { ChevronDown, ChevronRight } from 'lucide-react';
+import { ChevronDown, ChevronRight, Download, Loader2 } from 'lucide-react';
 import TransferAxiosInstance from '@/services/TransferAxiosInstance';
 import { useSearchParams } from 'react-router';
+import { exportPaginatedPoExcel } from '@/components/admin/exportPoExcel';
 
 export interface PurchaseOrderRow {
   srNo?: number;
@@ -67,7 +68,7 @@ const TableRowItem: React.FC<TableRowItemProps> = React.memo(({ row, index, isEx
             </Tooltip>
           </TooltipProvider>
         </td>
-        <td className="px-4 py-3 border-r border-gray-200">{row.unit || '-'}</td>
+        <td className="px-2 py-3 border-r border-gray-200">{row.unit || '-'}</td>
         <td className="px-4 py-3 border-r border-gray-200 text-right">{formatRupees(row.bankPayment)}</td>
         <td className="px-4 py-3 border-r border-gray-200 text-right">{formatDecimal(row.cgstAmount)}</td>
         <td className="px-4 py-3 border-r border-gray-200 text-right">{formatDecimal(row.cgsttds)}</td>
@@ -103,11 +104,13 @@ const PurchaseOrderExcelFormate: React.FC = () => {
   const [expandedPoNumbers, setExpandedPoNumbers] = useState<Set<string>>(new Set());
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [units, setUnits] = useState<string[]>([]);
-  const [fromDate, setFromDate] = useState<string>('');
-  const [toDate, setToDate] = useState<string>('');
+  const [fromDate, setFromDate] = useState<string>(searchParams.get('fromDate') || '');
+  const [toDate, setToDate] = useState<string>(searchParams.get('toDate') || '');
   const [dateError, setDateError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [pageSize, setPageSize] = useState<number>(25);
+  const [exporting, setExporting] = useState(false);
+
   const handleFromDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setFromDate(value);
@@ -190,7 +193,16 @@ const PurchaseOrderExcelFormate: React.FC = () => {
       return next;
     });
   }, []);
-
+  const handleExportPage = async () => {
+    setExporting(true);
+    try {
+      await exportPaginatedPoExcel(paginatedData, fromDate, toDate);
+    } catch (err) {
+      console.error('Export failed:', err);
+    } finally {
+      setExporting(false);
+    }
+  };
   const collapseAllRows = useCallback((dataToCollapse?: PurchaseOrderRow[]) => {
     setExpandedPoNumbers((prev) => {
       if (!dataToCollapse) return new Set(); // Clears everything
@@ -298,6 +310,7 @@ const PurchaseOrderExcelFormate: React.FC = () => {
               From Date
             </label>
             <input
+              min="2026-07-01"
               id="from-date"
               type="date"
               value={fromDate}
@@ -358,11 +371,57 @@ const PurchaseOrderExcelFormate: React.FC = () => {
           </div>
         )}
       </div>
+      <div className="flex items-center justify-end gap-3">
+        <button
+          disabled={paginatedData.length === 0}
+          type="button"
+          aria-label={isAllPageExpanded ? 'Collapse all on page' : 'Expand all on page'}
+          onClick={() => {
+            if (isAllPageExpanded) {
+              collapseAllRows(paginatedData);
+            } else {
+              expandAllRows(paginatedData);
+            }
+          }}
+          className="inline-flex items-center gap-2 px-3.5 py-2 bg-slate-800 hover:bg-slate-900 active:bg-slate-950 text-white font-semibold text-sm rounded-lg shadow-sm border border-slate-700/60 transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-1"
+        >
+          {isAllPageExpanded ? (
+            <>
+              <ChevronDown className="h-4 w-4 text-slate-300" />
+              <span>Collapse All</span>
+            </>
+          ) : (
+            <>
+              <ChevronRight className="h-4 w-4 text-slate-300" />
+              <span>Expand All</span>
+            </>
+          )}
+        </button>
+        <button
+          type="button"
+          onClick={handleExportPage}
+          disabled={exporting || !paginatedData.length}
+          className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-semibold text-sm rounded-lg shadow-sm transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-emerald-600"
+        >
+          {exporting ? (
+            <>
+              <Loader2 className="h-4 w-4 text-white animate-spin" />
+              <span>Generating Excel...</span>
+            </>
+          ) : (
+            <>
+              <Download className="h-4 w-4 text-white" />
+              <span>Export Excel</span>
+            </>
+          )}
+        </button>
+      </div>
+
       {loading && <Loader />}
       {!loading && error && <div className="p-8 text-center text-red-600 font-bold bg-white rounded-xl border border-gray-200 shadow-sm">{error}</div>}
       {!loading && !error && (
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden flex flex-col">
-          <div className="overflow-x-auto max-h-[60vh]">
+          <div className="overflow-x-auto">
             <table className="min-w-full text-sm border-collapse">
               <thead className="bg-primary text-white sticky top-0 z-10 font-bold text-xs uppercase border-b border-gray-300">
                 <tr>
@@ -389,7 +448,7 @@ const PurchaseOrderExcelFormate: React.FC = () => {
                       <span className="text-[10px] lowercase text-white font-normal">(capex, opex, deposit work)</span>
                     </div>
                   </th>
-                  <th className="px-4 py-3 text-left border-r border-gray-200 min-w-[160px]">Unit</th>
+                  <th className="px-2 py-3 text-left border-r border-gray-200 min-w-[140px]">Unit</th>
                   <th className="px-4 py-3 text-right border-r border-gray-200 min-w-[160px]">Bank Payment</th>
                   <th className="px-4 py-3 text-right border-r border-gray-200 min-w-[100px]">CGST</th>
                   <th className="px-4 py-3 text-right border-r border-gray-200 min-w-[100px]">CGST TDS</th>
