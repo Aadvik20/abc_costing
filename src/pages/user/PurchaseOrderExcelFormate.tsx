@@ -5,6 +5,7 @@ import PoDetailsContent from '@/components/dailogs/PoDetailsContent';
 import { formatDate, formatDecimal, formatRupees } from '@/lib/helperFunction';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import TransferAxiosInstance from '@/services/TransferAxiosInstance';
+import { useSearchParams } from 'react-router';
 
 export interface PurchaseOrderRow {
   srNo?: number;
@@ -95,7 +96,8 @@ const PAGE_SIZE_OPTIONS = [25, 50, 75, 100, 200];
 
 const PurchaseOrderExcelFormate: React.FC = () => {
   const [data, setData] = useState<PurchaseOrderRow[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [searchParams, setSearchParams] = useSearchParams();
   const [error, setError] = useState<string | null>(null);
   const [selectedUnit, setSelectedUnit] = useState<string>('');
   const [expandedPoNumbers, setExpandedPoNumbers] = useState<Set<string>>(new Set());
@@ -126,8 +128,24 @@ const PurchaseOrderExcelFormate: React.FC = () => {
     }
   };
   const fetchPurchaseOrders = async () => {
-    setLoading(true);
+    if (!fromDate && !toDate) return;
+    const params = new URLSearchParams(searchParams);
+
+    if (fromDate) {
+      params.set('fromDate', fromDate);
+    } else {
+      params.delete('fromDate');
+    }
+
+    if (toDate) {
+      params.set('toDate', toDate);
+    } else {
+      params.delete('toDate');
+    }
+
+    setSearchParams(params);
     try {
+      setLoading(true);
       let url = '/SapPo';
 
       if (fromDate && toDate) {
@@ -161,7 +179,6 @@ const PurchaseOrderExcelFormate: React.FC = () => {
       return next;
     });
   }, []);
-  // Expand all rows currently visible in paginatedData
   const expandAllRows = useCallback((dataToExpand: PurchaseOrderRow[]) => {
     setExpandedPoNumbers((prev) => {
       const next = new Set(prev);
@@ -174,7 +191,6 @@ const PurchaseOrderExcelFormate: React.FC = () => {
     });
   }, []);
 
-  // Collapse all rows currently visible in paginatedData (or all)
   const collapseAllRows = useCallback((dataToCollapse?: PurchaseOrderRow[]) => {
     setExpandedPoNumbers((prev) => {
       if (!dataToCollapse) return new Set(); // Clears everything
@@ -350,7 +366,7 @@ const PurchaseOrderExcelFormate: React.FC = () => {
             <table className="min-w-full text-sm border-collapse">
               <thead className="bg-primary text-white sticky top-0 z-10 font-bold text-xs uppercase border-b border-gray-300">
                 <tr>
-                  <th 
+                  <th
                     className="w-10 px-3 py-3 text-center border-r border-gray-200 cursor-pointer select-none hover:bg-primary-dark transition-colors"
                     title={isAllPageExpanded ? 'Collapse all on page' : 'Expand all on page'}
                     onClick={() => {
@@ -388,7 +404,8 @@ const PurchaseOrderExcelFormate: React.FC = () => {
                 {paginatedData.length === 0 ? (
                   <tr>
                     <td colSpan={14} className="p-8 text-center text-gray-500">
-                      No matching records found.
+                      <p className="font-medium">No matching records found.</p>
+                      <p className="text-sm mt-1">Please select a date range to search for records.</p>
                     </td>
                   </tr>
                 ) : (

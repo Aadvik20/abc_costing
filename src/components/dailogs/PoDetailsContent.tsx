@@ -1,13 +1,34 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { usePoDetails } from '@/hooks/usePoDetails';
 import { formatDate, formatDecimal, formatRupees } from '@/lib/helperFunction';
+import { useSearchParams } from 'react-router';
 interface PoDetailsProps {
   poNumber?: string | number;
 }
 
 const PoDetailsContent: React.FC<PoDetailsProps> = ({ poNumber }) => {
   const { data, loading, error, refetch } = usePoDetails(poNumber);
-
+  const [searchParams] = useSearchParams();
+  const fromDate = searchParams.get('fromDate');
+  const toDate = searchParams.get('toDate');
+  const filteredData = useMemo(() => {
+    if (!data || data.length === 0) return [];
+    if (!fromDate && !toDate) return data;
+    const fromTime = fromDate ? new Date(fromDate).setHours(0, 0, 0, 0) : null;
+    const toTime = toDate ? new Date(toDate).setHours(23, 59, 59, 999) : null;
+    return data.filter((item) => {
+      if (!item.augdt) return false;
+      const parts = String(item.augdt).split('-');
+      if (parts.length !== 3) return false;
+      const [day, month, year] = parts.map(Number);
+      const itemDate = new Date(year, month - 1, day);
+      const itemTime = itemDate.getTime();
+      if (Number.isNaN(itemTime)) return false;
+      if (fromTime && itemTime < fromTime) return false;
+      if (toTime && itemTime > toTime) return false;
+      return true;
+    });
+  }, [data, fromDate, toDate]);
   return (
     <div className="w-full space-y-3">
       <div className="flex items-center justify-between border-b pb-2 border-gray-200">
@@ -26,7 +47,7 @@ const PoDetailsContent: React.FC<PoDetailsProps> = ({ poNumber }) => {
       {!loading && !error && data.length === 0 && (
         <div className="p-6 text-center text-gray-500 font-medium bg-gray-50 rounded-lg">No invoice details found for PO No: {poNumber}.</div>
       )}
-      {!loading && !error && data.length > 0 && (
+      {!loading && !error && filteredData.length > 0 && (
         <div className="overflow-x-auto border max-h-[45vh] overflow-y-auto border-gray-300 rounded-lg shadow-sm">
           <table className="min-w-full divide-y divide-gray-200 text-xs">
             <thead className="bg-primary text-white font-extrabold uppercase sticky top-0">
@@ -46,7 +67,7 @@ const PoDetailsContent: React.FC<PoDetailsProps> = ({ poNumber }) => {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200 font-semibold text-gray-800 bg-white">
-              {data.map((item, idx) => (
+              {filteredData.map((item, idx) => (
                 <tr key={item.invoice || idx} className="hover:bg-blue-50/50 transition">
                   <td className="px-3 py-2 border-r border-gray-200 text-left">{idx + 1}</td>
                   <td className="px-3 py-2 border-r border-gray-200 text-left whitespace-nowrap font-bold text-blue-700">{item.invoice}</td>
