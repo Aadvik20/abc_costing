@@ -12,7 +12,7 @@ export interface PurchaseOrderRow {
   srNo?: number;
   poNo?: string;
   poOrderValue?: number;
-  poType1?: string;
+  poType?: string;
   profitCenter?: string;
   poType2?: string;
   bankPayment?: number;
@@ -60,10 +60,10 @@ const TableRowItem: React.FC<TableRowItemProps> = React.memo(({ row, index, isEx
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <div className="max-w-[180px] truncate cursor-pointer">{row.poType1 || '-'}</div>
+                <div className="max-w-[160px] truncate cursor-pointer">{row.poType || '-'}</div>
               </TooltipTrigger>
               <TooltipContent className="max-w-md break-words">
-                <p>{row.poType1 || '-'}</p>
+                <p>{row.poType || '-'}</p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
@@ -442,7 +442,7 @@ const PurchaseOrderExcelFormate: React.FC = () => {
                   <th className="px-4 py-3 text-left border-r border-gray-200 min-w-[120px]">PO No</th>
                   <th className="px-4 py-3 text-left border-r border-gray-200 min-w-[140px]">PO Date</th>
                   <th className="px-4 py-3 text-right border-r border-gray-200 min-w-[160px]">PO Amount</th>
-                  <th className="px-4 py-3 text-left border-r border-gray-200 min-w-[180px]">
+                  <th className="px-4 py-3 text-left border-r border-gray-200 min-w-[100px]">
                     <div className="flex flex-col">
                       <span>PO Type</span>
                       <span className="text-[10px] lowercase text-white font-normal">(capex, opex, deposit work)</span>

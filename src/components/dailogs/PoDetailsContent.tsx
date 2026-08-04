@@ -67,7 +67,7 @@ const PoDetailsContent: React.FC<PoDetailsProps> = ({ poNumber }) => {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200 font-semibold text-gray-800 bg-white">
-              {filteredData.map((item, idx) => (
+              {filteredData?.map((item, idx) => (
                 <tr key={item.invoice || idx} className="hover:bg-blue-50/50 transition">
                   <td className="px-3 py-2 border-r border-gray-200 text-left">{idx + 1}</td>
                   <td className="px-3 py-2 border-r border-gray-200 text-left whitespace-nowrap font-bold text-blue-700">{item.invoice}</td>

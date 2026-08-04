@@ -135,7 +135,7 @@ export const clearOldSessionStorage = () => {
       // Check sessionStorage
       for (let i = 0; i < sessionStorage.length; i++) {
         const key = sessionStorage.key(i);
-        if (key && key.includes('oidc')) {
+        if (key?.includes('oidc')) {
           keysToRemove.push(key);
         }
       }

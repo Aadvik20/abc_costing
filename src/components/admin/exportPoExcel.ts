@@ -2,8 +2,6 @@ import { formatDate } from '@/lib/helperFunction';
 import TransferAxiosInstance from '@/services/TransferAxiosInstance';
 import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
-
-// Types matching your data structure
 export interface MainPoRow {
   poNo: string;
   poOrderValue?: number;
@@ -20,7 +18,6 @@ export interface MainPoRow {
   igstTds?: number;
   [key: string]: unknown;
 }
-
 export interface PoDetailItem {
   poNo: string;
   invoice: string;
@@ -45,8 +42,6 @@ const filterInvoicesByDateRange = (invoices: PoDetailItem[], fromDate?: string |
 
   return invoices.filter((item) => {
     if (!item.augdt) return false;
-
-    // Parse DD-MM-YYYY format
     const parts = String(item.augdt).split('-');
     if (parts.length !== 3) return false;
 
@@ -77,22 +72,17 @@ export const exportPaginatedPoExcel = async (paginatedData: MainPoRow[], fromDat
     alert('No data available on the current page to export.');
     return;
   }
-
   const poDetailsResults = await Promise.all(paginatedData.map((po) => fetchPoDetails(po.poNo)));
-
   const detailsMap: Record<string, PoDetailItem[]> = {};
   paginatedData.forEach((po, index) => {
     const rawInvoices = poDetailsResults[index] || [];
     detailsMap[po.poNo] = filterInvoicesByDateRange(rawInvoices, fromDate, toDate);
   });
-
   const workbook = new ExcelJS.Workbook();
   const worksheet = workbook.addWorksheet('PO & Invoice Details');
-
   worksheet.columns = [
     { header: 'PO No', key: 'recordIdentifier', width: 34 },
     { header: 'PO Date', key: 'poDate', width: 22 },
-
     { header: 'PO Amount', key: 'poOrderValue', width: 26 },
     { header: 'PO Type (Capex/Opex)', key: 'poType', width: 24 },
     { header: 'Unit', key: 'unit', width: 20 },
@@ -115,7 +105,6 @@ export const exportPaginatedPoExcel = async (paginatedData: MainPoRow[], fromDat
     fgColor: { argb: '0F172A' },
   };
   headerRow.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
-
   const thinBorder: Partial<ExcelJS.Borders> = {
     top: { style: 'thin', color: { argb: 'CBD5E1' } },
     left: { style: 'thin', color: { argb: 'CBD5E1' } },
@@ -130,7 +119,6 @@ export const exportPaginatedPoExcel = async (paginatedData: MainPoRow[], fromDat
       poType: po.poType || '-',
       unit: po.unit || '-',
       bankPayment: po.bankPayment ?? 0,
-
       cgstAmount: po.cgstAmount ?? 0,
       cgsttds: po.cgsttds ?? 0,
       sgstAmount: po.sgstAmount ?? 0,
@@ -139,7 +127,6 @@ export const exportPaginatedPoExcel = async (paginatedData: MainPoRow[], fromDat
       igsttds: po.igsttds ?? 0,
       ittds: po.itTds ?? 0,
     });
-
     mainRow.height = 30;
     mainRow.font = { bold: true, color: { argb: '0F172A' }, size: 11.5 };
     mainRow.fill = {
@@ -147,7 +134,6 @@ export const exportPaginatedPoExcel = async (paginatedData: MainPoRow[], fromDat
       pattern: 'solid',
       fgColor: { argb: 'C7D2FE' },
     };
-
     mainRow.eachCell((cell) => {
       cell.border = {
         top: { style: 'medium', color: { argb: '475569' } },
@@ -157,9 +143,7 @@ export const exportPaginatedPoExcel = async (paginatedData: MainPoRow[], fromDat
       };
       cell.alignment = { vertical: 'middle' };
     });
-
     const invoices = detailsMap[po.poNo] || [];
-
     if (invoices.length > 0) {
       const subHeaderRow = worksheet.addRow({
         recordIdentifier: '   ↳ Invoice Number',
@@ -174,20 +158,17 @@ export const exportPaginatedPoExcel = async (paginatedData: MainPoRow[], fromDat
         igsttds: 'IGST TDS',
         ittds: 'IT TDS',
       });
-
       subHeaderRow.height = 26;
       subHeaderRow.font = { bold: true, color: { argb: '1E293B' }, size: 11 };
       subHeaderRow.fill = {
         type: 'pattern',
         pattern: 'solid',
-        fgColor: { argb: 'E2E8F0' }, // Light Gray Sub-Header fill
+        fgColor: { argb: 'E2E8F0' }, 
       };
-
       subHeaderRow.eachCell((cell) => {
         cell.border = thinBorder;
         cell.alignment = { vertical: 'middle' };
       });
-
       invoices.forEach((inv) => {
         const subRow = worksheet.addRow({
           recordIdentifier: `     ${inv.invoice}`,
@@ -202,7 +183,6 @@ export const exportPaginatedPoExcel = async (paginatedData: MainPoRow[], fromDat
           igsttds: inv.igsttds ?? 0,
           ittds: inv.ittds ?? 0,
         });
-
         subRow.height = 26;
         subRow.font = { italic: true, color: { argb: '334155' }, size: 11 };
         subRow.fill = {
@@ -210,7 +190,6 @@ export const exportPaginatedPoExcel = async (paginatedData: MainPoRow[], fromDat
           pattern: 'solid',
           fgColor: { argb: 'F8FAFC' },
         };
-
         subRow.eachCell((cell) => {
           cell.border = thinBorder;
           cell.alignment = { vertical: 'middle' };
@@ -220,11 +199,9 @@ export const exportPaginatedPoExcel = async (paginatedData: MainPoRow[], fromDat
   });
 
   const numericKeys = ['poOrderValue', 'bankPayment', 'cgstAmount', 'cgsttds', 'sgstAmount', 'sgsttds', 'igstAmount', 'igsttds', 'ittds'];
-
   worksheet.eachRow((row, rowNumber) => {
     if (rowNumber === 1) return;
-
-    const firstCellVal = String(row.getCell('recordIdentifier').value || '');
+    const firstCellVal = String(row.getCell('recordIdentifier').value as any);
     if (firstCellVal.includes('↳ Invoice Number')) {
       numericKeys.forEach((key) => {
         row.getCell(key).alignment = { horizontal: 'right', vertical: 'middle' };
@@ -233,7 +210,6 @@ export const exportPaginatedPoExcel = async (paginatedData: MainPoRow[], fromDat
     }
     row.getCell('poOrderValue').numFmt = '₹#,##0.00';
     row.getCell('bankPayment').numFmt = '₹#,##0.00';
-
     ['cgstAmount', 'cgsttds', 'sgstAmount', 'sgsttds', 'igstAmount', 'igsttds', 'ittds'].forEach((key) => {
       row.getCell(key).numFmt = '#,##0.00';
     });
