@@ -13,7 +13,7 @@ export interface MainPoRow {
   bankPayment?: number;
   itTds?: number;
   cgst?: number;
-  scgst?: number;
+  sgst?: number;
   igst?: number;
   cgstTds?: number;
   sgstTds?: number;
@@ -91,18 +91,19 @@ export const exportPaginatedPoExcel = async (paginatedData: MainPoRow[], fromDat
 
   worksheet.columns = [
     { header: 'PO No', key: 'recordIdentifier', width: 34 },
+    { header: 'PO Date', key: 'poDate', width: 22 },
+
     { header: 'PO Amount', key: 'poOrderValue', width: 26 },
     { header: 'PO Type (Capex/Opex)', key: 'poType', width: 24 },
     { header: 'Unit', key: 'unit', width: 20 },
     { header: 'Bank Payment', key: 'bankPayment', width: 24 },
-    { header: 'PO Date', key: 'poDate', width: 22 },
-    { header: 'IT TDS', key: 'itTds', width: 18 },
-    { header: 'CGST', key: 'cgst', width: 18 },
-    { header: 'SGST / SCGST', key: 'scgst', width: 18 },
-    { header: 'IGST', key: 'igst', width: 18 },
-    { header: 'CGST TDS', key: 'cgstTds', width: 18 },
-    { header: 'SGST TDS', key: 'sgstTds', width: 18 },
-    { header: 'IGST TDS', key: 'igstTds', width: 18 },
+    { header: 'CGST', key: 'cgstAmount', width: 18 },
+    { header: 'CGST TDS', key: 'cgsttds', width: 18 },
+    { header: 'SGST', key: 'sgstAmount', width: 18 },
+    { header: 'SGST TDS', key: 'sgsttds', width: 18 },
+    { header: 'IGST', key: 'igstAmount', width: 18 },
+    { header: 'IGST TDS', key: 'igsttds', width: 18 },
+    { header: 'IT TDS', key: 'ittds', width: 18 },
   ];
 
   const headerRow = worksheet.getRow(1);
@@ -124,18 +125,19 @@ export const exportPaginatedPoExcel = async (paginatedData: MainPoRow[], fromDat
   paginatedData.forEach((po) => {
     const mainRow = worksheet.addRow({
       recordIdentifier: po.poNo,
+      poDate: formatDate(po.poDate) || '-',
       poOrderValue: po.poOrderValue ?? 0,
       poType: po.poType || '-',
       unit: po.unit || '-',
       bankPayment: po.bankPayment ?? 0,
-      poDate: formatDate(po.poDate) || '-',
-      itTds: po.itTds ?? 0,
-      cgst: po.cgst ?? 0,
-      scgst: po.scgst ?? 0,
-      igst: po.igst ?? 0,
-      cgstTds: po.cgstTds ?? 0,
-      sgstTds: po.sgstTds ?? 0,
-      igstTds: po.igstTds ?? 0,
+
+      cgstAmount: po.cgstAmount ?? 0,
+      cgsttds: po.cgsttds ?? 0,
+      sgstAmount: po.sgstAmount ?? 0,
+      sgsttds: po.sgsttds ?? 0,
+      igstAmount: po.igstAmount ?? 0,
+      igsttds: po.igsttds ?? 0,
+      ittds: po.itTds ?? 0,
     });
 
     mainRow.height = 30;
@@ -162,17 +164,15 @@ export const exportPaginatedPoExcel = async (paginatedData: MainPoRow[], fromDat
       const subHeaderRow = worksheet.addRow({
         recordIdentifier: '   ↳ Invoice Number',
         poOrderValue: 'Invoice Value',
-        poType: '-',
-        unit: '-',
         bankPayment: 'Bank Payment',
         poDate: 'Payment Date',
-        itTds: 'IT TDS',
-        cgst: 'CGST',
-        scgst: 'SGST',
-        igst: 'IGST',
-        cgstTds: 'CGST TDS',
-        sgstTds: 'SGST TDS',
-        igstTds: 'IGST TDS',
+        cgstAmount: 'CGST',
+        cgsttds: 'CGST TDS',
+        sgstAmount: 'SGST',
+        sgsttds: 'SGST TDS',
+        igstAmount: 'IGST',
+        igsttds: 'IGST TDS',
+        ittds: 'IT TDS',
       });
 
       subHeaderRow.height = 26;
@@ -192,17 +192,15 @@ export const exportPaginatedPoExcel = async (paginatedData: MainPoRow[], fromDat
         const subRow = worksheet.addRow({
           recordIdentifier: `     ${inv.invoice}`,
           poOrderValue: inv.invoiceValue ?? 0,
-          poType: '-',
-          unit: '-',
           bankPayment: inv.bankPayment ?? 0,
           poDate: formatDate(inv.augdt) || '-',
-          itTds: inv.ittds ?? 0,
-          cgst: inv.cgstAmount ?? 0,
-          scgst: inv.sgstAmount ?? 0,
-          igst: inv.igstAmount ?? 0,
-          cgstTds: inv.cgsttds ?? 0,
-          sgstTds: inv.sgsttds ?? 0,
-          igstTds: inv.igsttds ?? 0,
+          cgstAmount: inv.cgstAmount ?? 0,
+          cgsttds: inv.cgsttds ?? 0,
+          sgstAmount: inv.sgstAmount ?? 0,
+          sgsttds: inv.sgsttds ?? 0,
+          igstAmount: inv.igstAmount ?? 0,
+          igsttds: inv.igsttds ?? 0,
+          ittds: inv.ittds ?? 0,
         });
 
         subRow.height = 26;
@@ -221,7 +219,7 @@ export const exportPaginatedPoExcel = async (paginatedData: MainPoRow[], fromDat
     }
   });
 
-  const numericKeys = ['poOrderValue', 'bankPayment', 'itTds', 'cgst', 'scgst', 'igst', 'cgstTds', 'sgstTds', 'igstTds'];
+  const numericKeys = ['poOrderValue', 'bankPayment', 'cgstAmount', 'cgsttds', 'sgstAmount', 'sgsttds', 'igstAmount', 'igsttds', 'ittds'];
 
   worksheet.eachRow((row, rowNumber) => {
     if (rowNumber === 1) return;
@@ -233,22 +231,17 @@ export const exportPaginatedPoExcel = async (paginatedData: MainPoRow[], fromDat
       });
       return;
     }
-
-    // Currency Formatting (₹ X,XX,XXX.XX)
     row.getCell('poOrderValue').numFmt = '₹#,##0.00';
     row.getCell('bankPayment').numFmt = '₹#,##0.00';
 
-    ['itTds', 'cgst', 'scgst', 'igst', 'cgstTds', 'sgstTds', 'igstTds'].forEach((key) => {
+    ['cgstAmount', 'cgsttds', 'sgstAmount', 'sgsttds', 'igstAmount', 'igsttds', 'ittds'].forEach((key) => {
       row.getCell(key).numFmt = '#,##0.00';
     });
-
-    // Right Alignment for numbers
     numericKeys.forEach((key) => {
       row.getCell(key).alignment = { horizontal: 'right', vertical: 'middle' };
     });
   });
 
-  // 6. Generate File Download
   const buffer = await workbook.xlsx.writeBuffer();
   saveAs(new Blob([buffer]), `PO_Invoice_Report_${Date.now()}.xlsx`);
 };
