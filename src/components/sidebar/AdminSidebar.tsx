@@ -14,26 +14,7 @@ export function AdminSidebar(props: React.ComponentProps<typeof Sidebar>) {
   const { state, toggleSidebar } = useSidebar();
   const { Roles } = useAppSelector((state: RootState) => state.user);
   const navigate = useNavigate();
-  const data: NavItem[] = [
-    {
-      title: 'Admin Dashboard',
-      url: '/admin-dashboard',
-      icon: LayoutDashboard,
-      roles: ['superAdmin', 'EmployeeAssigningAuthority'],
-    },
-    {
-      title: 'Manage Admin',
-      url: '/manage-admin',
-      icon: LayoutDashboard,
-      roles: ['superAdmin'],
-    },
-    {
-      title: 'Request Recieved',
-      url: '/reporting-request-recieved',
-      icon: Inbox,
-      roles: ['user'],
-    },
-  ];
+  const data: NavItem[] = [];
 
   const navMainItems = data.filter((item) => item.roles.some((role) => Roles.includes(role)));
   const handleLogout = () => {

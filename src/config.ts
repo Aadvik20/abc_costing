@@ -1,6 +1,5 @@
 const DFCCIL_UAT = {
   apiUrl: 'https://uatopenpoapi.dfccil.com/api',
-  TRANSFER_apiUrl: 'https://uattransferapi.dfccil.com/api',
   orgHierarchy: 'https://uatorganization.dfccil.com/api',
   logoutUrl: 'https://uat.dfccil.com/DfcHome',
   exitUrl: 'https://uatlogin.dfccil.com/applications',
@@ -13,7 +12,6 @@ const DFCCIL_UAT = {
 
 const DFCCIL_PROD = {
   apiUrl: 'https://uatquarterapi.dfccil.com/api',
-  TRANSFER_apiUrl: 'https://uattransferapi.dfccil.com/api',
   orgHierarchy: 'https://orgsvc.dfccil.com/api',
   logoutUrl: 'https://it.dfccil.com/Home/Home',
   exitUrl: 'https://dashboard.dfccil.com/applications',
@@ -23,8 +21,6 @@ const DFCCIL_PROD = {
   redirectPath: 'dashboard',
   applicationId: 4,
 };
-
-// https://github.com/DfccilIT/TransferModuleFrontEnd.git
 
 export const environment = DFCCIL_UAT;
 

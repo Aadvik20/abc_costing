@@ -6,35 +6,12 @@ import { environment } from '@/config';
 import { useAppSelector } from '@/app/hooks';
 import { RootState } from '@/app/store';
 const ErrorFallbackUI = () => {
-  const { EmpCode } = useAppSelector((state: RootState) => state.user);
   const handleRefresh = () => {
     window.location.reload();
   };
-  const handleSaveLog = async () => {
-    try {
-      const response = await axios.post(`${environment.orgHierarchy}/Logger/SaveLog`, {
-        appPlatform: 1,
-        appName: 'Transfer_Module_React',
-        eventName: 'string',
-        message: 'Something went wrong',
-        errorSeverity: 1,
-        user_code: EmpCode,
-        ip: 'string',
-        endpoint: 'string',
-        status_code: 0,
-        requestJSON: 'string',
-        isNotify_Admin: true,
-      });
-      console.log(response.data, 'response from the Error Fall Back');
-    } catch (err) {
-      console.log(err);
-    }
-  };
-  useEffect(() => {
-    handleSaveLog();
-  }, []);
+
   const handleGoHome = () => {
-    window.location.href = 'transfer-request';
+    window.location.href = 'dashboard';
   };
 
   return (

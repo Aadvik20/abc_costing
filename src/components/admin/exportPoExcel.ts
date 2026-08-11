@@ -1,5 +1,5 @@
 import { formatDate } from '@/lib/helperFunction';
-import TransferAxiosInstance from '@/services/TransferAxiosInstance';
+import axiosInstance from '@/services/axiosInstance';
 import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 export interface MainPoRow {
@@ -58,7 +58,7 @@ const filterInvoicesByDateRange = (invoices: PoDetailItem[], fromDate?: string |
 };
 const fetchPoDetails = async (poNo: string): Promise<PoDetailItem[]> => {
   try {
-    const res = await TransferAxiosInstance.get(`/SapPo/details/${poNo}`);
+    const res = await axiosInstance.get(`/SapPo/details/${poNo}`);
     const data = await res.data;
     return Array.isArray(data) ? data : [];
   } catch (err) {

@@ -16,20 +16,12 @@ export interface UserState {
   Roles: Number[];
   name: string | null;
   EmpCode: string | null;
-  personnelSubArea: string | null;
   Designation: string | null;
   Unit: string | null;
-  unitId: string | null;
-  Lavel: string | null;
   Department: string | null;
-  Mobile: string | null;
-  Email: string | null;
   employeeMasterAutoId: number | null;
-  exp: number | null;
   loading: boolean;
   error: string | null;
-  reportingOfficer: string | null;
-  roleAssigned: any[];
 
   units: UnitOption[];
   departments: DepartmentOption[];
@@ -39,36 +31,15 @@ export interface UserState {
   delegatedApplications?: string | null;
   delegatedApplicationNames?: string | null;
 }
-interface RoleUnit {
-  unitId: string;
-  unitName: string;
-  departments: string[];
-}
-
-interface AssignedRole {
-  roleAssign: string;
-  units: RoleUnit[];
-}
 
 interface ProfileResponse {
   data: {
     empId: number;
     empCode: string;
     name: string;
-    email: string;
-    mobile: string;
     designation: string;
     unit: string;
-    unitId: number;
     department: string;
-    level: string;
-
-    qRoles: {
-      roleAssign: string;
-      units: unknown[]; // empty array in response, keeping flexible
-    }[];
-
-    globelAssigndRolesAndUnits: AssignedRole[];
   };
 }
 
@@ -78,39 +49,30 @@ const initialState: UserState = {
   EmpCode: null,
   Designation: null,
   Unit: null,
-  unitId: null,
-  Lavel: null,
   Department: null,
-  Mobile: null,
-  personnelSubArea: null,
-  Email: null,
-  exp: null,
-  reportingOfficer: null,
   loading: false,
   error: null,
   employeeMasterAutoId: null,
-  roleAssigned: [],
-
   units: [],
   departments: [],
-
   isDelegatedUser: false,
   delegateeEmpCode: null,
   delegatedApplications: null,
   delegatedApplicationNames: null,
 };
 
-export const fetchUserProfile = createAsyncThunk('user/fetchUserProfile', async (_, { rejectWithValue }) => {
+export const fetchUserProfile = createAsyncThunk('/Account/profile', async (_, { rejectWithValue }) => {
   try {
-    const response = await axiosInstance.get<ProfileResponse>('/User/GetProfile');
-    const data: any = response.data;
+    const response = await axiosInstance.get<ProfileResponse>('/Account/profile');
+    console.log(response, 'response');
+    const data: any = response.data.data;
     if (data.error) {
       throw new Error(data.errorDetail || 'Unknown error occurred');
     }
 
     const delegationInfo = getDelegationInfoFromSession();
     data.data = {
-      ...data.employeeInfo,
+      ...data,
       roles: data.roles,
       ...delegationInfo,
     };
@@ -141,46 +103,13 @@ const userSlice = createSlice({
       .addCase(fetchUserProfile.fulfilled, (state, action) => {
         state.loading = false;
         const { data } = action.payload || {};
-        console.log(data, 'data from user slid');
+        console.log(data, 'data');
         state.EmpCode = data?.employeeCode || '';
         state.name = data?.userName || '';
         state.Designation = data?.designation || '';
         state.Unit = data?.location || '';
-        state.unitId = String(data?.unitId);
         state.Department = data?.deptDfccil || '';
-        state.Lavel = data?.level || '';
-        state.Mobile = data?.mobile || '';
-        state.Email = data?.emailAddress || '';
-        const roles: any = Array.isArray(data.roles) ? Array.from(new Set(data.roles.map((r: any) => r.roleId))) : [];
-        const units = Array.isArray(data.roles)
-          ? data.roles.flatMap((role: any) =>
-              role.units.map((u: any) => ({
-                value: String(u.unitId),
-                label: u.unitName,
-              }))
-            )
-          : [];
-        const departments = Array.isArray(data.roles)
-          ? Array.from(
-              new Map(
-                data.roles.flatMap((role: any) =>
-                  (role.units || []).flatMap((u: any) =>
-                    (u.departments || []).map((d: any) => [
-                      d.depId,
-                      {
-                        value: d.depId,
-                        label: d.depName,
-                      },
-                    ])
-                  )
-                )
-              ).values()
-            )
-          : [];
-        state.units = units;
-        state.departments = departments as DepartmentOption[];
-        state.Roles = roles.length ? [...roles, -1] : [-1];
-        state.roleAssigned = data.roles;
+        state.Roles = [-1];
       });
   },
 });

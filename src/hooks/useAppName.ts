@@ -14,6 +14,6 @@ export const useAppName = () => {
     hindiName: currentApplication.hindiName,
     description: currentApplication.description,
     fullName: `${currentApplication.hindiName}  ${currentApplication.name}`,
-    fullDescription: `${currentApplication.hindiName} / ${currentApplication.name} || DFCCIL`,
+    fullDescription: `${currentApplication.hindiName}  ${currentApplication.name} || DFCCIL`,
   };
 };

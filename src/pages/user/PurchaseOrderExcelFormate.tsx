@@ -4,9 +4,9 @@ import Loader from '@/components/ui/loader';
 import PoDetailsContent from '@/components/dailogs/PoDetailsContent';
 import { formatDate, formatDecimal, formatRupees } from '@/lib/helperFunction';
 import { ChevronDown, ChevronRight, Download, Loader2 } from 'lucide-react';
-import TransferAxiosInstance from '@/services/TransferAxiosInstance';
 import { useSearchParams } from 'react-router';
 import { exportPaginatedPoExcel } from '@/components/admin/exportPoExcel';
+import axiosInstance from '@/services/axiosInstance';
 
 export interface PurchaseOrderRow {
   srNo?: number;
@@ -110,6 +110,8 @@ const PurchaseOrderExcelFormate: React.FC = () => {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [pageSize, setPageSize] = useState<number>(25);
   const [exporting, setExporting] = useState(false);
+  const [clubbedPo, setClubbedPo] = useState<PurchaseOrderRow[]>([]);
+  const [showClubbedPo, setShowClubbedPo] = useState(false);
 
   const handleFromDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -154,9 +156,10 @@ const PurchaseOrderExcelFormate: React.FC = () => {
       if (fromDate && toDate) {
         url += `?fromDate=${fromDate}&toDate=${toDate}`;
       }
-      const res = await TransferAxiosInstance.get(url);
+      const res = await axiosInstance.get(url);
       setData(res.data.data ?? []);
       setUnits(res.data.units ?? []);
+      setClubbedPo(res.data.clubbedPo ?? []);
       setError(null);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to fetch Purchase Order data.';
@@ -238,11 +241,16 @@ const PurchaseOrderExcelFormate: React.FC = () => {
     setCurrentPage(1);
   }, [selectedUnit, searchQuery]);
 
-  const totalPages = Math.ceil(filteredData.length / pageSize) || 1;
+  const displayData = useMemo(() => {
+    return showClubbedPo ? clubbedPo : filteredData;
+  }, [showClubbedPo, clubbedPo, filteredData]);
+
+  const totalPages = Math.ceil(displayData.length / pageSize) || 1;
+
   const paginatedData = useMemo(() => {
     const start = (currentPage - 1) * pageSize;
-    return filteredData.slice(start, start + pageSize);
-  }, [filteredData, currentPage, pageSize]);
+    return displayData.slice(start, start + pageSize);
+  }, [displayData, currentPage, pageSize]);
 
   const handleResetFilters = () => {
     setSelectedUnit('');
@@ -258,8 +266,9 @@ const PurchaseOrderExcelFormate: React.FC = () => {
     setCurrentPage(1);
   };
 
-  const startIndex = filteredData.length === 0 ? 0 : (currentPage - 1) * pageSize + 1;
-  const endIndex = Math.min(currentPage * pageSize, filteredData.length);
+  const startIndex = displayData.length === 0 ? 0 : (currentPage - 1) * pageSize + 1;
+
+  const endIndex = Math.min(currentPage * pageSize, displayData.length);
   const isAllPageExpanded = useMemo(() => {
     if (!paginatedData || paginatedData.length === 0) return false;
     return paginatedData.every((row) => row.poNo && expandedPoNumbers.has(row.poNo));
@@ -371,50 +380,110 @@ const PurchaseOrderExcelFormate: React.FC = () => {
           </div>
         )}
       </div>
-      <div className="flex items-center justify-end gap-3">
-        <button
-          disabled={paginatedData.length === 0}
-          type="button"
-          aria-label={isAllPageExpanded ? 'Collapse all on page' : 'Expand all on page'}
-          onClick={() => {
-            if (isAllPageExpanded) {
-              collapseAllRows(paginatedData);
-            } else {
-              expandAllRows(paginatedData);
-            }
-          }}
-          className="inline-flex items-center gap-2 px-3.5 py-2 bg-slate-800 hover:bg-slate-900 active:bg-slate-950 text-white font-semibold text-sm rounded-lg shadow-sm border border-slate-700/60 transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-1"
-        >
-          {isAllPageExpanded ? (
-            <>
-              <ChevronDown className="h-4 w-4 text-slate-300" />
-              <span>Collapse All</span>
-            </>
-          ) : (
-            <>
-              <ChevronRight className="h-4 w-4 text-slate-300" />
-              <span>Expand All</span>
-            </>
-          )}
-        </button>
-        <button
-          type="button"
-          onClick={handleExportPage}
-          disabled={exporting || !paginatedData.length}
-          className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-semibold text-sm rounded-lg shadow-sm transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-emerald-600"
-        >
-          {exporting ? (
-            <>
-              <Loader2 className="h-4 w-4 text-white animate-spin" />
-              <span>Generating Excel...</span>
-            </>
-          ) : (
-            <>
-              <Download className="h-4 w-4 text-white" />
-              <span>Export Excel</span>
-            </>
-          )}
-        </button>
+      <div className="flex items-center justify-between gap-3">
+        <div className="inline-flex items-center rounded-xl bg-slate-200/60 p-1 border border-slate-300/80 shadow-inner">
+          {/* Non-Clubbed Button */}
+          <button
+            type="button"
+            onClick={() => {
+              if (showClubbedPo) {
+                setShowClubbedPo(false);
+                setCurrentPage(1);
+                setExpandedPoNumbers(new Set());
+              }
+            }}
+            className={`group relative inline-flex items-center gap-2 px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all duration-200 ${
+              !showClubbedPo ? 'bg-white text-emerald-900 shadow-sm ring-1 ring-emerald-500/30' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-300/40'
+            }`}
+          >
+            {/* Subtle indicator dot */}
+            {!showClubbedPo && <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />}
+            <span>Non-Clubbed</span>
+
+            <span
+              className={`min-w-[20px] h-4 px-1.5 inline-flex items-center justify-center rounded-full text-[10px] font-extrabold transition-colors ${
+                !showClubbedPo ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-300/80 text-slate-700 group-hover:bg-slate-400/50'
+              }`}
+            >
+              {data.length}
+            </span>
+          </button>
+
+          {/* Clubbed Button */}
+          <button
+            type="button"
+            onClick={() => {
+              if (!showClubbedPo) {
+                setShowClubbedPo(true);
+                setCurrentPage(1);
+                setExpandedPoNumbers(new Set());
+              }
+            }}
+            disabled={clubbedPo.length === 0}
+            className={`group relative inline-flex items-center gap-2 px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all duration-200 ${
+              showClubbedPo
+                ? 'bg-blue-600 text-white shadow-md shadow-blue-500/25 ring-1 ring-blue-500/30'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-300/40'
+            } disabled:opacity-40 disabled:cursor-not-allowed`}
+          >
+            {/* Subtle indicator dot */}
+            {showClubbedPo && <span className="h-1.5 w-1.5 rounded-full bg-blue-200 animate-pulse" />}
+            <span>Clubbed</span>
+
+            <span
+              className={`min-w-[20px] h-4 px-1.5 inline-flex items-center justify-center rounded-full text-[10px] font-extrabold transition-colors ${
+                showClubbedPo ? 'bg-white/25 text-white' : 'bg-blue-100 text-blue-800 group-hover:bg-blue-200/80'
+              }`}
+            >
+              {clubbedPo.length}
+            </span>
+          </button>
+        </div>
+        <div className="flex gap-3">
+          <button
+            disabled={paginatedData.length === 0}
+            type="button"
+            aria-label={isAllPageExpanded ? 'Collapse all on page' : 'Expand all on page'}
+            onClick={() => {
+              if (isAllPageExpanded) {
+                collapseAllRows(paginatedData);
+              } else {
+                expandAllRows(paginatedData);
+              }
+            }}
+            className="inline-flex items-center gap-2 px-3.5 py-2 bg-slate-800 hover:bg-slate-900 active:bg-slate-950 text-white font-semibold text-sm rounded-lg shadow-sm border border-slate-700/60 transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-1"
+          >
+            {isAllPageExpanded ? (
+              <>
+                <ChevronDown className="h-4 w-4 text-slate-300" />
+                <span>Collapse All</span>
+              </>
+            ) : (
+              <>
+                <ChevronRight className="h-4 w-4 text-slate-300" />
+                <span>Expand All</span>
+              </>
+            )}
+          </button>
+          <button
+            type="button"
+            onClick={handleExportPage}
+            disabled={exporting || !paginatedData.length}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-semibold text-sm rounded-lg shadow-sm transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-emerald-600"
+          >
+            {exporting ? (
+              <>
+                <Loader2 className="h-4 w-4 text-white animate-spin" />
+                <span>Generating Excel...</span>
+              </>
+            ) : (
+              <>
+                <Download className="h-4 w-4 text-white" />
+                <span>Export Excel</span>
+              </>
+            )}
+          </button>
+        </div>
       </div>
 
       {loading && <Loader />}
@@ -497,7 +566,7 @@ const PurchaseOrderExcelFormate: React.FC = () => {
 
               <div>
                 Showing <span className="font-bold">{startIndex}</span> to <span className="font-bold">{endIndex}</span> of{' '}
-                <span className="font-bold">{filteredData.length}</span> entries
+                <span className="font-bold">{displayData.length}</span> entries
               </div>
             </div>
             <div className="flex items-center gap-2 w-full sm:w-auto justify-center sm:justify-end">

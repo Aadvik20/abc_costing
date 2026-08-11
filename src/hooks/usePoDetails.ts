@@ -1,4 +1,4 @@
-import TransferAxiosInstance from '@/services/TransferAxiosInstance';
+import axiosInstance from '@/services/axiosInstance';
 import { useState, useEffect, useCallback } from 'react';
 export interface PoDetailItem {
   poNo: string;
@@ -40,7 +40,7 @@ export const usePoDetails = (poNumber?: string | number): UsePoDetailsReturn => 
     setError(null);
 
     try {
-      const response = await TransferAxiosInstance.get(`/SapPo/details/${poNumber}`);
+      const response = await axiosInstance.get(`/SapPo/details/${poNumber}`);
       setData(response.data || []);
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'An error occurred while fetching PO details.';

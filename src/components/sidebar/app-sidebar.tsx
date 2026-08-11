@@ -9,73 +9,19 @@ import { NavItem } from '@/types/types';
 import { Separator } from '../ui/separator';
 import { useAppSelector } from '@/app/hooks';
 import { RootState } from '@/app/store';
- 
+
 export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   const navigate = useNavigate();
   const { state, toggleSidebar } = useSidebar();
   const { Roles } = useAppSelector((state: RootState) => state.user);
   const canAccessAdminDashboard = false;
   const allNavItems: NavItem[] = [
-    // {
-    //   title: 'Purchase Order',
-    //   url: '/purchaseOrder',
-    //   icon: Home,
-    //   roles: [2, 0], // pouser
-    // },
     {
       title: 'Purchase Order',
       url: '/purchaseOrder',
       icon: Home,
-      roles: [2, 0,-1], // pouser
+      roles: [-1], //user
     },
-    // {
-    //   title: 'Demand Budget',
-    //   url: '/budgetDemand',
-    //   icon: Landmark,
-    //   roles: [2, 0], // pouser
-    // },
-    // {
-    //   title: 'Purchase Order V2',
-    //   url: '/purchaseOrderv2',
-    //   icon: Home,
-    //   roles: [2, 0], // pouser
-    // },
-    // {
-    //   title: 'Finance V2',
-    //   url: '/financeV2',
-    //   icon: Landmark,
-    //   roles: [1, 0], // financeAdmin
-    // },
-    // {
-    //   title: 'Budget Approval',
-    //   url: '/approvalRequestsCgm',
-    //   icon: Inbox,
-    //   roles: [1000, 0], // cgm
-    // },
-    // {
-    //   title: 'Budget Approval',
-    //   url: '/approvalRequestshod',
-    //   icon: Inbox,
-    //   roles: [2000, 0], // ggm , gm
-    // },
-    // {
-    //   title: 'Finance',
-    //   url: '/Finance',
-    //   icon: Landmark,
-    //   roles: [1, 0], // financeAdmin
-    // },
-    // {
-    //   title: 'Budget Approval',
-    //   url: '/budgetApproveFinance',
-    //   icon: Inbox,
-    //   roles: [1, 0], // financeAdmin
-    // },
-    // {
-    //   title: 'Category List',
-    //   url: '/listofcategory/subcategory',
-    //   icon: ClipboardList,
-    //   roles: [0], // superAdmin
-    // },
   ];
 
   const navMainItems = allNavItems.filter((item) => item.roles.some((role) => Roles.includes(role)));

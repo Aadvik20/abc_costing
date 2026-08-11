@@ -19,8 +19,6 @@ const rootReducer = combineReducers({
   user: userReducer,
   applications: applicationsReducer,
   tokenData: tokenDataReduer,
-  poSlice: poSlicereducer,
-  FinanceSlice: FinanceSlicereducer,
   masterData: masterDatareducer,
 });
 
