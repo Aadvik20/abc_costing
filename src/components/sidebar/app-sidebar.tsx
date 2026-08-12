@@ -22,6 +22,12 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
       icon: Home,
       roles: [-1], //user
     },
+    {
+      title: 'Purchase Order V2',
+      url: '/purchaseOrderV2',
+      icon: Home,
+      roles: [-1], //user
+    },
   ];
 
   const navMainItems = allNavItems.filter((item) => item.roles.some((role) => Roles.includes(role)));

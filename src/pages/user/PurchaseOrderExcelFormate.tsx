@@ -111,7 +111,8 @@ const PurchaseOrderExcelFormate: React.FC = () => {
   const [pageSize, setPageSize] = useState<number>(25);
   const [exporting, setExporting] = useState(false);
   const [clubbedPo, setClubbedPo] = useState<PurchaseOrderRow[]>([]);
-  const [showClubbedPo, setShowClubbedPo] = useState(false);
+  const [nonPo, setNonPo] = useState<PurchaseOrderRow[]>([]);
+  const [selectedPoType, setSelectedPoType] = useState<'non-clubbed' | 'clubbed' | 'non-po'>('non-clubbed');
 
   const handleFromDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -160,6 +161,7 @@ const PurchaseOrderExcelFormate: React.FC = () => {
       setData(res.data.data ?? []);
       setUnits(res.data.units ?? []);
       setClubbedPo(res.data.clubbedPo ?? []);
+      setNonPo(res?.data.sapNonPo ?? []);
       setError(null);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to fetch Purchase Order data.';
@@ -218,32 +220,65 @@ const PurchaseOrderExcelFormate: React.FC = () => {
       return next;
     });
   }, []);
-  const filteredData = useMemo(() => {
-    return data.filter((row) => {
-      if (selectedUnit && row.unit !== selectedUnit) return false;
-      if (searchQuery.trim() !== '') {
-        const query = searchQuery.toLowerCase();
-        return Object.values(row).some((val) => {
-          if (val == null) {
-            return false;
-          }
-          if (typeof val === 'string' || typeof val === 'number' || typeof val === 'boolean') {
-            return val.toString().toLowerCase().includes(query);
-          }
-          return false;
-        });
-      }
-      return true;
-    });
-  }, [data, selectedUnit, searchQuery]);
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [selectedUnit, searchQuery]);
+  }, [selectedUnit, searchQuery, selectedPoType]);
+
+  const applyFilters = useCallback(
+    (rows: PurchaseOrderRow[]) => {
+      return rows.filter((row) => {
+        // Unit filter
+        if (selectedUnit && row.unit !== selectedUnit) {
+          return false;
+        }
+
+        // Search filter
+        if (searchQuery.trim()) {
+          const query = searchQuery.trim().toLowerCase();
+
+          const matchesSearch = Object.values(row).some((val) => {
+            if (val == null) return false;
+
+            if (typeof val === 'string' || typeof val === 'number' || typeof val === 'boolean') {
+              return val.toString().toLowerCase().includes(query);
+            }
+
+            return false;
+          });
+
+          if (!matchesSearch) {
+            return false;
+          }
+        }
+
+        return true;
+      });
+    },
+    [selectedUnit, searchQuery]
+  );
+
+  const filteredData = useMemo(() => {
+    return applyFilters(data);
+  }, [data, applyFilters]);
+
+  const filteredClubbedPo = useMemo(() => {
+    return applyFilters(clubbedPo);
+  }, [clubbedPo, applyFilters]);
+
+  const filteredNonPo = useMemo(() => {
+    return applyFilters(nonPo);
+  }, [nonPo, applyFilters]);
 
   const displayData = useMemo(() => {
-    return showClubbedPo ? clubbedPo : filteredData;
-  }, [showClubbedPo, clubbedPo, filteredData]);
+    if (selectedPoType === 'clubbed') {
+      return filteredClubbedPo;
+    }
+    if (selectedPoType === 'non-po') {
+      return filteredNonPo;
+    }
+    return filteredData;
+  }, [selectedPoType, filteredClubbedPo, filteredData, filteredNonPo]);
 
   const totalPages = Math.ceil(displayData.length / pageSize) || 1;
 
@@ -278,24 +313,26 @@ const PurchaseOrderExcelFormate: React.FC = () => {
       <h1 className="text-xl sm:text-2xl font-extrabold text-gray-900 tracking-tight">Purchase Order Excel Format</h1>
       <div className="p-4 sm:p-5 bg-white rounded-xl shadow-sm border border-gray-200 space-y-3">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3 items-end">
-          <div className="lg:col-span-3">
-            <label htmlFor="unit-select" className="block text-xs font-semibold text-gray-700 mb-1">
-              Unit <span className="text-gray-400 font-normal">(Instant Filter)</span>
-            </label>
-            <select
-              id="unit-select"
-              value={selectedUnit}
-              onChange={(e) => setSelectedUnit(e.target.value)}
-              className="w-full h-10 px-3 border border-gray-300 rounded-lg text-sm font-medium text-gray-800 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition"
-            >
-              <option value="">All Units</option>
-              {units.map((unit) => (
-                <option key={unit} value={unit}>
-                  {unit}
-                </option>
-              ))}
-            </select>
-          </div>
+          {data.length > 0 && (
+            <div className="lg:col-span-3">
+              <label htmlFor="unit-select" className="block text-xs font-semibold text-gray-700 mb-1">
+                Unit <span className="text-gray-400 font-normal">(Instant Filter)</span>
+              </label>
+              <select
+                id="unit-select"
+                value={selectedUnit}
+                onChange={(e) => setSelectedUnit(e.target.value)}
+                className="w-full h-10 px-3 border border-gray-300 rounded-lg text-sm font-medium text-gray-800 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition"
+              >
+                <option value="">All Units</option>
+                {units.map((unit) => (
+                  <option key={unit} value={unit}>
+                    {unit}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
           <div className="lg:col-span-3">
             <label htmlFor="search-query" className="block text-xs font-semibold text-gray-700 mb-1">
               Search Query
@@ -382,60 +419,92 @@ const PurchaseOrderExcelFormate: React.FC = () => {
       </div>
       <div className="flex items-center justify-between gap-3">
         <div className="inline-flex items-center rounded-xl bg-slate-200/60 p-1 border border-slate-300/80 shadow-inner">
-          {/* Non-Clubbed Button */}
+          {/* ================= NON-CLUBBED ================= */}
           <button
             type="button"
             onClick={() => {
-              if (showClubbedPo) {
-                setShowClubbedPo(false);
-                setCurrentPage(1);
-                setExpandedPoNumbers(new Set());
-              }
+              setSelectedPoType('non-clubbed');
+              setCurrentPage(1);
+              setExpandedPoNumbers(new Set());
             }}
             className={`group relative inline-flex items-center gap-2 px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all duration-200 ${
-              !showClubbedPo ? 'bg-white text-emerald-900 shadow-sm ring-1 ring-emerald-500/30' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-300/40'
+              selectedPoType === 'non-clubbed'
+                ? 'bg-white text-emerald-900 shadow-sm ring-1 ring-emerald-500/30'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-300/40'
             }`}
           >
-            {/* Subtle indicator dot */}
-            {!showClubbedPo && <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />}
+            {/* Active indicator */}
+            {selectedPoType === 'non-clubbed' && <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />}
+
             <span>Non-Clubbed</span>
 
+            {/* Count */}
             <span
               className={`min-w-[20px] h-4 px-1.5 inline-flex items-center justify-center rounded-full text-[10px] font-extrabold transition-colors ${
-                !showClubbedPo ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-300/80 text-slate-700 group-hover:bg-slate-400/50'
+                selectedPoType === 'non-clubbed' ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-300/80 text-slate-700 group-hover:bg-slate-400/50'
               }`}
             >
-              {data.length}
+              {filteredData.length}
             </span>
           </button>
 
-          {/* Clubbed Button */}
+          {/* ================= CLUBBED ================= */}
           <button
             type="button"
             onClick={() => {
-              if (!showClubbedPo) {
-                setShowClubbedPo(true);
-                setCurrentPage(1);
-                setExpandedPoNumbers(new Set());
-              }
+              setSelectedPoType('clubbed');
+              setCurrentPage(1);
+              setExpandedPoNumbers(new Set());
             }}
-            disabled={clubbedPo.length === 0}
+            disabled={filteredClubbedPo.length === 0}
             className={`group relative inline-flex items-center gap-2 px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all duration-200 ${
-              showClubbedPo
+              selectedPoType === 'clubbed'
                 ? 'bg-blue-600 text-white shadow-md shadow-blue-500/25 ring-1 ring-blue-500/30'
                 : 'text-slate-600 hover:text-slate-900 hover:bg-slate-300/40'
             } disabled:opacity-40 disabled:cursor-not-allowed`}
           >
-            {/* Subtle indicator dot */}
-            {showClubbedPo && <span className="h-1.5 w-1.5 rounded-full bg-blue-200 animate-pulse" />}
+            {/* Active indicator */}
+            {selectedPoType === 'clubbed' && <span className="h-1.5 w-1.5 rounded-full bg-blue-200 animate-pulse" />}
+
             <span>Clubbed</span>
 
+            {/* Count */}
             <span
               className={`min-w-[20px] h-4 px-1.5 inline-flex items-center justify-center rounded-full text-[10px] font-extrabold transition-colors ${
-                showClubbedPo ? 'bg-white/25 text-white' : 'bg-blue-100 text-blue-800 group-hover:bg-blue-200/80'
+                selectedPoType === 'clubbed' ? 'bg-white/25 text-white' : 'bg-blue-100 text-blue-800 group-hover:bg-blue-200/80'
               }`}
             >
-              {clubbedPo.length}
+              {filteredClubbedPo.length}
+            </span>
+          </button>
+
+          {/* ================= NON PO ================= */}
+          <button
+            type="button"
+            onClick={() => {
+              setSelectedPoType('non-po');
+              setCurrentPage(1);
+              setExpandedPoNumbers(new Set());
+            }}
+            disabled={filteredNonPo.length === 0}
+            className={`group relative inline-flex items-center gap-2 px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all duration-200 ${
+              selectedPoType === 'non-po'
+                ? 'bg-amber-500 text-white shadow-md shadow-amber-500/25 ring-1 ring-amber-500/30'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-300/40'
+            } disabled:opacity-40 disabled:cursor-not-allowed`}
+          >
+            {/* Active indicator */}
+            {selectedPoType === 'non-po' && <span className="h-1.5 w-1.5 rounded-full bg-amber-100 animate-pulse" />}
+
+            <span>Non PO</span>
+
+            {/* Count */}
+            <span
+              className={`min-w-[20px] h-4 px-1.5 inline-flex items-center justify-center rounded-full text-[10px] font-extrabold transition-colors ${
+                selectedPoType === 'non-po' ? 'bg-white/25 text-white' : 'bg-amber-100 text-amber-800 group-hover:bg-amber-200/80'
+              }`}
+            >
+              {filteredNonPo.length}
             </span>
           </button>
         </div>

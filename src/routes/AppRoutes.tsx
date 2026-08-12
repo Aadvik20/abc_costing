@@ -18,6 +18,7 @@ import { fetchMasterData } from '@/features/masterData/masterSlice';
 import { fetchApplications } from '@/features/applications/applicationSlice';
 import Dashboard from '@/pages/user/Dashboard';
 import PurchaseOrderExcelFormate from '@/pages/user/PurchaseOrderExcelFormate';
+import PurchaseOrderV2 from '@/pages/user/PurchaseOrderV2';
 
 const AppRoutes = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -50,6 +51,7 @@ const AppRoutes = () => {
           </Route>
           <Route element={<PrivateRoute allowedRoles={[-1]} />}>
             <Route path="/purchaseOrder" element={<PurchaseOrderExcelFormate />} />
+            <Route path="/purchaseOrderV2" element={<PurchaseOrderV2 />} />
           </Route>
         </Route>
         <Route element={<AppLayout isAdmin={true} />}>
