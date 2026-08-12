@@ -19,6 +19,8 @@ export interface PurchaseOrderRow {
   itTds?: number;
   cgstAmount?: number;
   poDate?: string;
+  invoiceDate?: string;
+  invoiceNumber?: string;
   sgstAmount?: number;
   igstAmount?: number;
   cgsttds?: number;
@@ -28,6 +30,7 @@ export interface PurchaseOrderRow {
   unit?: string;
   month?: string;
   year?: string;
+  supplierCode?: string;
   [key: string]: unknown;
 }
 
@@ -36,9 +39,10 @@ interface TableRowItemProps {
   index: number;
   isExpanded: boolean;
   onToggleExpand: (poNo: string) => void;
+  selectedPoType: string;
 }
 
-const TableRowItem: React.FC<TableRowItemProps> = React.memo(({ row, index, isExpanded, onToggleExpand }) => {
+const TableRowItem: React.FC<TableRowItemProps> = React.memo(({ row, index, isExpanded, onToggleExpand, selectedPoType }) => {
   const poNo = row.poNo || '';
   const handleRowClick = () => {
     if (poNo) {
@@ -49,13 +53,26 @@ const TableRowItem: React.FC<TableRowItemProps> = React.memo(({ row, index, isEx
   return (
     <>
       <tr onClick={handleRowClick} className={`cursor-pointer transition-colors ${isExpanded ? 'bg-blue-50/70' : 'hover:bg-gray-50'}`}>
-        <td className="px-3 py-3 text-center border-r border-gray-200 select-none">
-          {isExpanded ? <ChevronDown className="h-4 w-4 text-blue-600 mx-auto" /> : <ChevronRight className="h-4 w-4 text-blue-600 mx-auto" />}
-        </td>
+        {selectedPoType !== 'non-po' && (
+          <td className="px-3 py-3 text-center border-r border-gray-200 select-none">
+            {isExpanded ? <ChevronDown className="h-4 w-4 text-blue-600 mx-auto" /> : <ChevronRight className="h-4 w-4 text-blue-600 mx-auto" />}
+          </td>
+        )}
         <td className="px-3 py-3 border-r border-gray-200 text-left font-bold">{index + 1}</td>
-        <td className="px-4 py-3 border-r border-gray-200 font-bold text-blue-700">{poNo || '-'}</td>
-        <td className="px-4 py-3 border-r border-gray-200 font-bold text-blue-700">{formatDate(row.poDate) || '-'}</td>
-        <td className="px-4 py-3 border-r border-gray-200 text-right">{formatRupees(row.poOrderValue)}</td>
+        {selectedPoType !== 'non-po' && (
+          <>
+            <td className="px-4 py-3 border-r border-gray-200 font-bold text-blue-700">{poNo || '-'}</td>
+            <td className="px-4 py-3 border-r border-gray-200 font-bold text-blue-700">{formatDate(row.poDate) || '-'}</td>
+            <td className="px-4 py-3 border-r border-gray-200 text-right">{formatRupees(row.poOrderValue)}</td>
+          </>
+        )}
+        {selectedPoType === 'non-po' && (
+          <>
+            <td className="px-4 py-3 border-r border-gray-200 font-bold text-blue-700">{row.invoiceNumber || '-'}</td>
+            <td className="px-4 py-3 border-r border-gray-200 font-bold text-blue-700">{formatDate(row.invoiceDate) || '-'}</td>
+          </>
+        )}
+        <td className="px-4 py-3 border-r border-gray-200">{row.supplierCode || '-'}</td>
         <td className="px-4 py-3 border-r border-gray-200" onClick={(e) => e.stopPropagation()}>
           <TooltipProvider>
             <Tooltip>
@@ -199,9 +216,12 @@ const PurchaseOrderExcelFormate: React.FC = () => {
     });
   }, []);
   const handleExportPage = async () => {
+    if (!selectedPoType || !paginatedData.length) return;
+
     setExporting(true);
+
     try {
-      await exportPaginatedPoExcel(paginatedData, fromDate, toDate);
+      await exportPaginatedPoExcel(paginatedData, fromDate, toDate, selectedPoType);
     } catch (err) {
       console.error('Export failed:', err);
     } finally {
@@ -509,31 +529,33 @@ const PurchaseOrderExcelFormate: React.FC = () => {
           </button>
         </div>
         <div className="flex gap-3">
-          <button
-            disabled={paginatedData.length === 0}
-            type="button"
-            aria-label={isAllPageExpanded ? 'Collapse all on page' : 'Expand all on page'}
-            onClick={() => {
-              if (isAllPageExpanded) {
-                collapseAllRows(paginatedData);
-              } else {
-                expandAllRows(paginatedData);
-              }
-            }}
-            className="inline-flex items-center gap-2 px-3.5 py-2 bg-slate-800 hover:bg-slate-900 active:bg-slate-950 text-white font-semibold text-sm rounded-lg shadow-sm border border-slate-700/60 transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-1"
-          >
-            {isAllPageExpanded ? (
-              <>
-                <ChevronDown className="h-4 w-4 text-slate-300" />
-                <span>Collapse All</span>
-              </>
-            ) : (
-              <>
-                <ChevronRight className="h-4 w-4 text-slate-300" />
-                <span>Expand All</span>
-              </>
-            )}
-          </button>
+          {selectedPoType !== 'non-po' && (
+            <button
+              disabled={paginatedData.length === 0}
+              type="button"
+              aria-label={isAllPageExpanded ? 'Collapse all on page' : 'Expand all on page'}
+              onClick={() => {
+                if (isAllPageExpanded) {
+                  collapseAllRows(paginatedData);
+                } else {
+                  expandAllRows(paginatedData);
+                }
+              }}
+              className="inline-flex items-center gap-2 px-3.5 py-2 bg-slate-800 hover:bg-slate-900 active:bg-slate-950 text-white font-semibold text-sm rounded-lg shadow-sm border border-slate-700/60 transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-1"
+            >
+              {isAllPageExpanded ? (
+                <>
+                  <ChevronDown className="h-4 w-4 text-slate-300" />
+                  <span>Collapse All</span>
+                </>
+              ) : (
+                <>
+                  <ChevronRight className="h-4 w-4 text-slate-300" />
+                  <span>Expand All</span>
+                </>
+              )}
+            </button>
+          )}
           <button
             type="button"
             onClick={handleExportPage}
@@ -563,28 +585,42 @@ const PurchaseOrderExcelFormate: React.FC = () => {
             <table className="min-w-full text-sm border-collapse">
               <thead className="bg-primary text-white sticky top-0 z-10 font-bold text-xs uppercase border-b border-gray-300">
                 <tr>
-                  <th
-                    className="w-10 px-3 py-3 text-center border-r border-gray-200 cursor-pointer select-none hover:bg-primary-dark transition-colors"
-                    title={isAllPageExpanded ? 'Collapse all on page' : 'Expand all on page'}
-                    onClick={() => {
-                      if (isAllPageExpanded) {
-                        collapseAllRows(paginatedData);
-                      } else {
-                        expandAllRows(paginatedData);
-                      }
-                    }}
-                  >
-                    {isAllPageExpanded ? <ChevronDown className="h-5 w-5 text-white mx-auto" /> : <ChevronRight className="h-5 w-5 text-white mx-auto" />}
-                  </th>
+                  {selectedPoType !== 'non-po' && (
+                    <th
+                      className="w-10 px-3 py-3 text-center border-r border-gray-200 cursor-pointer select-none hover:bg-primary-dark transition-colors"
+                      title={isAllPageExpanded ? 'Collapse all on page' : 'Expand all on page'}
+                      onClick={() => {
+                        if (isAllPageExpanded) {
+                          collapseAllRows(paginatedData);
+                        } else {
+                          expandAllRows(paginatedData);
+                        }
+                      }}
+                    >
+                      {isAllPageExpanded ? <ChevronDown className="h-5 w-5 text-white mx-auto" /> : <ChevronRight className="h-5 w-5 text-white mx-auto" />}
+                    </th>
+                  )}
                   <th className="w-16 px-3 py-3 text-left border-r border-gray-200">Sr. No.</th>
-                  <th className="px-4 py-3 text-left border-r border-gray-200 min-w-[120px]">PO No</th>
-                  <th className="px-4 py-3 text-left border-r border-gray-200 min-w-[140px]">PO Date</th>
-                  <th className="px-4 py-3 text-right border-r border-gray-200 min-w-[160px]">PO Amount</th>
-                  <th className="px-4 py-3 text-left border-r border-gray-200 min-w-[100px]">
-                    <div className="flex flex-col">
+                  {selectedPoType !== 'non-po' && (
+                    <>
+                      <th className="px-4 py-3 text-left border-r border-gray-200 min-w-[120px]">PO No</th>
+                      <th className="px-4 py-3 text-left border-r border-gray-200 min-w-[140px]">PO Date</th>
+                      <th className="px-4 py-3 text-right border-r border-gray-200 min-w-[160px]">PO Amount</th>
+                    </>
+                  )}
+                  {selectedPoType === 'non-po' && (
+                    <>
+                      <th className="px-4 py-3 text-left border-r border-gray-200 min-w-[120px]">Invoice No</th>
+                      <th className="px-4 py-3 text-left border-r border-gray-200 min-w-[140px]">Invoice Date</th>
+                    </>
+                  )}
+                  <th className="px-4 py-3 text-left border-r border-gray-200 min-w-[200px]">Supplier Code</th>
+                  <th className="px-4 py-3 text-left border-r border-gray-200 min-w-[160px]">
+                    {/* <div className="flex flex-col">
                       <span>PO Type</span>
                       <span className="text-[10px] lowercase text-white font-normal">(capex, opex, deposit work)</span>
-                    </div>
+                    </div> */}
+                    Expenditure Type
                   </th>
                   <th className="px-2 py-3 text-left border-r border-gray-200 min-w-[140px]">Unit</th>
                   <th className="px-4 py-3 text-right border-r border-gray-200 min-w-[160px]">Bank Payment</th>
@@ -610,7 +646,16 @@ const PurchaseOrderExcelFormate: React.FC = () => {
                     const poNo = row.poNo || '';
                     const isExpanded = expandedPoNumbers.has(poNo);
                     const globalIndex = (currentPage - 1) * pageSize + index;
-                    return <TableRowItem key={poNo + index} row={row} index={globalIndex} isExpanded={isExpanded} onToggleExpand={toggleRowExpansion} />;
+                    return (
+                      <TableRowItem
+                        key={poNo + index}
+                        row={row}
+                        index={globalIndex}
+                        isExpanded={isExpanded}
+                        onToggleExpand={toggleRowExpansion}
+                        selectedPoType={selectedPoType}
+                      />
+                    );
                   })
                 )}
               </tbody>

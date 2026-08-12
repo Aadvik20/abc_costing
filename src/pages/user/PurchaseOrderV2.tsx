@@ -19,6 +19,8 @@ export interface PurchaseOrderRow {
   itTds?: number;
   cgstAmount?: number;
   poDate?: string;
+  invoiceDate?: string;
+  invoiceNumber?: string;
   sgstAmount?: number;
   igstAmount?: number;
   cgsttds?: number;
@@ -28,6 +30,7 @@ export interface PurchaseOrderRow {
   unit?: string;
   month?: string;
   year?: string;
+  supplierCode?: string;
   [key: string]: unknown;
 }
 
@@ -36,9 +39,10 @@ interface TableRowItemProps {
   index: number;
   isExpanded: boolean;
   onToggleExpand: (poNo: string) => void;
+  selectedPoType: string;
 }
 
-const TableRowItem: React.FC<TableRowItemProps> = React.memo(({ row, index, isExpanded, onToggleExpand }) => {
+const TableRowItem: React.FC<TableRowItemProps> = React.memo(({ row, index, isExpanded, onToggleExpand, selectedPoType }) => {
   const poNo = row.poNo || '';
   const handleRowClick = () => {
     if (poNo) {
@@ -49,13 +53,26 @@ const TableRowItem: React.FC<TableRowItemProps> = React.memo(({ row, index, isEx
   return (
     <>
       <tr onClick={handleRowClick} className={`cursor-pointer transition-colors ${isExpanded ? 'bg-blue-50/70' : 'hover:bg-gray-50'}`}>
-        <td className="px-3 py-3 text-center border-r border-gray-200 select-none">
-          {isExpanded ? <ChevronDown className="h-4 w-4 text-blue-600 mx-auto" /> : <ChevronRight className="h-4 w-4 text-blue-600 mx-auto" />}
-        </td>
+        {selectedPoType !== 'non-po' && (
+          <td className="px-3 py-3 text-center border-r border-gray-200 select-none">
+            {isExpanded ? <ChevronDown className="h-4 w-4 text-blue-600 mx-auto" /> : <ChevronRight className="h-4 w-4 text-blue-600 mx-auto" />}
+          </td>
+        )}
         <td className="px-3 py-3 border-r border-gray-200 text-left font-bold">{index + 1}</td>
-        <td className="px-4 py-3 border-r border-gray-200 font-bold text-blue-700">{poNo || '-'}</td>
-        <td className="px-4 py-3 border-r border-gray-200 font-bold text-blue-700">{formatDate(row.poDate) || '-'}</td>
-        <td className="px-4 py-3 border-r border-gray-200 text-right">{formatRupees(row.poOrderValue)}</td>
+        {selectedPoType !== 'non-po' && (
+          <>
+            <td className="px-4 py-3 border-r border-gray-200 font-bold text-blue-700">{poNo || '-'}</td>
+            <td className="px-4 py-3 border-r border-gray-200 font-bold text-blue-700">{formatDate(row.poDate) || '-'}</td>
+            <td className="px-4 py-3 border-r border-gray-200 text-right">{formatRupees(row.poOrderValue)}</td>
+          </>
+        )}
+        {selectedPoType === 'non-po' && (
+          <>
+            <td className="px-4 py-3 border-r border-gray-200 font-bold text-blue-700">{row.invoiceNumber || '-'}</td>
+            <td className="px-4 py-3 border-r border-gray-200 font-bold text-blue-700">{formatDate(row.invoiceDate) || '-'}</td>
+          </>
+        )}
+        <td className="px-4 py-3 border-r border-gray-200">{row.supplierCode || '-'}</td>
         <td className="px-4 py-3 border-r border-gray-200" onClick={(e) => e.stopPropagation()}>
           <TooltipProvider>
             <Tooltip>
@@ -201,7 +218,7 @@ const PurchaseOrderV2: React.FC = () => {
   const handleExportPage = async () => {
     setExporting(true);
     try {
-      await exportPaginatedPoExcel(paginatedData, fromDate, toDate);
+      await exportPaginatedPoExcel(paginatedData, fromDate, toDate, selectedPoType);
     } catch (err) {
       console.error('Export failed:', err);
     } finally {
@@ -441,215 +458,222 @@ const PurchaseOrderV2: React.FC = () => {
           </div>
         )}
       </div>
-      <div className="flex flex-col gap-3 mb-5">
-        {/* Non-Clubbed PO */}
-        <button
-          type="button"
-          onClick={() => {
-            setSelectedPoType('non-clubbed');
-            setCurrentPage(1);
-            setExpandedPoNumbers(new Set());
-          }}
-          className={`group relative w-full overflow-hidden rounded-2xl border p-4 text-left transition-all duration-300 focus:outline-none ${
-            selectedPoType === 'non-clubbed'
-              ? 'border-emerald-500/80 bg-gradient-to-r from-emerald-50/70 to-white shadow-lg shadow-emerald-500/10 ring-2 ring-emerald-500/20'
-              : 'border-slate-200/80 bg-gradient-to-r from-white to-slate-50/50 hover:-translate-x-0.5 hover:border-emerald-500/80 hover:shadow-md'
-          }`}
-        >
-          {/* Top Accent */}
-          <div
-            className={`absolute left-0 top-0 h-full w-1 transition-colors duration-300 ${
-              selectedPoType === 'non-clubbed' ? 'bg-emerald-500' : 'bg-transparent group-hover:bg-emerald-500/80'
-            }`}
-          />
 
-          {/* Watermark */}
-          <div className="absolute -bottom-8 -right-6 text-emerald-500/5 transition-all duration-500 group-hover:-translate-x-1 group-hover:scale-110">
-            <FileStack size={120} />
-          </div>
-
-          <div className="relative z-10 flex items-center justify-between gap-4">
-            {/* Left */}
-            <div className="flex items-center gap-3">
-              <div
-                className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-colors duration-200 ${
-                  selectedPoType === 'non-clubbed' ? 'bg-emerald-500 text-white shadow-sm' : 'bg-emerald-50 text-emerald-600 ring-1 ring-emerald-100'
-                }`}
-              >
-                <FileStack size={19} />
-              </div>
-
-              <div>
-                <p className="text-[11px] font-black uppercase tracking-[0.12em] text-slate-500">Total Payment Released for Non-Clubbed POs</p>
-
-                <p className="mt-0.5 text-xs text-slate-400">{filteredData.length} PO(s)</p>
-              </div>
+      {data.length === 0 ? (
+        <div className="flex items-center justify-center">
+          <div className="w-full rounded-2xl border border-dashed border-slate-300 bg-white px-6 py-12 text-center shadow-sm">
+            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50 text-blue-600">
+              <svg className="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="1.8"
+                  d="M8 7V3m8 4V3m-9 8h10M5 5h14a2 2 0 012 2v12a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2z"
+                />
+              </svg>
             </div>
 
-            {/* Right */}
-            <p className="relative z-10 whitespace-nowrap text-2xl tabular-nums font-black tracking-tight text-slate-900">
-              {formatRupees(nonClubbedBankPayment)}
-            </p>
-          </div>
-        </button>
-
-        {/* Clubbed PO */}
-        <button
-          type="button"
-          onClick={() => {
-            setSelectedPoType('clubbed');
-            setCurrentPage(1);
-            setExpandedPoNumbers(new Set());
-          }}
-          className={`group relative w-full overflow-hidden rounded-2xl border p-4 text-left transition-all duration-300 focus:outline-none ${
-            selectedPoType === 'clubbed'
-              ? 'border-blue-500/80 bg-gradient-to-r from-blue-50/70 to-white shadow-lg shadow-blue-500/10 ring-2 ring-blue-500/20'
-              : 'border-slate-200/80 bg-gradient-to-r from-white to-slate-50/50 hover:-translate-x-0.5 hover:border-blue-500/80 hover:shadow-md'
-          }`}
-        >
-          {/* Side Accent */}
-          <div
-            className={`absolute left-0 top-0 h-full w-1 transition-colors duration-300 ${
-              selectedPoType === 'clubbed' ? 'bg-blue-500' : 'bg-transparent group-hover:bg-blue-500/80'
-            }`}
-          />
-
-          {/* Watermark */}
-          <div className="absolute -bottom-8 -right-6 text-blue-500/5 transition-all duration-500 group-hover:-translate-x-1 group-hover:scale-110">
-            <Layers size={120} />
-          </div>
-
-          <div className="relative z-10 flex items-center justify-between gap-4">
-            {/* Left */}
-            <div className="flex items-center gap-3">
-              <div
-                className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-colors duration-200 ${
-                  selectedPoType === 'clubbed' ? 'bg-blue-600 text-white shadow-sm' : 'bg-blue-50 text-blue-600 ring-1 ring-blue-100'
-                }`}
-              >
-                <Layers size={19} />
-              </div>
-
-              <div>
-                <p className="text-[11px] font-black uppercase tracking-[0.12em] text-slate-500">Total Payment Released for Clubbed POs</p>
-
-                <p className="mt-0.5 text-xs text-slate-400">{filteredClubbedPo.length} PO(s)</p>
-              </div>
-            </div>
-
-            {/* Right */}
-            <p className="relative z-10 whitespace-nowrap text-2xl tabular-nums font-black tracking-tight text-slate-900">{formatRupees(clubbedBankPayment)}</p>
-          </div>
-        </button>
-
-        {/* Non PO */}
-        <button
-          type="button"
-          onClick={() => {
-            setSelectedPoType('non-po');
-            setCurrentPage(1);
-            setExpandedPoNumbers(new Set());
-          }}
-          className={`group relative w-full overflow-hidden rounded-2xl border p-4 text-left transition-all duration-300 focus:outline-none ${
-            selectedPoType === 'non-po'
-              ? 'border-amber-500/80 bg-gradient-to-r from-amber-50/70 to-white shadow-lg shadow-amber-500/10 ring-2 ring-amber-500/20'
-              : 'border-slate-200/80 bg-gradient-to-r from-white to-slate-50/50 hover:-translate-x-0.5 hover:border-amber-500/80 hover:shadow-md'
-          }`}
-        >
-          {/* Side Accent */}
-          <div
-            className={`absolute left-0 top-0 h-full w-1 transition-colors duration-300 ${
-              selectedPoType === 'non-po' ? 'bg-amber-500' : 'bg-transparent group-hover:bg-amber-500/80'
-            }`}
-          />
-
-          {/* Watermark */}
-          <div className="absolute -bottom-8 -right-6 text-amber-500/5 transition-all duration-500 group-hover:-translate-x-1 group-hover:scale-110">
-            <Layers size={120} />
-          </div>
-
-          <div className="relative z-10 flex items-center justify-between gap-4">
-            {/* Left */}
-            <div className="flex items-center gap-3">
-              <div
-                className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-colors duration-200 ${
-                  selectedPoType === 'non-po' ? 'bg-amber-500 text-white shadow-sm' : 'bg-amber-50 text-amber-600 ring-1 ring-amber-100'
-                }`}
-              >
-                <Layers size={19} />
-              </div>
-
-              <div>
-                <p className="text-[11px] font-black uppercase tracking-[0.12em] text-slate-500">Total Payment Released for Non POs</p>
-
-                <p className="mt-0.5 text-xs text-slate-400">{filteredNonPo.length} PO(s)</p>
-              </div>
-            </div>
-
-            {/* Right */}
-            <p className="relative z-10 whitespace-nowrap text-2xl tabular-nums font-black tracking-tight text-slate-900">{formatRupees(nonPoBankPayment)}</p>
-          </div>
-        </button>
-
-        {/* Grand Total */}
-        <div className="group relative w-full overflow-hidden rounded-2xl border border-slate-200/80 bg-gradient-to-r from-violet-50/40 via-white to-slate-50/50 p-4 shadow-sm transition-all duration-300 hover:border-violet-300 hover:shadow-md">
-          {/* Side Accent */}
-          <div className="absolute left-0 top-0 h-full w-1 bg-violet-500" />
-
-          {/* Watermark */}
-          <div className="absolute -bottom-8 -right-6 text-violet-500/5 transition-all duration-500 group-hover:-translate-x-1 group-hover:scale-110">
-            <Wallet size={120} />
-          </div>
-
-          <div className="relative z-10 flex items-center justify-between gap-4">
-            {/* Left */}
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-violet-50 text-violet-600 ring-1 ring-violet-100">
-                <Wallet size={19} />
-              </div>
-
-              <div>
-                <p className="text-[11px] font-black uppercase tracking-[0.12em] text-slate-500">Total Payment Released</p>
-
-                <p className="mt-0.5 text-xs text-slate-400">Non-Clubbed + Clubbed + Non PO</p>
-              </div>
-            </div>
-
-            {/* Right */}
-            <p className="whitespace-nowrap text-2xl tabular-nums font-black tracking-tight text-slate-900">{formatRupees(totalBankPayment)}</p>
+            <h3 className="text-base font-bold text-slate-800">Please select a date range to view records</h3>
           </div>
         </div>
-      </div>
+      ) : (
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-4 mb-5">
+          {/* Non-Clubbed PO Button */}
+          <button
+            type="button"
+            onClick={() => {
+              setSelectedPoType('non-clubbed');
+              setCurrentPage(1);
+              setExpandedPoNumbers(new Set());
+            }}
+            className={`group relative flex flex-col justify-between overflow-hidden rounded-2xl border p-3 text-left transition-all duration-300 focus:outline-none ${
+              selectedPoType === 'non-clubbed'
+                ? 'border-emerald-500/80 bg-gradient-to-b from-emerald-50/60 to-white shadow-lg shadow-emerald-500/10 ring-2 ring-emerald-500/20'
+                : 'border-slate-200/80 bg-gradient-to-b from-white to-slate-50/50 hover:-translate-y-0.5 hover:border-emerald-500/80 hover:shadow-md'
+            }`}
+          >
+            {/* Top Accent Line */}
+            <div
+              className={`absolute left-0 top-0 h-1 w-full transition-colors duration-300 ${
+                selectedPoType === 'non-clubbed' ? 'bg-emerald-500' : 'bg-transparent group-hover:bg-emerald-500/80'
+              }`}
+            />
 
+            {/* Watermark Icon */}
+            <div className="absolute -bottom-6 -right-6 text-emerald-500/5 transition-all duration-500 group-hover:-translate-y-1 group-hover:scale-110">
+              <FileStack size={120} />
+            </div>
+
+            <div className="relative z-10 flex-1">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <div
+                    className={`flex h-9 w-9 items-center justify-center rounded-xl transition-colors duration-200 ${
+                      selectedPoType === 'non-clubbed' ? 'bg-emerald-500 text-white shadow-sm' : 'bg-emerald-50 text-emerald-600 ring-1 ring-emerald-100'
+                    }`}
+                  >
+                    <FileStack size={18} />
+                  </div>
+                  <span className="text-[11px] font-black uppercase tracking-[0.12em] text-slate-500">Total Payment Released for Non-Clubbed POs</span>
+                </div>
+              </div>
+
+              <div className="text-right">
+                <p className="text-3xl font-black tracking-tight text-slate-900">{formatRupees(nonClubbedBankPayment)}</p>
+              </div>
+            </div>
+          </button>
+
+          {/* Clubbed PO Button */}
+          <button
+            type="button"
+            onClick={() => {
+              setSelectedPoType('clubbed');
+              setCurrentPage(1);
+              setExpandedPoNumbers(new Set());
+            }}
+            className={`group relative flex flex-col justify-between overflow-hidden rounded-2xl border p-3 text-left transition-all duration-300 focus:outline-none ${
+              selectedPoType === 'clubbed'
+                ? 'border-blue-500/80 bg-gradient-to-b from-blue-50/60 to-white shadow-lg shadow-blue-500/10 ring-2 ring-blue-500/20'
+                : 'border-slate-200/80 bg-gradient-to-b from-white to-slate-50/50 hover:-translate-y-0.5 hover:border-blue-500/80 hover:shadow-md'
+            }`}
+          >
+            {/* Top Accent Line */}
+            <div
+              className={`absolute left-0 top-0 h-1 w-full transition-colors duration-300 ${
+                selectedPoType === 'clubbed' ? 'bg-blue-500' : 'bg-transparent group-hover:bg-blue-500/80'
+              }`}
+            />
+
+            {/* Watermark Icon */}
+            <div className="absolute -bottom-6 -right-6 text-blue-500/5 transition-all duration-500 group-hover:-translate-y-1 group-hover:scale-110">
+              <Layers size={120} />
+            </div>
+
+            <div className="relative z-10 flex-1">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <div
+                    className={`flex h-9 w-9 items-center justify-center rounded-xl transition-colors duration-200 ${
+                      selectedPoType === 'clubbed' ? 'bg-blue-600 text-white shadow-sm' : 'bg-blue-50 text-blue-600 ring-1 ring-blue-100'
+                    }`}
+                  >
+                    <Layers size={18} />
+                  </div>
+                  <span className="text-[11px] font-black uppercase tracking-[0.12em] text-slate-500">Total Payment Released for Clubbed POs</span>
+                </div>
+              </div>
+
+              <div className="text-right">
+                <p className="text-3xl font-black tracking-tight text-slate-900">{formatRupees(clubbedBankPayment)}</p>
+              </div>
+            </div>
+          </button>
+
+          {/* non PO Button */}
+          <button
+            type="button"
+            onClick={() => {
+              setSelectedPoType('non-po');
+              setCurrentPage(1);
+              setExpandedPoNumbers(new Set());
+            }}
+            className={`group relative flex flex-col justify-between overflow-hidden rounded-2xl border p-3 text-left transition-all duration-300 focus:outline-none ${
+              selectedPoType === 'non-po'
+                ? 'border-amber-500/80 bg-gradient-to-b from-amber-50/60 to-white shadow-lg shadow-amber-500/10 ring-2 ring-amber-500/20'
+                : 'border-slate-200/80 bg-gradient-to-b from-white to-slate-50/50 hover:-translate-y-0.5 hover:border-amber-500/80 hover:shadow-md'
+            }`}
+          >
+            {/* Top Accent Line */}
+            <div
+              className={`absolute left-0 top-0 h-1 w-full transition-colors duration-300 ${
+                selectedPoType === 'non-po' ? 'bg-amber-500' : 'bg-transparent group-hover:bg-amber-500/80'
+              }`}
+            />
+
+            {/* Watermark Icon */}
+            <div className="absolute -bottom-6 -right-6 text-amber-500/5 transition-all duration-500 group-hover:-translate-y-1 group-hover:scale-110">
+              <Layers size={120} />
+            </div>
+
+            <div className="relative z-10 flex-1">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <div
+                    className={`flex h-9 w-9 items-center justify-center rounded-xl transition-colors duration-200 ${
+                      selectedPoType === 'non-po' ? 'bg-amber-600 text-white shadow-sm' : 'bg-amber-50 text-amber-600 ring-1 ring-amber-100'
+                    }`}
+                  >
+                    <Layers size={18} />
+                  </div>
+                  <span className="text-[11px] font-black uppercase tracking-[0.12em] text-slate-500">Total Payment Released for Non POs</span>
+                </div>
+              </div>
+
+              <div className="text-right">
+                <p className="text-3xl font-black tracking-tight text-slate-900">{formatRupees(nonPoBankPayment)}</p>
+              </div>
+            </div>
+          </button>
+
+          {/* Grand Total Card */}
+          <div className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-slate-200/80 bg-gradient-to-b from-white to-slate-50/50 p-3  shadow-sm transition-all duration-300 hover:border-violet-300 hover:shadow-md">
+            {/* Top Accent Line */}
+            <div className="absolute left-0 top-0 h-1 w-full bg-violet-500" />
+
+            {/* Watermark Icon */}
+            <div className="absolute -bottom-6 -right-6 text-violet-500/5 transition-all duration-500 group-hover:-translate-y-1 group-hover:scale-110">
+              <Wallet size={120} />
+            </div>
+
+            <div className="relative z-10 flex-1">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-violet-50 text-violet-600 ring-1 ring-violet-100">
+                    <Wallet size={18} />
+                  </div>
+                  <span className="text-[11px] font-black uppercase tracking-[0.12em] text-slate-500">Total Payment Released</span>
+                </div>
+              </div>
+
+              <div className="text-right">
+                <p className="text-3xl font-black tracking-tight text-slate-900">{formatRupees(totalBankPayment)}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
       {selectedPoType && (
         <>
           <div className="flex items-center justify-end gap-3">
             <div className="flex gap-3">
-              <button
-                disabled={paginatedData.length === 0}
-                type="button"
-                aria-label={isAllPageExpanded ? 'Collapse all on page' : 'Expand all on page'}
-                onClick={() => {
-                  if (isAllPageExpanded) {
-                    collapseAllRows(paginatedData);
-                  } else {
-                    expandAllRows(paginatedData);
-                  }
-                }}
-                className="inline-flex items-center gap-2 px-3.5 py-2 bg-slate-800 hover:bg-slate-900 active:bg-slate-950 text-white font-semibold text-sm rounded-lg shadow-sm border border-slate-700/60 transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-1"
-              >
-                {isAllPageExpanded ? (
-                  <>
-                    <ChevronDown className="h-4 w-4 text-slate-300" />
-                    <span>Collapse All</span>
-                  </>
-                ) : (
-                  <>
-                    <ChevronRight className="h-4 w-4 text-slate-300" />
-                    <span>Expand All</span>
-                  </>
-                )}
-              </button>
+              {selectedPoType !== 'non-po' && (
+                <button
+                  disabled={paginatedData.length === 0}
+                  type="button"
+                  aria-label={isAllPageExpanded ? 'Collapse all on page' : 'Expand all on page'}
+                  onClick={() => {
+                    if (isAllPageExpanded) {
+                      collapseAllRows(paginatedData);
+                    } else {
+                      expandAllRows(paginatedData);
+                    }
+                  }}
+                  className="inline-flex items-center gap-2 px-3.5 py-2 bg-slate-800 hover:bg-slate-900 active:bg-slate-950 text-white font-semibold text-sm rounded-lg shadow-sm border border-slate-700/60 transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-1"
+                >
+                  {isAllPageExpanded ? (
+                    <>
+                      <ChevronDown className="h-4 w-4 text-slate-300" />
+                      <span>Collapse All</span>
+                    </>
+                  ) : (
+                    <>
+                      <ChevronRight className="h-4 w-4 text-slate-300" />
+                      <span>Expand All</span>
+                    </>
+                  )}
+                </button>
+              )}
               <button
                 type="button"
                 onClick={handleExportPage}
@@ -677,23 +701,36 @@ const PurchaseOrderV2: React.FC = () => {
                 <table className="min-w-full text-sm border-collapse">
                   <thead className="bg-primary text-white sticky top-0 z-10 font-bold text-xs uppercase border-b border-gray-300">
                     <tr>
-                      <th
-                        className="w-10 px-3 py-3 text-center border-r border-gray-200 cursor-pointer select-none hover:bg-primary-dark transition-colors"
-                        title={isAllPageExpanded ? 'Collapse all on page' : 'Expand all on page'}
-                        onClick={() => {
-                          if (isAllPageExpanded) {
-                            collapseAllRows(paginatedData);
-                          } else {
-                            expandAllRows(paginatedData);
-                          }
-                        }}
-                      >
-                        {isAllPageExpanded ? <ChevronDown className="h-5 w-5 text-white mx-auto" /> : <ChevronRight className="h-5 w-5 text-white mx-auto" />}
-                      </th>
+                      {selectedPoType !== 'non-po' && (
+                        <th
+                          className="w-10 px-3 py-3 text-center border-r border-gray-200 cursor-pointer select-none hover:bg-primary-dark transition-colors"
+                          title={isAllPageExpanded ? 'Collapse all on page' : 'Expand all on page'}
+                          onClick={() => {
+                            if (isAllPageExpanded) {
+                              collapseAllRows(paginatedData);
+                            } else {
+                              expandAllRows(paginatedData);
+                            }
+                          }}
+                        >
+                          {isAllPageExpanded ? <ChevronDown className="h-5 w-5 text-white mx-auto" /> : <ChevronRight className="h-5 w-5 text-white mx-auto" />}
+                        </th>
+                      )}
                       <th className="w-16 px-3 py-3 text-left border-r border-gray-200">Sr. No.</th>
-                      <th className="px-4 py-3 text-left border-r border-gray-200 min-w-[120px]">PO No</th>
-                      <th className="px-4 py-3 text-left border-r border-gray-200 min-w-[140px]">PO Date</th>
-                      <th className="px-4 py-3 text-right border-r border-gray-200 min-w-[160px]">PO Amount</th>
+                      {selectedPoType !== 'non-po' && (
+                        <>
+                          <th className="px-4 py-3 text-left border-r border-gray-200 min-w-[120px]">PO No</th>
+                          <th className="px-4 py-3 text-left border-r border-gray-200 min-w-[140px]">PO Date</th>
+                          <th className="px-4 py-3 text-right border-r border-gray-200 min-w-[160px]">PO Amount</th>
+                        </>
+                      )}
+                      {selectedPoType === 'non-po' && (
+                        <>
+                          <th className="px-4 py-3 text-left border-r border-gray-200 min-w-[120px]">Invoice No</th>
+                          <th className="px-4 py-3 text-left border-r border-gray-200 min-w-[140px]">Invoice Date</th>
+                        </>
+                      )}
+                      <th className="px-4 py-3 text-left border-r border-gray-200 min-w-[200px]">Supplier Code</th>
                       <th className="px-4 py-3 text-left border-r border-gray-200 min-w-[100px]">
                         <div className="flex flex-col">
                           <span>PO Type</span>
@@ -724,7 +761,16 @@ const PurchaseOrderV2: React.FC = () => {
                         const poNo = row.poNo || '';
                         const isExpanded = expandedPoNumbers.has(poNo);
                         const globalIndex = (currentPage - 1) * pageSize + index;
-                        return <TableRowItem key={poNo + index} row={row} index={globalIndex} isExpanded={isExpanded} onToggleExpand={toggleRowExpansion} />;
+                        return (
+                          <TableRowItem
+                            key={poNo + index}
+                            row={row}
+                            index={globalIndex}
+                            isExpanded={isExpanded}
+                            onToggleExpand={toggleRowExpansion}
+                            selectedPoType={selectedPoType}
+                          />
+                        );
                       })
                     )}
                   </tbody>
@@ -781,168 +827,3 @@ const PurchaseOrderV2: React.FC = () => {
 };
 
 export default PurchaseOrderV2;
-//  <div className="grid grid-cols-1 gap-3 md:grid-cols-4 mb-5">
-//     {/* Non-Clubbed PO Button */}
-//     <button
-//       type="button"
-//       onClick={() => {
-//         setSelectedPoType('non-clubbed');
-//         setCurrentPage(1);
-//         setExpandedPoNumbers(new Set());
-//       }}
-//       className={`group relative flex flex-col justify-between overflow-hidden rounded-2xl border p-3 text-left transition-all duration-300 focus:outline-none ${
-//         selectedPoType === 'non-clubbed'
-//           ? 'border-emerald-500/80 bg-gradient-to-b from-emerald-50/60 to-white shadow-lg shadow-emerald-500/10 ring-2 ring-emerald-500/20'
-//           : 'border-slate-200/80 bg-gradient-to-b from-white to-slate-50/50 hover:-translate-y-0.5 hover:border-emerald-500/80 hover:shadow-md'
-//       }`}
-//     >
-//       {/* Top Accent Line */}
-//       <div
-//         className={`absolute left-0 top-0 h-1 w-full transition-colors duration-300 ${
-//           selectedPoType === 'non-clubbed' ? 'bg-emerald-500' : 'bg-transparent group-hover:bg-emerald-500/80'
-//         }`}
-//       />
-
-//       {/* Watermark Icon */}
-//       <div className="absolute -bottom-6 -right-6 text-emerald-500/5 transition-all duration-500 group-hover:-translate-y-1 group-hover:scale-110">
-//         <FileStack size={120} />
-//       </div>
-
-//       <div className="relative z-10 flex-1">
-//         <div className="flex items-center justify-between">
-//           <div className="flex items-center gap-2.5">
-//             <div
-//               className={`flex h-9 w-9 items-center justify-center rounded-xl transition-colors duration-200 ${
-//                 selectedPoType === 'non-clubbed' ? 'bg-emerald-500 text-white shadow-sm' : 'bg-emerald-50 text-emerald-600 ring-1 ring-emerald-100'
-//               }`}
-//             >
-//               <FileStack size={18} />
-//             </div>
-//             <span className="text-[11px] font-black uppercase tracking-[0.12em] text-slate-500">Total Payment Released for Non-Clubbed POs</span>
-//           </div>
-//         </div>
-
-//         <div className="text-right">
-//           <p className="text-3xl font-black tracking-tight text-slate-900">{formatRupees(nonClubbedBankPayment)}</p>
-//         </div>
-//       </div>
-//     </button>
-
-//     {/* Clubbed PO Button */}
-//     <button
-//       type="button"
-//       onClick={() => {
-//         setSelectedPoType('clubbed');
-//         setCurrentPage(1);
-//         setExpandedPoNumbers(new Set());
-//       }}
-//       className={`group relative flex flex-col justify-between overflow-hidden rounded-2xl border p-3 text-left transition-all duration-300 focus:outline-none ${
-//         selectedPoType === 'clubbed'
-//           ? 'border-blue-500/80 bg-gradient-to-b from-blue-50/60 to-white shadow-lg shadow-blue-500/10 ring-2 ring-blue-500/20'
-//           : 'border-slate-200/80 bg-gradient-to-b from-white to-slate-50/50 hover:-translate-y-0.5 hover:border-blue-500/80 hover:shadow-md'
-//       }`}
-//     >
-//       {/* Top Accent Line */}
-//       <div
-//         className={`absolute left-0 top-0 h-1 w-full transition-colors duration-300 ${
-//           selectedPoType === 'clubbed' ? 'bg-blue-500' : 'bg-transparent group-hover:bg-blue-500/80'
-//         }`}
-//       />
-
-//       {/* Watermark Icon */}
-//       <div className="absolute -bottom-6 -right-6 text-blue-500/5 transition-all duration-500 group-hover:-translate-y-1 group-hover:scale-110">
-//         <Layers size={120} />
-//       </div>
-
-//       <div className="relative z-10 flex-1">
-//         <div className="flex items-center justify-between">
-//           <div className="flex items-center gap-2.5">
-//             <div
-//               className={`flex h-9 w-9 items-center justify-center rounded-xl transition-colors duration-200 ${
-//                 selectedPoType === 'clubbed' ? 'bg-blue-600 text-white shadow-sm' : 'bg-blue-50 text-blue-600 ring-1 ring-blue-100'
-//               }`}
-//             >
-//               <Layers size={18} />
-//             </div>
-//             <span className="text-[11px] font-black uppercase tracking-[0.12em] text-slate-500">Total Payment Released for Clubbed POs</span>
-//           </div>
-//         </div>
-
-//         <div className="text-right">
-//           <p className="text-3xl font-black tracking-tight text-slate-900">{formatRupees(clubbedBankPayment)}</p>
-//         </div>
-//       </div>
-//     </button>
-
-//     {/* non PO Button */}
-//     <button
-//       type="button"
-//       onClick={() => {
-//         setSelectedPoType('non-po');
-//         setCurrentPage(1);
-//         setExpandedPoNumbers(new Set());
-//       }}
-//       className={`group relative flex flex-col justify-between overflow-hidden rounded-2xl border p-3 text-left transition-all duration-300 focus:outline-none ${
-//         selectedPoType === 'non-po'
-//           ? 'border-blue-500/80 bg-gradient-to-b from-blue-50/60 to-white shadow-lg shadow-blue-500/10 ring-2 ring-blue-500/20'
-//           : 'border-slate-200/80 bg-gradient-to-b from-white to-slate-50/50 hover:-translate-y-0.5 hover:border-blue-500/80 hover:shadow-md'
-//       }`}
-//     >
-//       {/* Top Accent Line */}
-//       <div
-//         className={`absolute left-0 top-0 h-1 w-full transition-colors duration-300 ${
-//           selectedPoType === 'non-po' ? 'bg-blue-500' : 'bg-transparent group-hover:bg-blue-500/80'
-//         }`}
-//       />
-
-//       {/* Watermark Icon */}
-//       <div className="absolute -bottom-6 -right-6 text-blue-500/5 transition-all duration-500 group-hover:-translate-y-1 group-hover:scale-110">
-//         <Layers size={120} />
-//       </div>
-
-//       <div className="relative z-10 flex-1">
-//         <div className="flex items-center justify-between">
-//           <div className="flex items-center gap-2.5">
-//             <div
-//               className={`flex h-9 w-9 items-center justify-center rounded-xl transition-colors duration-200 ${
-//                 selectedPoType === 'non-po' ? 'bg-blue-600 text-white shadow-sm' : 'bg-blue-50 text-blue-600 ring-1 ring-blue-100'
-//               }`}
-//             >
-//               <Layers size={18} />
-//             </div>
-//             <span className="text-[11px] font-black uppercase tracking-[0.12em] text-slate-500">Total Payment Released for Non POs</span>
-//           </div>
-//         </div>
-
-//         <div className="text-right">
-//           <p className="text-3xl font-black tracking-tight text-slate-900">{formatRupees(nonPoBankPayment)}</p>
-//         </div>
-//       </div>
-//     </button>
-
-//     {/* Grand Total Card */}
-//     <div className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-slate-200/80 bg-gradient-to-b from-white to-slate-50/50 p-3 shadow-sm transition-all duration-300 hover:border-violet-300 hover:shadow-md">
-//       {/* Top Accent Line */}
-//       <div className="absolute left-0 top-0 h-1 w-full bg-violet-500" />
-
-//       {/* Watermark Icon */}
-//       <div className="absolute -bottom-6 -right-6 text-violet-500/5 transition-all duration-500 group-hover:-translate-y-1 group-hover:scale-110">
-//         <Wallet size={120} />
-//       </div>
-
-//       <div className="relative z-10 flex-1">
-//         <div className="flex items-center justify-between">
-//           <div className="flex items-center gap-2.5">
-//             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-violet-50 text-violet-600 ring-1 ring-violet-100">
-//               <Wallet size={18} />
-//             </div>
-//             <span className="text-[11px] font-black uppercase tracking-[0.12em] text-slate-500">Total Payment Released</span>
-//           </div>
-//         </div>
-
-//         <div className="text-right">
-//           <p className="text-3xl font-black tracking-tight text-slate-900">{formatRupees(totalBankPayment)}</p>
-//         </div>
-//       </div>
-//     </div>
-//   </div>
