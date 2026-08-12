@@ -130,6 +130,7 @@ const PurchaseOrderV2: React.FC = () => {
   const [clubbedPo, setClubbedPo] = useState<PurchaseOrderRow[]>([]);
   const [nonPo, setNonPo] = useState<PurchaseOrderRow[]>([]);
   const [selectedPoType, setSelectedPoType] = useState<'non-clubbed' | 'clubbed' | 'non-po' | ''>('');
+  const [selectedView, setSelectedView] = useState<'view1' | 'view2'>('view1');
 
   const handleFromDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -477,171 +478,356 @@ const PurchaseOrderV2: React.FC = () => {
           </div>
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-3 md:grid-cols-4 mb-5">
-          {/* Non-Clubbed PO Button */}
-          <button
-            type="button"
-            onClick={() => {
-              setSelectedPoType('non-clubbed');
-              setCurrentPage(1);
-              setExpandedPoNumbers(new Set());
-            }}
-            className={`group relative flex flex-col justify-between overflow-hidden rounded-2xl border p-3 text-left transition-all duration-300 focus:outline-none ${
-              selectedPoType === 'non-clubbed'
-                ? 'border-emerald-500/80 bg-gradient-to-b from-emerald-50/60 to-white shadow-lg shadow-emerald-500/10 ring-2 ring-emerald-500/20'
-                : 'border-slate-200/80 bg-gradient-to-b from-white to-slate-50/50 hover:-translate-y-0.5 hover:border-emerald-500/80 hover:shadow-md'
-            }`}
-          >
-            {/* Top Accent Line */}
-            <div
-              className={`absolute left-0 top-0 h-1 w-full transition-colors duration-300 ${
-                selectedPoType === 'non-clubbed' ? 'bg-emerald-500' : 'bg-transparent group-hover:bg-emerald-500/80'
-              }`}
-            />
+        <>
+          <div className="flex justify-end mb-4">
+            <div className="inline-flex items-center rounded-xl bg-slate-100 p-1 border border-slate-200 shadow-sm">
+              {/* View 1 */}
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedView('view1');
+                  setSelectedPoType('');
+                  setCurrentPage(1);
+                  setExpandedPoNumbers(new Set());
+                }}
+                className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 ${
+                  selectedView === 'view1'
+                    ? 'bg-white text-blue-700 shadow-sm ring-1 ring-slate-200'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/70'
+                }`}
+              >
+                View 1
+              </button>
 
-            {/* Watermark Icon */}
-            <div className="absolute -bottom-6 -right-6 text-emerald-500/5 transition-all duration-500 group-hover:-translate-y-1 group-hover:scale-110">
-              <FileStack size={120} />
-            </div>
-
-            <div className="relative z-10 flex-1">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2.5">
-                  <div
-                    className={`flex h-9 w-9 items-center justify-center rounded-xl transition-colors duration-200 ${
-                      selectedPoType === 'non-clubbed' ? 'bg-emerald-500 text-white shadow-sm' : 'bg-emerald-50 text-emerald-600 ring-1 ring-emerald-100'
-                    }`}
-                  >
-                    <FileStack size={18} />
-                  </div>
-                  <span className="text-[11px] font-black uppercase tracking-[0.12em] text-slate-500">Total Payment Released for Non-Clubbed POs</span>
-                </div>
-              </div>
-
-              <div className="text-right">
-                <p className="text-3xl font-black tracking-tight text-slate-900">{formatRupees(nonClubbedBankPayment)}</p>
-              </div>
-            </div>
-          </button>
-
-          {/* Clubbed PO Button */}
-          <button
-            type="button"
-            onClick={() => {
-              setSelectedPoType('clubbed');
-              setCurrentPage(1);
-              setExpandedPoNumbers(new Set());
-            }}
-            className={`group relative flex flex-col justify-between overflow-hidden rounded-2xl border p-3 text-left transition-all duration-300 focus:outline-none ${
-              selectedPoType === 'clubbed'
-                ? 'border-blue-500/80 bg-gradient-to-b from-blue-50/60 to-white shadow-lg shadow-blue-500/10 ring-2 ring-blue-500/20'
-                : 'border-slate-200/80 bg-gradient-to-b from-white to-slate-50/50 hover:-translate-y-0.5 hover:border-blue-500/80 hover:shadow-md'
-            }`}
-          >
-            {/* Top Accent Line */}
-            <div
-              className={`absolute left-0 top-0 h-1 w-full transition-colors duration-300 ${
-                selectedPoType === 'clubbed' ? 'bg-blue-500' : 'bg-transparent group-hover:bg-blue-500/80'
-              }`}
-            />
-
-            {/* Watermark Icon */}
-            <div className="absolute -bottom-6 -right-6 text-blue-500/5 transition-all duration-500 group-hover:-translate-y-1 group-hover:scale-110">
-              <Layers size={120} />
-            </div>
-
-            <div className="relative z-10 flex-1">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2.5">
-                  <div
-                    className={`flex h-9 w-9 items-center justify-center rounded-xl transition-colors duration-200 ${
-                      selectedPoType === 'clubbed' ? 'bg-blue-600 text-white shadow-sm' : 'bg-blue-50 text-blue-600 ring-1 ring-blue-100'
-                    }`}
-                  >
-                    <Layers size={18} />
-                  </div>
-                  <span className="text-[11px] font-black uppercase tracking-[0.12em] text-slate-500">Total Payment Released for Clubbed POs</span>
-                </div>
-              </div>
-
-              <div className="text-right">
-                <p className="text-3xl font-black tracking-tight text-slate-900">{formatRupees(clubbedBankPayment)}</p>
-              </div>
-            </div>
-          </button>
-
-          {/* non PO Button */}
-          <button
-            type="button"
-            onClick={() => {
-              setSelectedPoType('non-po');
-              setCurrentPage(1);
-              setExpandedPoNumbers(new Set());
-            }}
-            className={`group relative flex flex-col justify-between overflow-hidden rounded-2xl border p-3 text-left transition-all duration-300 focus:outline-none ${
-              selectedPoType === 'non-po'
-                ? 'border-amber-500/80 bg-gradient-to-b from-amber-50/60 to-white shadow-lg shadow-amber-500/10 ring-2 ring-amber-500/20'
-                : 'border-slate-200/80 bg-gradient-to-b from-white to-slate-50/50 hover:-translate-y-0.5 hover:border-amber-500/80 hover:shadow-md'
-            }`}
-          >
-            {/* Top Accent Line */}
-            <div
-              className={`absolute left-0 top-0 h-1 w-full transition-colors duration-300 ${
-                selectedPoType === 'non-po' ? 'bg-amber-500' : 'bg-transparent group-hover:bg-amber-500/80'
-              }`}
-            />
-
-            {/* Watermark Icon */}
-            <div className="absolute -bottom-6 -right-6 text-amber-500/5 transition-all duration-500 group-hover:-translate-y-1 group-hover:scale-110">
-              <Layers size={120} />
-            </div>
-
-            <div className="relative z-10 flex-1">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2.5">
-                  <div
-                    className={`flex h-9 w-9 items-center justify-center rounded-xl transition-colors duration-200 ${
-                      selectedPoType === 'non-po' ? 'bg-amber-600 text-white shadow-sm' : 'bg-amber-50 text-amber-600 ring-1 ring-amber-100'
-                    }`}
-                  >
-                    <Layers size={18} />
-                  </div>
-                  <span className="text-[11px] font-black uppercase tracking-[0.12em] text-slate-500">Total Payment Released for Non POs</span>
-                </div>
-              </div>
-
-              <div className="text-right">
-                <p className="text-3xl font-black tracking-tight text-slate-900">{formatRupees(nonPoBankPayment)}</p>
-              </div>
-            </div>
-          </button>
-
-          {/* Grand Total Card */}
-          <div className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-slate-200/80 bg-gradient-to-b from-white to-slate-50/50 p-3  shadow-sm transition-all duration-300 hover:border-violet-300 hover:shadow-md">
-            {/* Top Accent Line */}
-            <div className="absolute left-0 top-0 h-1 w-full bg-violet-500" />
-
-            {/* Watermark Icon */}
-            <div className="absolute -bottom-6 -right-6 text-violet-500/5 transition-all duration-500 group-hover:-translate-y-1 group-hover:scale-110">
-              <Wallet size={120} />
-            </div>
-
-            <div className="relative z-10 flex-1">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2.5">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-violet-50 text-violet-600 ring-1 ring-violet-100">
-                    <Wallet size={18} />
-                  </div>
-                  <span className="text-[11px] font-black uppercase tracking-[0.12em] text-slate-500">Total Payment Released</span>
-                </div>
-              </div>
-
-              <div className="text-right">
-                <p className="text-3xl font-black tracking-tight text-slate-900">{formatRupees(totalBankPayment)}</p>
-              </div>
+              {/* View 2 */}
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedView('view2');
+                  setSelectedPoType('');
+                  setCurrentPage(1);
+                  setExpandedPoNumbers(new Set());
+                }}
+                className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 ${
+                  selectedView === 'view2'
+                    ? 'bg-white text-blue-700 shadow-sm ring-1 ring-slate-200'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/70'
+                }`}
+              >
+                View 2
+              </button>
             </div>
           </div>
-        </div>
+          {selectedView === 'view1' ? (
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-4 mb-5">
+              {/* Non-Clubbed PO Button */}
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedPoType('non-clubbed');
+                  setCurrentPage(1);
+                  setExpandedPoNumbers(new Set());
+                }}
+                className={`group relative flex flex-col justify-between overflow-hidden rounded-2xl border p-3 text-left transition-all duration-300 focus:outline-none ${
+                  selectedPoType === 'non-clubbed'
+                    ? 'border-emerald-500/80 bg-gradient-to-b from-emerald-50/60 to-white shadow-lg shadow-emerald-500/10 ring-2 ring-emerald-500/20'
+                    : 'border-slate-200/80 bg-gradient-to-b from-white to-slate-50/50 hover:-translate-y-0.5 hover:border-emerald-500/80 hover:shadow-md'
+                }`}
+              >
+                {/* Top Accent Line */}
+                <div
+                  className={`absolute left-0 top-0 h-1 w-full transition-colors duration-300 ${
+                    selectedPoType === 'non-clubbed' ? 'bg-emerald-500' : 'bg-transparent group-hover:bg-emerald-500/80'
+                  }`}
+                />
+
+                <div className="relative z-10 flex-1">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2.5">
+                      <div
+                        className={`flex h-9 w-9 items-center justify-center rounded-xl transition-colors duration-200 ${
+                          selectedPoType === 'non-clubbed' ? 'bg-emerald-500 text-white shadow-sm' : 'bg-emerald-50 text-emerald-600 ring-1 ring-emerald-100'
+                        }`}
+                      >
+                        <FileStack size={18} />
+                      </div>
+                      <span className="text-[11px] font-black uppercase tracking-[0.12em] text-slate-500">Total Payment Released for Non-Clubbed POs</span>
+                    </div>
+                  </div>
+
+                  <div className="text-right mt-5">
+                    <p className="text-3xl font-black tracking-tight text-slate-900">{formatRupees(nonClubbedBankPayment)}</p>
+                  </div>
+                </div>
+              </button>
+
+              {/* Clubbed PO Button */}
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedPoType('clubbed');
+                  setCurrentPage(1);
+                  setExpandedPoNumbers(new Set());
+                }}
+                className={`group relative flex flex-col justify-between overflow-hidden rounded-2xl border p-3 text-left transition-all duration-300 focus:outline-none ${
+                  selectedPoType === 'clubbed'
+                    ? 'border-blue-500/80 bg-gradient-to-b from-blue-50/60 to-white shadow-lg shadow-blue-500/10 ring-2 ring-blue-500/20'
+                    : 'border-slate-200/80 bg-gradient-to-b from-white to-slate-50/50 hover:-translate-y-0.5 hover:border-blue-500/80 hover:shadow-md'
+                }`}
+              >
+                {/* Top Accent Line */}
+                <div
+                  className={`absolute left-0 top-0 h-1 w-full transition-colors duration-300 ${
+                    selectedPoType === 'clubbed' ? 'bg-blue-500' : 'bg-transparent group-hover:bg-blue-500/80'
+                  }`}
+                />
+
+                <div className="relative z-10 flex-1">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2.5">
+                      <div
+                        className={`flex h-9 w-9 items-center justify-center rounded-xl transition-colors duration-200 ${
+                          selectedPoType === 'clubbed' ? 'bg-blue-600 text-white shadow-sm' : 'bg-blue-50 text-blue-600 ring-1 ring-blue-100'
+                        }`}
+                      >
+                        <Layers size={18} />
+                      </div>
+                      <span className="text-[11px] font-black uppercase tracking-[0.12em] text-slate-500">Total Payment Released for Clubbed POs</span>
+                    </div>
+                  </div>
+
+                  <div className="text-right mt-5">
+                    <p className="text-3xl font-black tracking-tight text-slate-900">{formatRupees(clubbedBankPayment)}</p>
+                  </div>
+                </div>
+              </button>
+
+              {/* non PO Button */}
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedPoType('non-po');
+                  setCurrentPage(1);
+                  setExpandedPoNumbers(new Set());
+                }}
+                className={`group relative flex flex-col justify-between overflow-hidden rounded-2xl border p-3 text-left transition-all duration-300 focus:outline-none ${
+                  selectedPoType === 'non-po'
+                    ? 'border-amber-500/80 bg-gradient-to-b from-amber-50/60 to-white shadow-lg shadow-amber-500/10 ring-2 ring-amber-500/20'
+                    : 'border-slate-200/80 bg-gradient-to-b from-white to-slate-50/50 hover:-translate-y-0.5 hover:border-amber-500/80 hover:shadow-md'
+                }`}
+              >
+                {/* Top Accent Line */}
+                <div
+                  className={`absolute left-0 top-0 h-1 w-full transition-colors duration-300 ${
+                    selectedPoType === 'non-po' ? 'bg-amber-500' : 'bg-transparent group-hover:bg-amber-500/80'
+                  }`}
+                />
+
+                <div className="relative z-10 flex-1">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2.5">
+                      <div
+                        className={`flex h-9 w-9 items-center justify-center rounded-xl transition-colors duration-200 ${
+                          selectedPoType === 'non-po' ? 'bg-amber-600 text-white shadow-sm' : 'bg-amber-50 text-amber-600 ring-1 ring-amber-100'
+                        }`}
+                      >
+                        <Layers size={18} />
+                      </div>
+                      <span className="text-[11px] font-black uppercase tracking-[0.12em] text-slate-500">Total Payment Released for Non POs</span>
+                    </div>
+                  </div>
+
+                  <div className="text-right mt-5">
+                    <p className="text-3xl font-black tracking-tight text-slate-900">{formatRupees(nonPoBankPayment)}</p>
+                  </div>
+                </div>
+              </button>
+
+              {/* Grand Total Card */}
+              <div className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-slate-200/80 bg-gradient-to-b from-white to-slate-50/50 p-3  shadow-sm transition-all duration-300 hover:border-violet-300 hover:shadow-md">
+                {/* Top Accent Line */}
+                <div className="absolute left-0 top-0 h-1 w-full bg-violet-500" />
+
+                <div className="relative z-10 flex-1">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2.5">
+                      <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-violet-50 text-violet-600 ring-1 ring-violet-100">
+                        <Wallet size={18} />
+                      </div>
+                      <span className="text-[11px] font-black uppercase tracking-[0.12em] text-slate-500">Total Payment Released</span>
+                    </div>
+                  </div>
+
+                  <div className="text-right mt-5">
+                    <p className="text-3xl font-black tracking-tight text-slate-900">{formatRupees(totalBankPayment)}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-3 mb-5">
+              {/* Non-Clubbed */}
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedPoType(selectedPoType === 'non-clubbed' ? '' : 'non-clubbed');
+                  setCurrentPage(1);
+                  setExpandedPoNumbers(new Set());
+                }}
+                className={`group relative w-full overflow-hidden rounded-2xl border p-4 text-left transition-all duration-300 ${
+                  selectedPoType === 'non-clubbed'
+                    ? 'rounded-b-none border-emerald-500/80 bg-gradient-to-r from-emerald-50/70 to-white shadow-lg ring-2 ring-emerald-500/20'
+                    : 'border-slate-200/80 bg-gradient-to-r from-white to-slate-50/50 hover:border-emerald-500/80 hover:shadow-md'
+                }`}
+              >
+                <div
+                  className={`absolute left-0 top-0 h-full w-1 ${
+                    selectedPoType === 'non-clubbed' ? 'bg-emerald-500' : 'bg-transparent group-hover:bg-emerald-500/80'
+                  }`}
+                />
+
+                <div className="relative z-10 flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <ChevronDown
+                      size={20}
+                      className={`transition-transform duration-300 ${selectedPoType === 'non-clubbed' ? 'rotate-180 text-emerald-600' : 'text-slate-400'}`}
+                    />
+                    <div
+                      className={`flex h-10 w-10 items-center justify-center rounded-xl ${
+                        selectedPoType === 'non-clubbed' ? 'bg-emerald-500 text-white' : 'bg-emerald-50 text-emerald-600'
+                      }`}
+                    >
+                      <FileStack size={19} />
+                    </div>
+
+                    <div>
+                      <p className="text-[11px] font-black uppercase tracking-[0.12em] text-slate-500">Total Payment Released for Non-Clubbed POs</p>
+
+                      <p className="mt-0.5 text-xs text-slate-400">{filteredData.length} PO(s)</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <p className="text-2xl tabular-nums font-black text-slate-900">{formatRupees(nonClubbedBankPayment)}</p>
+                  </div>
+                </div>
+              </button>
+
+              {/* Clubbed */}
+              <button
+                type="button"
+                disabled={filteredClubbedPo.length === 0}
+                onClick={() => {
+                  setSelectedPoType(selectedPoType === 'clubbed' ? '' : 'clubbed');
+                  setCurrentPage(1);
+                  setExpandedPoNumbers(new Set());
+                }}
+                className={`group relative w-full overflow-hidden rounded-2xl border p-4 text-left transition-all duration-300 ${
+                  selectedPoType === 'clubbed'
+                    ? 'rounded-b-none border-blue-500/80 bg-gradient-to-r from-blue-50/70 to-white shadow-lg ring-2 ring-blue-500/20'
+                    : 'border-slate-200/80 bg-gradient-to-r from-white to-slate-50/50 hover:border-blue-500/80 hover:shadow-md'
+                } disabled:cursor-not-allowed disabled:opacity-50`}
+              >
+                <div
+                  className={`absolute left-0 top-0 h-full w-1 ${selectedPoType === 'clubbed' ? 'bg-blue-500' : 'bg-transparent group-hover:bg-blue-500/80'}`}
+                />
+
+                <div className="relative z-10 flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <ChevronDown
+                      size={20}
+                      className={`transition-transform duration-300 ${selectedPoType === 'clubbed' ? 'rotate-180 text-blue-600' : 'text-slate-400'}`}
+                    />
+                    <div
+                      className={`flex h-10 w-10 items-center justify-center rounded-xl ${
+                        selectedPoType === 'clubbed' ? 'bg-blue-600 text-white' : 'bg-blue-50 text-blue-600'
+                      }`}
+                    >
+                      <Layers size={19} />
+                    </div>
+
+                    <div>
+                      <p className="text-[11px] font-black uppercase tracking-[0.12em] text-slate-500">Total Payment Released for Clubbed POs</p>
+
+                      <p className="mt-0.5 text-xs text-slate-400">{filteredClubbedPo.length} PO(s)</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <p className="text-2xl tabular-nums font-black text-slate-900">{formatRupees(clubbedBankPayment)}</p>
+                  </div>
+                </div>
+              </button>
+
+              {/* Non PO */}
+              <button
+                type="button"
+                disabled={filteredNonPo.length === 0}
+                onClick={() => {
+                  setSelectedPoType(selectedPoType === 'non-po' ? '' : 'non-po');
+                  setCurrentPage(1);
+                  setExpandedPoNumbers(new Set());
+                }}
+                className={`group relative w-full overflow-hidden rounded-2xl border p-4 text-left transition-all duration-300 ${
+                  selectedPoType === 'non-po'
+                    ? 'rounded-b-none border-amber-500/80 bg-gradient-to-r from-amber-50/70 to-white shadow-lg ring-2 ring-amber-500/20'
+                    : 'border-slate-200/80 bg-gradient-to-r from-white to-slate-50/50 hover:border-amber-500/80 hover:shadow-md'
+                } disabled:cursor-not-allowed disabled:opacity-50`}
+              >
+                <div
+                  className={`absolute left-0 top-0 h-full w-1 ${selectedPoType === 'non-po' ? 'bg-amber-500' : 'bg-transparent group-hover:bg-amber-500/80'}`}
+                />
+
+                <div className="relative z-10 flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <ChevronDown
+                      size={20}
+                      className={`transition-transform duration-300 ${selectedPoType === 'non-po' ? 'rotate-180 text-amber-600' : 'text-slate-400'}`}
+                    />
+                    <div
+                      className={`flex h-10 w-10 items-center justify-center rounded-xl ${
+                        selectedPoType === 'non-po' ? 'bg-amber-500 text-white' : 'bg-amber-50 text-amber-600'
+                      }`}
+                    >
+                      <Layers size={19} />
+                    </div>
+
+                    <div>
+                      <p className="text-[11px] font-black uppercase tracking-[0.12em] text-slate-500">Total Payment Released for Non POs</p>
+
+                      <p className="mt-0.5 text-xs text-slate-400">{filteredNonPo.length} PO(s)</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <p className="text-2xl tabular-nums font-black text-slate-900">{formatRupees(nonPoBankPayment)}</p>
+                  </div>
+                </div>
+              </button>
+
+              {/* Grand Total - NOT CLICKABLE */}
+              <div className="relative w-full overflow-hidden rounded-2xl border border-slate-200/80 bg-gradient-to-r from-violet-50/40 via-white to-slate-50/50 p-4 shadow-sm">
+                <div className="absolute left-0 top-0 h-full w-1 bg-violet-500" />
+
+                <div className="relative z-10 flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-violet-50 text-violet-600">
+                      <Wallet size={19} />
+                    </div>
+
+                    <div>
+                      <p className="text-[11px] font-black uppercase tracking-[0.12em] text-slate-500">Total Payment Released</p>
+
+                      <p className="mt-0.5 text-xs text-slate-400">Non-Clubbed + Clubbed + Non PO</p>
+                    </div>
+                  </div>
+
+                  <p className="text-2xl tabular-nums font-black text-slate-900">{formatRupees(totalBankPayment)}</p>
+                </div>
+              </div>
+            </div>
+          )}
+        </>
       )}
       {selectedPoType && (
         <>
