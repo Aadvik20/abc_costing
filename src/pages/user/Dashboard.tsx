@@ -8,7 +8,7 @@ const Dashboard = () => {
   const { Roles } = useAppSelector((state: RootState) => state.user);
   useEffect(() => {
     if (Roles.includes(-1)) {
-      navigate('/purchaseOrder');
+      navigate('/paymentDetails');
     }
   }, [Roles]);
   return <div></div>;

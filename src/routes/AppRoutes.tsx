@@ -50,8 +50,8 @@ const AppRoutes = () => {
             <Route path="/dashboard" element={<Dashboard />} />
           </Route>
           <Route element={<PrivateRoute allowedRoles={[-1]} />}>
-            <Route path="/purchaseOrder" element={<PurchaseOrderExcelFormate />} />
-            <Route path="/purchaseOrderV2" element={<PurchaseOrderV2 />} />
+            <Route path="/paymentDetails" element={<PurchaseOrderExcelFormate />} />
+            <Route path="/paymentDetailsV2" element={<PurchaseOrderV2 />} />
           </Route>
         </Route>
         <Route element={<AppLayout isAdmin={true} />}>

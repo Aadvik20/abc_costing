@@ -17,14 +17,14 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   const canAccessAdminDashboard = false;
   const allNavItems: NavItem[] = [
     {
-      title: 'Purchase Order',
-      url: '/purchaseOrder',
+      title: 'Payment Details',
+      url: '/paymentDetails',
       icon: Home,
       roles: [-1], //user
     },
     {
-      title: 'Purchase Order V2',
-      url: '/purchaseOrderV2',
+      title: 'Payment Details V2',
+      url: '/paymentDetailsV2',
       icon: Home,
       roles: [-1], //user
     },

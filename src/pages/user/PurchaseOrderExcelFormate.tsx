@@ -54,30 +54,41 @@ const TableRowItem: React.FC<TableRowItemProps> = React.memo(({ row, index, isEx
     <>
       <tr onClick={handleRowClick} className={`cursor-pointer transition-colors ${isExpanded ? 'bg-blue-50/70' : 'hover:bg-gray-50'}`}>
         {selectedPoType !== 'non-po' && (
-          <td className="px-3 py-3 text-center border-r border-gray-200 select-none">
+          <td className="px-2 py-1 text-center border-r border-gray-200 select-none">
             {isExpanded ? <ChevronDown className="h-4 w-4 text-blue-600 mx-auto" /> : <ChevronRight className="h-4 w-4 text-blue-600 mx-auto" />}
           </td>
         )}
-        <td className="px-3 py-3 border-r border-gray-200 text-left font-bold">{index + 1}</td>
+        <td className="px-2 py-1 border-r border-gray-200 text-left font-bold">{index + 1}</td>
         {selectedPoType !== 'non-po' && (
           <>
-            <td className="px-4 py-3 border-r border-gray-200 font-bold text-blue-700">{poNo || '-'}</td>
-            <td className="px-4 py-3 border-r border-gray-200 font-bold text-blue-700">{formatDate(row.poDate) || '-'}</td>
-            <td className="px-4 py-3 border-r border-gray-200 text-right">{formatRupees(row.poOrderValue)}</td>
+            <td className="px-2 py-1 border-r border-gray-200 font-bold text-blue-700 tabular-nums">{poNo || '-'}</td>
+            <td className="px-2 py-1 border-r border-gray-200">{formatDate(row.poDate) || '-'}</td>
+            <td className="px-2 py-1 border-r border-gray-200 text-right tabular-nums">{formatRupees(row.poOrderValue)}</td>
           </>
         )}
         {selectedPoType === 'non-po' && (
           <>
-            <td className="px-4 py-3 border-r border-gray-200 font-bold text-blue-700">{row.invoiceNumber || '-'}</td>
-            <td className="px-4 py-3 border-r border-gray-200 font-bold text-blue-700">{formatDate(row.invoiceDate) || '-'}</td>
+            <td className="px-2 py-1 border-r border-gray-200 font-bold text-blue-700 tabular-nums">{row.invoiceNumber || '-'}</td>
+            <td className="px-2 py-1 border-r border-gray-200 font-bold text-blue-700">{formatDate(row.invoiceDate) || '-'}</td>
           </>
         )}
-        <td className="px-4 py-3 border-r border-gray-200">{row.supplierCode || '-'}</td>
-        <td className="px-4 py-3 border-r border-gray-200" onClick={(e) => e.stopPropagation()}>
+        <td className="px-2 py-1 border-r border-gray-200">
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <div className="max-w-[160px] truncate cursor-pointer">{row.poType || '-'}</div>
+                <div className="max-w-[180px] truncate cursor-pointer">{row.supplierCode || '-'}</div>
+              </TooltipTrigger>
+              <TooltipContent className="max-w-md break-words">
+                <p>{row.supplierCode || '-'}</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </td>
+        <td className="px-2 py-1 border-r border-gray-200" onClick={(e) => e.stopPropagation()}>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="max-w-[100px] truncate cursor-pointer">{row.poType || '-'}</div>
               </TooltipTrigger>
               <TooltipContent className="max-w-md break-words">
                 <p>{row.poType || '-'}</p>
@@ -85,20 +96,20 @@ const TableRowItem: React.FC<TableRowItemProps> = React.memo(({ row, index, isEx
             </Tooltip>
           </TooltipProvider>
         </td>
-        <td className="px-2 py-3 border-r border-gray-200">{row.unit || '-'}</td>
-        <td className="px-4 py-3 border-r border-gray-200 text-right">{formatRupees(row.bankPayment)}</td>
-        <td className="px-4 py-3 border-r border-gray-200 text-right">{formatDecimal(row.cgstAmount)}</td>
-        <td className="px-4 py-3 border-r border-gray-200 text-right">{formatDecimal(row.cgsttds)}</td>
-        <td className="px-4 py-3 border-r border-gray-200 text-right">{formatDecimal(row.sgstAmount)}</td>
-        <td className="px-4 py-3 border-r border-gray-200 text-right">{formatDecimal(row.sgsttds)}</td>
-        <td className="px-4 py-3 border-r border-gray-200 text-right">{formatDecimal(row.igstAmount)}</td>
-        <td className="px-4 py-3 border-r border-gray-200 text-right">{formatDecimal(row.igsttds)}</td>
-        <td className="px-4 py-3 text-right">{formatDecimal(row.ittds)}</td>
+        <td className="px-2 py-1 border-r border-gray-200">{row.unit || '-'}</td>
+        <td className="px-2 py-1 border-r border-gray-200 text-right tabular-nums">{formatRupees(row.bankPayment)}</td>
+        <td className="px-2 py-1 border-r border-gray-200 text-right tabular-nums">{formatDecimal(row.cgstAmount)}</td>
+        <td className="px-2 py-1 border-r border-gray-200 text-right tabular-nums">{formatDecimal(row.cgsttds)}</td>
+        <td className="px-2 py-1 border-r border-gray-200 text-right tabular-nums">{formatDecimal(row.sgstAmount)}</td>
+        <td className="px-2 py-1 border-r border-gray-200 text-right tabular-nums">{formatDecimal(row.sgsttds)}</td>
+        <td className="px-2 py-1 border-r border-gray-200 text-right tabular-nums">{formatDecimal(row.igstAmount)}</td>
+        <td className="px-2 py-1 border-r border-gray-200 text-right tabular-nums">{formatDecimal(row.igsttds)}</td>
+        <td className="px-2 py-1 text-right tabular-nums">{formatDecimal(row.ittds)}</td>
       </tr>
       {isExpanded && (
         <tr className="bg-gray-100/80">
-          <td colSpan={14} className="p-4 border-b border-gray-300">
-            <div className="bg-white p-4 rounded-lg shadow-inner border border-gray-200">
+          <td colSpan={14} className="p-2 border-b border-gray-300 min-w-full">
+            <div className="bg-white p-2 rounded-lg shadow-inner border border-gray-200">
               <PoDetailsContent poNumber={poNo} />
             </div>
           </td>
@@ -300,6 +311,34 @@ const PurchaseOrderExcelFormate: React.FC = () => {
     return filteredData;
   }, [selectedPoType, filteredClubbedPo, filteredData, filteredNonPo]);
 
+  const totals = useMemo(() => {
+    return displayData.reduce(
+      (acc, row) => {
+        acc.poOrderValue += Number(row.poOrderValue) || 0;
+        acc.bankPayment += Number(row.bankPayment) || 0;
+        acc.cgstAmount += Number(row.cgstAmount) || 0;
+        acc.cgsttds += Number(row.cgsttds) || 0;
+        acc.sgstAmount += Number(row.sgstAmount) || 0;
+        acc.sgsttds += Number(row.sgsttds) || 0;
+        acc.igstAmount += Number(row.igstAmount) || 0;
+        acc.igsttds += Number(row.igsttds) || 0;
+        acc.ittds += Number(row.ittds) || 0;
+        return acc;
+      },
+      {
+        poOrderValue: 0,
+        bankPayment: 0,
+        cgstAmount: 0,
+        cgsttds: 0,
+        sgstAmount: 0,
+        sgsttds: 0,
+        igstAmount: 0,
+        igsttds: 0,
+        ittds: 0,
+      }
+    );
+  }, [displayData]);
+
   const totalPages = Math.ceil(displayData.length / pageSize) || 1;
 
   const paginatedData = useMemo(() => {
@@ -329,9 +368,9 @@ const PurchaseOrderExcelFormate: React.FC = () => {
     return paginatedData.every((row) => row.poNo && expandedPoNumbers.has(row.poNo));
   }, [paginatedData, expandedPoNumbers]);
   return (
-    <div className="p-4 sm:p-6 space-y-5 bg-gray-50 min-h-screen">
-      <h1 className="text-xl sm:text-2xl font-extrabold text-gray-900 tracking-tight">Purchase Order Excel Format</h1>
-      <div className="p-4 sm:p-5 bg-white rounded-xl shadow-sm border border-gray-200 space-y-3">
+    <div className="p-4 space-y-4 bg-gray-50 min-h-screen">
+      <h1 className="text-xl sm:text-2xl font-extrabold text-gray-900 tracking-tight">Payment Details</h1>
+      <div className="p-4 bg-white rounded-xl shadow-sm border border-gray-200 space-y-3">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3 items-end">
           {data.length > 0 && (
             <div className="lg:col-span-3">
@@ -396,6 +435,7 @@ const PurchaseOrderExcelFormate: React.FC = () => {
               type="date"
               value={toDate}
               min={fromDate || undefined}
+              max={new Date().toISOString().split('T')[0]}
               onChange={handleToDateChange}
               className={`w-full h-10 px-2.5 border rounded-lg text-sm font-medium text-gray-800 focus:ring-2 focus:outline-none transition ${
                 dateError ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
@@ -438,95 +478,110 @@ const PurchaseOrderExcelFormate: React.FC = () => {
         )}
       </div>
       <div className="flex items-center justify-between gap-3">
-        <div className="inline-flex items-center rounded-xl bg-slate-200/60 p-1 border border-slate-300/80 shadow-inner">
-          {/* ================= NON-CLUBBED ================= */}
-          <button
-            type="button"
-            onClick={() => {
-              setSelectedPoType('non-clubbed');
-              setCurrentPage(1);
-              setExpandedPoNumbers(new Set());
-            }}
-            className={`group relative inline-flex items-center gap-2 px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all duration-200 ${
-              selectedPoType === 'non-clubbed'
-                ? 'bg-white text-emerald-900 shadow-sm ring-1 ring-emerald-500/30'
-                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-300/40'
-            }`}
-          >
-            {/* Active indicator */}
-            {selectedPoType === 'non-clubbed' && <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />}
-
-            <span>Non-Clubbed</span>
-
-            {/* Count */}
-            <span
-              className={`min-w-[20px] h-4 px-1.5 inline-flex items-center justify-center rounded-full text-[10px] font-extrabold transition-colors ${
-                selectedPoType === 'non-clubbed' ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-300/80 text-slate-700 group-hover:bg-slate-400/50'
+        <div className="flex gap-4">
+          <div className="inline-flex items-center rounded-xl bg-slate-200/60 p-1 border border-slate-300/80 shadow-inner">
+            {/* ================= NON-CLUBBED ================= */}
+            <button
+              type="button"
+              onClick={() => {
+                setSelectedPoType('non-clubbed');
+                setCurrentPage(1);
+                setExpandedPoNumbers(new Set());
+              }}
+              className={`group relative inline-flex items-center gap-2 px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all duration-200 ${
+                selectedPoType === 'non-clubbed'
+                  ? 'bg-white text-emerald-900 shadow-sm ring-1 ring-emerald-500/30'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-300/40'
               }`}
             >
-              {filteredData.length}
-            </span>
-          </button>
+              {/* Active indicator */}
+              {selectedPoType === 'non-clubbed' && <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />}
 
-          {/* ================= CLUBBED ================= */}
-          <button
-            type="button"
-            onClick={() => {
-              setSelectedPoType('clubbed');
-              setCurrentPage(1);
-              setExpandedPoNumbers(new Set());
-            }}
-            disabled={filteredClubbedPo.length === 0}
-            className={`group relative inline-flex items-center gap-2 px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all duration-200 ${
-              selectedPoType === 'clubbed'
-                ? 'bg-blue-600 text-white shadow-md shadow-blue-500/25 ring-1 ring-blue-500/30'
-                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-300/40'
-            } disabled:opacity-40 disabled:cursor-not-allowed`}
-          >
-            {/* Active indicator */}
-            {selectedPoType === 'clubbed' && <span className="h-1.5 w-1.5 rounded-full bg-blue-200 animate-pulse" />}
+              <span>Non-Clubbed</span>
 
-            <span>Clubbed</span>
+              {/* Count */}
+              <span
+                className={`min-w-[20px] h-4 px-1.5 inline-flex items-center justify-center rounded-full text-[10px] font-extrabold transition-colors ${
+                  selectedPoType === 'non-clubbed' ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-300/80 text-slate-700 group-hover:bg-slate-400/50'
+                }`}
+              >
+                {filteredData.length}
+              </span>
+            </button>
 
-            {/* Count */}
-            <span
-              className={`min-w-[20px] h-4 px-1.5 inline-flex items-center justify-center rounded-full text-[10px] font-extrabold transition-colors ${
-                selectedPoType === 'clubbed' ? 'bg-white/25 text-white' : 'bg-blue-100 text-blue-800 group-hover:bg-blue-200/80'
-              }`}
+            {/* ================= CLUBBED ================= */}
+            <button
+              type="button"
+              onClick={() => {
+                setSelectedPoType('clubbed');
+                setCurrentPage(1);
+                setExpandedPoNumbers(new Set());
+              }}
+              disabled={filteredClubbedPo.length === 0}
+              className={`group relative inline-flex items-center gap-2 px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all duration-200 ${
+                selectedPoType === 'clubbed'
+                  ? 'bg-blue-600 text-white shadow-md shadow-blue-500/25 ring-1 ring-blue-500/30'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-300/40'
+              } disabled:opacity-40 disabled:cursor-not-allowed`}
             >
-              {filteredClubbedPo.length}
-            </span>
-          </button>
+              {/* Active indicator */}
+              {selectedPoType === 'clubbed' && <span className="h-1.5 w-1.5 rounded-full bg-blue-200 animate-pulse" />}
 
-          {/* ================= NON PO ================= */}
-          <button
-            type="button"
-            onClick={() => {
-              setSelectedPoType('non-po');
-              setCurrentPage(1);
-              setExpandedPoNumbers(new Set());
-            }}
-            disabled={filteredNonPo.length === 0}
-            className={`group relative inline-flex items-center gap-2 px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all duration-200 ${
-              selectedPoType === 'non-po'
-                ? 'bg-amber-500 text-white shadow-md shadow-amber-500/25 ring-1 ring-amber-500/30'
-                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-300/40'
-            } disabled:opacity-40 disabled:cursor-not-allowed`}
-          >
-            {/* Active indicator */}
-            {selectedPoType === 'non-po' && <span className="h-1.5 w-1.5 rounded-full bg-amber-100 animate-pulse" />}
+              <span>Clubbed</span>
 
-            <span>Non PO</span>
+              {/* Count */}
+              <span
+                className={`min-w-[20px] h-4 px-1.5 inline-flex items-center justify-center rounded-full text-[10px] font-extrabold transition-colors ${
+                  selectedPoType === 'clubbed' ? 'bg-white/25 text-white' : 'bg-blue-100 text-blue-800 group-hover:bg-blue-200/80'
+                }`}
+              >
+                {filteredClubbedPo.length}
+              </span>
+            </button>
 
-            {/* Count */}
-            <span
-              className={`min-w-[20px] h-4 px-1.5 inline-flex items-center justify-center rounded-full text-[10px] font-extrabold transition-colors ${
-                selectedPoType === 'non-po' ? 'bg-white/25 text-white' : 'bg-amber-100 text-amber-800 group-hover:bg-amber-200/80'
-              }`}
+            {/* ================= NON PO ================= */}
+            <button
+              type="button"
+              onClick={() => {
+                setSelectedPoType('non-po');
+                setCurrentPage(1);
+                setExpandedPoNumbers(new Set());
+              }}
+              disabled={filteredNonPo.length === 0}
+              className={`group relative inline-flex items-center gap-2 px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all duration-200 ${
+                selectedPoType === 'non-po'
+                  ? 'bg-amber-500 text-white shadow-md shadow-amber-500/25 ring-1 ring-amber-500/30'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-300/40'
+              } disabled:opacity-40 disabled:cursor-not-allowed`}
             >
-              {filteredNonPo.length}
+              {/* Active indicator */}
+              {selectedPoType === 'non-po' && <span className="h-1.5 w-1.5 rounded-full bg-amber-100 animate-pulse" />}
+
+              <span>Non PO</span>
+
+              {/* Count */}
+              <span
+                className={`min-w-[20px] h-4 px-1.5 inline-flex items-center justify-center rounded-full text-[10px] font-extrabold transition-colors ${
+                  selectedPoType === 'non-po' ? 'bg-white/25 text-white' : 'bg-amber-100 text-amber-800 group-hover:bg-amber-200/80'
+                }`}
+              >
+                {filteredNonPo.length}
+              </span>
+            </button>
+          </div>
+          <div className="inline-flex items-center gap-2 bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200/80 px-3 py-1.5 rounded-lg shadow-2xs">
+            {/* Status / Indicator Icon */}
+            <span className="flex h-2 w-2 relative">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
             </span>
-          </button>
+
+            {/* Label & Type */}
+            <span className="text-[11px] font-bold text-slate-900 uppercase tracking-wide">Total Bank Payment for the selected period ({selectedPoType}):</span>
+
+            {/* Amount Value */}
+            <span className="text-sm font-extrabold text-emerald-700 tabular-nums">{formatRupees(totals.bankPayment)}</span>
+          </div>
         </div>
         <div className="flex gap-3">
           {selectedPoType !== 'non-po' && (
@@ -580,14 +635,49 @@ const PurchaseOrderExcelFormate: React.FC = () => {
       {loading && <Loader />}
       {!loading && error && <div className="p-8 text-center text-red-600 font-bold bg-white rounded-xl border border-gray-200 shadow-sm">{error}</div>}
       {!loading && !error && (
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden flex flex-col">
-          <div className="overflow-x-auto">
-            <table className="min-w-full text-sm border-collapse">
-              <thead className="bg-primary text-white sticky top-0 z-10 font-bold text-xs uppercase border-b border-gray-300">
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm flex flex-col">
+          <div className="overflow-x-visible">
+            {/* SUMMARY TOTALS CARD TABLE */}
+            {/* {displayData.length > 0 && (
+              <div className="mb-2">
+                <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white shadow-2xs">
+                  <table className="w-full text-sm border-collapse">
+                    <thead className="bg-primary">
+                      <tr className="text-white border-gray-300 font-bold text-[11px] uppercase tracking-wider border-b">
+                        <th className="px-3 py-2 text-right border-r border-slate-300 whitespace-nowrap min-w-[130px]">Total Bank Payment</th>
+                        <th className="px-3 py-2 text-right border-r border-slate-300 whitespace-nowrap min-w-[100px]">Total CGST</th>
+                        <th className="px-3 py-2 text-right border-r border-slate-300 whitespace-nowrap min-w-[100px]">Total CGST TDS</th>
+                        <th className="px-3 py-2 text-right border-r border-slate-300 whitespace-nowrap min-w-[100px]">Total SGST</th>
+                        <th className="px-3 py-2 text-right border-r border-slate-300 whitespace-nowrap min-w-[100px]">Total SGST TDS</th>
+                        <th className="px-3 py-2 text-right border-r border-slate-300 whitespace-nowrap min-w-[100px]">Total IGST</th>
+                        <th className="px-3 py-2 text-right border-r border-slate-300 whitespace-nowrap min-w-[100px]">Total IGST TDS</th>
+                        <th className="px-3 py-2 text-right whitespace-nowrap min-w-[100px]">IT TDS</th>
+                      </tr>
+                    </thead>
+                    <tbody className="font-extrabold text-slate-900 bg-slate-50/50 divide-x divide-slate-200">
+                      <tr>
+                        <td className="px-3 py-2.5 text-right tabular-nums text-green-700 border-r border-slate-200">{formatRupees(totals.bankPayment)}</td>
+                        <td className="px-3 py-2.5 text-right tabular-nums border-r border-slate-200 text-green-700">{formatDecimal(totals.cgstAmount)}</td>
+                        <td className="px-3 py-2.5 text-right tabular-nums border-r border-slate-200 text-green-700">{formatDecimal(totals.cgsttds)}</td>
+                        <td className="px-3 py-2.5 text-right tabular-nums border-r border-slate-200 text-green-700">{formatDecimal(totals.sgstAmount)}</td>
+                        <td className="px-3 py-2.5 text-right tabular-nums border-r border-slate-200 text-green-700">{formatDecimal(totals.sgsttds)}</td>
+                        <td className="px-3 py-2.5 text-right tabular-nums border-r border-slate-200 text-green-700">{formatDecimal(totals.igstAmount)}</td>
+                        <td className="px-3 py-2.5 text-right tabular-nums border-r border-slate-200 text-green-700">{formatDecimal(totals.igsttds)}</td>
+                        <td className="px-3 py-2.5 text-right tabular-nums text-green-700">{formatDecimal(totals.ittds)}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )} */}
+
+            {/* TOTALS SUMMARY TABLE */}
+            <table className="min-w-full text-sm border-seperate border-spacing-0">
+              <thead className="bg-primary sticky top-0 z-20 text-white font-bold text-xs uppercase border-b border-gray-300">
                 <tr>
                   {selectedPoType !== 'non-po' && (
                     <th
-                      className="w-10 px-3 py-3 text-center border-r border-gray-200 cursor-pointer select-none hover:bg-primary-dark transition-colors"
+                      className="px-2 py-2 text-center border-r border-gray-200 cursor-pointer select-none hover:bg-primary-dark transition-colors"
                       title={isAllPageExpanded ? 'Collapse all on page' : 'Expand all on page'}
                       onClick={() => {
                         if (isAllPageExpanded) {
@@ -600,40 +690,34 @@ const PurchaseOrderExcelFormate: React.FC = () => {
                       {isAllPageExpanded ? <ChevronDown className="h-5 w-5 text-white mx-auto" /> : <ChevronRight className="h-5 w-5 text-white mx-auto" />}
                     </th>
                   )}
-                  <th className="w-16 px-3 py-3 text-left border-r border-gray-200">Sr. No.</th>
+                  <th className="w-16 px-2 py-2 text-left border-r border-gray-200">Sr. No.</th>
                   {selectedPoType !== 'non-po' && (
                     <>
-                      <th className="px-4 py-3 text-left border-r border-gray-200 min-w-[120px]">PO No</th>
-                      <th className="px-4 py-3 text-left border-r border-gray-200 min-w-[140px]">PO Date</th>
-                      <th className="px-4 py-3 text-right border-r border-gray-200 min-w-[160px]">PO Amount</th>
+                      <th className="px-2 py-2 text-left border-r border-gray-200 min-w-[110px]">PO No</th>
+                      <th className="px-2 py-2 text-left border-r border-gray-200 min-w-[130px]">PO Date</th>
+                      <th className="px-2 py-2 text-right border-r border-gray-200 min-w-[160px]">PO Amount</th>
                     </>
                   )}
                   {selectedPoType === 'non-po' && (
                     <>
-                      <th className="px-4 py-3 text-left border-r border-gray-200 min-w-[120px]">Invoice No</th>
-                      <th className="px-4 py-3 text-left border-r border-gray-200 min-w-[140px]">Invoice Date</th>
+                      <th className="px-2 py-2 text-left border-r border-gray-200 min-w-[110px]">Invoice No</th>
+                      <th className="px-2 py-2 text-left border-r border-gray-200 min-w-[140px]">Invoice Date</th>
                     </>
                   )}
-                  <th className="px-4 py-3 text-left border-r border-gray-200 min-w-[200px]">Supplier Code</th>
-                  <th className="px-4 py-3 text-left border-r border-gray-200 min-w-[160px]">
-                    {/* <div className="flex flex-col">
-                      <span>PO Type</span>
-                      <span className="text-[10px] lowercase text-white font-normal">(capex, opex, deposit work)</span>
-                    </div> */}
-                    Expenditure Type
-                  </th>
-                  <th className="px-2 py-3 text-left border-r border-gray-200 min-w-[140px]">Unit</th>
-                  <th className="px-4 py-3 text-right border-r border-gray-200 min-w-[160px]">Bank Payment</th>
-                  <th className="px-4 py-3 text-right border-r border-gray-200 min-w-[100px]">CGST</th>
-                  <th className="px-4 py-3 text-right border-r border-gray-200 min-w-[100px]">CGST TDS</th>
-                  <th className="px-4 py-3 text-right border-r border-gray-200 min-w-[100px]">SGST</th>
-                  <th className="px-4 py-3 text-right border-r border-gray-200 min-w-[100px]">SGST TDS</th>
-                  <th className="px-4 py-3 text-right border-r border-gray-200 min-w-[100px]">IGST</th>
-                  <th className="px-4 py-3 text-right border-r border-gray-200 min-w-[110px]">IGST TDS</th>
-                  <th className="px-4 py-3 text-right min-w-[110px]">IT TDS</th>
+                  <th className="px-2 py-2 text-left border-r border-gray-200 min-w-[180px]">Supplier Code</th>
+                  <th className="px-2 py-2 text-left border-r border-gray-200 min-w-[120px]">PO Type</th>
+                  <th className="px-2 py-2 text-left border-r border-gray-200 min-w-[120px]">Unit</th>
+                  <th className="px-2 py-2 text-right border-r border-gray-200 min-w-[150px]">Bank Payment</th>
+                  <th className="px-2 py-2 text-right border-r border-gray-200 min-w-[100px]">CGST</th>
+                  <th className="px-2 py-2 text-right border-r border-gray-200 min-w-[100px]">CGST TDS</th>
+                  <th className="px-2 py-2 text-right border-r border-gray-200 min-w-[100px]">SGST</th>
+                  <th className="px-2 py-2 text-right border-r border-gray-200 min-w-[100px]">SGST TDS</th>
+                  <th className="px-2 py-2 text-right border-r border-gray-200 min-w-[100px]">IGST</th>
+                  <th className="px-2 py-2 text-right border-r border-gray-200 min-w-[110px]">IGST TDS</th>
+                  <th className="px-2 py-2 text-right min-w-[110px]">IT TDS</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200 font-semibold text-gray-800">
+              <tbody className="divide-y divide-gray-200 font-medium text-gray-900">
                 {paginatedData.length === 0 ? (
                   <tr>
                     <td colSpan={14} className="p-8 text-center text-gray-500">
