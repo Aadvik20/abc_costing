@@ -287,7 +287,7 @@ const PurchaseOrderExcelFormate: React.FC = () => {
   }, [clubbedPo, applyFilters]);
 
   const filteredNonPo = useMemo(() => {
-    return applyFilters(nonPo.filter((r) => r.bankPayment !== 0));
+    return applyFilters(nonPo);
   }, [nonPo, applyFilters]);
 
   const displayData = useMemo(() => {
