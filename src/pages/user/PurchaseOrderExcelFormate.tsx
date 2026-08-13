@@ -368,7 +368,7 @@ const PurchaseOrderExcelFormate: React.FC = () => {
     return paginatedData.every((row) => row.poNo && expandedPoNumbers.has(row.poNo));
   }, [paginatedData, expandedPoNumbers]);
   return (
-    <div className="p-4 space-y-4 bg-gray-50 min-h-screen">
+    <div className="p-4 space-y-4 min-h-screen">
       <h1 className="text-xl sm:text-2xl font-extrabold text-gray-900 tracking-tight">Payment Details</h1>
       <div className="p-4 bg-white rounded-xl shadow-sm border border-gray-200 space-y-3">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3 items-end">
@@ -635,7 +635,7 @@ const PurchaseOrderExcelFormate: React.FC = () => {
       {loading && <Loader />}
       {!loading && error && <div className="p-8 text-center text-red-600 font-bold bg-white rounded-xl border border-gray-200 shadow-sm">{error}</div>}
       {!loading && !error && (
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm flex flex-col">
+        <div className="bg-white rounded-xl border-gray-200 shadow-sm flex flex-col">
           <div className="overflow-x-visible">
             {/* SUMMARY TOTALS CARD TABLE */}
             {/* {displayData.length > 0 && (
