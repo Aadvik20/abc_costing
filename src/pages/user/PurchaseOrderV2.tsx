@@ -73,12 +73,42 @@ const TableRowItem: React.FC<TableRowItemProps> = React.memo(({ row, index, isEx
           </>
         )}
         <td className="px-2 py-1 border-r border-gray-200">
-          <TooltipProvider>
+          <TooltipProvider delayDuration={0} skipDelayDuration={0}>
             <Tooltip>
               <TooltipTrigger asChild>
-                <div className="max-w-[180px] truncate cursor-pointer">{row.supplierCode || '-'}</div>
+                <div
+                  className="
+            max-w-[180px]
+            truncate
+            cursor-pointer
+            rounded-md
+            px-2 py-1
+            transition-all duration-150
+            hover:bg-primary/10
+            hover:text-primary
+            hover:ring-1
+            hover:ring-primary/20
+          "
+                >
+                  {row.supplierCode || '-'}
+                </div>
               </TooltipTrigger>
-              <TooltipContent className="max-w-md break-words">
+
+              <TooltipContent
+                side="top"
+                sideOffset={5}
+                className="
+          max-w-md
+          break-words
+          rounded-md
+          bg-blue-700
+          px-3 py-2
+          text-xs
+          font-medium
+          text-white
+          shadow-lg
+        "
+              >
                 <p>{row.supplierCode || '-'}</p>
               </TooltipContent>
             </Tooltip>
@@ -364,113 +394,112 @@ const PurchaseOrderV2: React.FC = () => {
     <div className="p-4 space-y-4 min-h-screen">
       {loading && <Loader />}
       <h1 className="text-xl sm:text-2xl font-extrabold text-gray-900 tracking-tight">Payment Details</h1>
-      <div className="p-4 sm:p-5 bg-white rounded-xl shadow-sm border border-gray-200 space-y-3">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3 items-end">
-          {data.length > 0 && (
-            <div className="lg:col-span-3">
-              <label htmlFor="unit-select" className="block text-xs font-semibold text-gray-700 mb-1">
-                Unit <span className="text-gray-400 font-normal">(Instant Filter)</span>
-              </label>
-              <select
-                id="unit-select"
-                value={selectedUnit}
-                onChange={(e) => setSelectedUnit(e.target.value)}
-                className="w-full h-10 px-3 border border-gray-300 rounded-lg text-sm font-medium text-gray-800 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition"
-              >
-                <option value="">All Units</option>
-                {units.map((unit) => (
-                  <option key={unit} value={unit}>
-                    {unit}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3 items-end">
+        {data.length > 0 && (
           <div className="lg:col-span-3">
-            <label htmlFor="search-query" className="block text-xs font-semibold text-gray-700 mb-1">
-              Search Query
+            <label htmlFor="unit-select" className="block text-xs font-semibold text-gray-700 mb-1">
+              Unit <span className="text-gray-400 font-normal">(Instant Filter)</span>
             </label>
-            <div className="relative">
-              <input
-                id="search-query"
-                type="text"
-                placeholder="PO, Profit Center..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full h-10 pl-9 pr-3 border border-gray-300 rounded-lg text-sm font-medium text-gray-800 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition"
-              />
-              <svg className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-            </div>
-          </div>
-          <div className="lg:col-span-2">
-            <label htmlFor="from-date" className="block text-xs font-semibold text-gray-700 mb-1">
-              From Date
-            </label>
-            <input
-              min="2026-07-01"
-              id="from-date"
-              type="date"
-              value={fromDate}
-              max={toDate || undefined}
-              onChange={handleFromDateChange}
-              className={`w-full h-10 px-2.5 border rounded-lg text-sm font-medium text-gray-800 focus:ring-2 focus:outline-none transition ${
-                dateError ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
-              }`}
-            />
-          </div>
-          <div className="lg:col-span-2">
-            <label htmlFor="to-date" className="block text-xs font-semibold text-gray-700 mb-1">
-              To Date
-            </label>
-            <input
-              id="to-date"
-              type="date"
-              value={toDate}
-              min={fromDate || undefined}
-              max={new Date().toISOString().split('T')[0]}
-              onChange={handleToDateChange}
-              className={`w-full h-10 px-2.5 border rounded-lg text-sm font-medium text-gray-800 focus:ring-2 focus:outline-none transition ${
-                dateError ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
-              }`}
-            />
-          </div>
-          <div className="lg:col-span-2 flex items-center gap-1.5 sm:col-span-2">
-            <button
-              type="button"
-              onClick={fetchPurchaseOrders}
-              disabled={Boolean(dateError)}
-              className="flex-1 h-10 px-3 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white font-semibold text-sm rounded-lg shadow-sm transition duration-150 flex items-center justify-center gap-1.5"
+            <select
+              id="unit-select"
+              value={selectedUnit}
+              onChange={(e) => setSelectedUnit(e.target.value)}
+              className="w-full h-10 px-3 border border-gray-300 rounded-lg text-sm font-medium text-gray-800 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition"
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-              <span>Search</span>
-            </button>
-            <button
-              type="button"
-              onClick={handleResetFilters}
-              title="Clear all filters"
-              className="h-10 px-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium text-sm rounded-lg border border-gray-300 transition duration-150 whitespace-nowrap"
-            >
-              Clear
-            </button>
-          </div>
-        </div>
-        {dateError && (
-          <div className="flex items-center gap-1.5 text-xs font-medium text-red-600 pt-0.5">
-            <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
-              <path
-                fillRule="evenodd"
-                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
-                clipRule="evenodd"
-              />
-            </svg>
-            {dateError}
+              <option value="">All Units</option>
+              {units.map((unit) => (
+                <option key={unit} value={unit}>
+                  {unit}
+                </option>
+              ))}
+            </select>
           </div>
         )}
+        <div className="lg:col-span-3">
+          <label htmlFor="search-query" className="block text-xs font-semibold text-gray-700 mb-1">
+            Search Query
+          </label>
+          <div className="relative">
+            <input
+              id="search-query"
+              type="text"
+              placeholder="PO, Profit Center..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full h-10 pl-9 pr-3 border border-gray-300 rounded-lg text-sm font-medium text-gray-800 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition"
+            />
+            <svg className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </div>
+        </div>
+        <div className="lg:col-span-2">
+          <label htmlFor="from-date" className="block text-xs font-semibold text-gray-700 mb-1">
+            From Date
+          </label>
+          <input
+            min="2026-07-01"
+            id="from-date"
+            type="date"
+            value={fromDate}
+            max={toDate || undefined || new Date().toISOString().split('T')[0]}
+            onChange={handleFromDateChange}
+            className={`w-full h-10 px-2.5 border rounded-lg text-sm font-medium text-gray-800 focus:ring-2 focus:outline-none transition ${
+              dateError ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
+            }`}
+          />
+        </div>
+        <div className="lg:col-span-2">
+          <label htmlFor="to-date" className="block text-xs font-semibold text-gray-700 mb-1">
+            To Date
+          </label>
+          <input
+            id="to-date"
+            type="date"
+            value={toDate}
+            min={fromDate || undefined}
+            max={new Date().toISOString().split('T')[0]}
+            onChange={handleToDateChange}
+            className={`w-full h-10 px-2.5 border rounded-lg text-sm font-medium text-gray-800 focus:ring-2 focus:outline-none transition ${
+              dateError ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
+            }`}
+          />
+        </div>
+        <div className="lg:col-span-2 flex items-center gap-1.5 sm:col-span-2">
+          <button
+            type="button"
+            onClick={fetchPurchaseOrders}
+            disabled={Boolean(dateError)}
+            className="flex-1 h-10 px-3 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white font-semibold text-sm rounded-lg shadow-sm transition duration-150 flex items-center justify-center gap-1.5"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            <span>Search</span>
+          </button>
+          <button
+            type="button"
+            onClick={handleResetFilters}
+            title="Clear all filters"
+            className="h-10 px-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium text-sm rounded-lg border border-gray-300 transition duration-150 whitespace-nowrap"
+          >
+            Clear
+          </button>
+        </div>
       </div>
+      {dateError && (
+        <div className="flex items-center gap-1.5 text-xs font-medium text-red-600 pt-0.5">
+          <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+            <path
+              fillRule="evenodd"
+              d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+              clipRule="evenodd"
+            />
+          </svg>
+          {dateError}
+        </div>
+      )}
 
       {data.length === 0 ? (
         <div className="flex items-center justify-center">
