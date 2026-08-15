@@ -5,7 +5,7 @@ import PoDetailsContent from '@/components/dailogs/PoDetailsContent';
 import { formatDate, formatDecimal, formatRupees } from '@/lib/helperFunction';
 import { ChevronDown, ChevronRight, Download, Loader2 } from 'lucide-react';
 import { useSearchParams } from 'react-router';
-import { exportPaginatedPoExcel } from '@/components/admin/exportPoExcel';
+import { exportAllPaymentDataToExcel } from '@/components/admin/exportPoExcel';
 import axiosInstance from '@/services/axiosInstance';
 
 export interface PurchaseOrderRow {
@@ -53,20 +53,20 @@ const TableRowItem: React.FC<TableRowItemProps> = React.memo(({ row, index, isEx
   return (
     <>
       <tr onClick={handleRowClick} className={`cursor-pointer transition-colors ${isExpanded ? 'bg-blue-50/70' : 'hover:bg-gray-50'}`}>
-        {selectedPoType !== 'non-po' && (
+        {selectedPoType !== 'non-po' && selectedPoType !== 'vendorList' && (
           <td className="px-2 py-1 text-center border-r border-gray-200 select-none">
             {isExpanded ? <ChevronDown className="h-4 w-4 text-blue-600 mx-auto" /> : <ChevronRight className="h-4 w-4 text-blue-600 mx-auto" />}
           </td>
         )}
         <td className="px-2 py-1 border-r border-gray-200 text-left font-bold">{index + 1}</td>
-        {selectedPoType !== 'non-po' && (
+        {selectedPoType !== 'non-po' && selectedPoType !== 'vendorList' && (
           <>
             <td className="px-2 py-1 border-r border-gray-200 font-bold text-blue-700 tabular-nums">{poNo || '-'}</td>
             <td className="px-2 py-1 border-r border-gray-200">{formatDate(row.poDate) || '-'}</td>
             <td className="px-2 py-1 border-r border-gray-200 text-right tabular-nums">{formatRupees(row.poOrderValue)}</td>
           </>
         )}
-        {selectedPoType === 'non-po' && (
+        {['non-po', 'vendorList'].includes(selectedPoType) && (
           <>
             <td className="px-2 py-1 border-r border-gray-200 font-bold text-blue-700 tabular-nums">{row.invoiceNumber || '-'}</td>
             <td className="px-2 py-1 border-r border-gray-200 font-bold text-blue-700">{formatDate(row.invoiceDate) || '-'}</td>
@@ -170,7 +170,8 @@ const PurchaseOrderExcelFormate: React.FC = () => {
   const [exporting, setExporting] = useState(false);
   const [clubbedPo, setClubbedPo] = useState<PurchaseOrderRow[]>([]);
   const [nonPo, setNonPo] = useState<PurchaseOrderRow[]>([]);
-  const [selectedPoType, setSelectedPoType] = useState<'non-clubbed' | 'clubbed' | 'non-po'>('non-clubbed');
+  const [vendorList, setVendorList] = useState<PurchaseOrderRow[]>([]);
+  const [selectedPoType, setSelectedPoType] = useState<'non-clubbed' | 'clubbed' | 'non-po' | 'vendorList'>('non-clubbed');
 
   const handleFromDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -220,6 +221,7 @@ const PurchaseOrderExcelFormate: React.FC = () => {
       setUnits(res.data.units ?? []);
       setClubbedPo(res.data.clubbedPo ?? []);
       setNonPo(res?.data.sapNonPo ?? []);
+      setVendorList(res?.data.sapVendorList ?? []);
       setError(null);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to fetch Purchase Order data.';
@@ -262,7 +264,7 @@ const PurchaseOrderExcelFormate: React.FC = () => {
     setExporting(true);
 
     try {
-      await exportPaginatedPoExcel(fromDate, toDate);
+      await exportAllPaymentDataToExcel(fromDate, toDate);
     } catch (err) {
       console.error('Export failed:', err);
     } finally {
@@ -331,6 +333,10 @@ const PurchaseOrderExcelFormate: React.FC = () => {
     return applyFilters(nonPo);
   }, [nonPo, applyFilters]);
 
+  const filteredVendorData = useMemo(() => {
+    return applyFilters(vendorList);
+  }, [vendorList, applyFilters]);
+
   const displayData = useMemo(() => {
     if (selectedPoType === 'clubbed') {
       return filteredClubbedPo;
@@ -338,8 +344,11 @@ const PurchaseOrderExcelFormate: React.FC = () => {
     if (selectedPoType === 'non-po') {
       return filteredNonPo;
     }
+    if (selectedPoType === 'vendorList') {
+      return filteredVendorData;
+    }
     return filteredData;
-  }, [selectedPoType, filteredClubbedPo, filteredData, filteredNonPo]);
+  }, [selectedPoType, filteredClubbedPo, filteredData, filteredNonPo, filteredVendorData]);
 
   const totals = useMemo(() => {
     return displayData.reduce(
@@ -507,7 +516,7 @@ const PurchaseOrderExcelFormate: React.FC = () => {
       )}
 
       <div className="flex items-center justify-between gap-3">
-        <div className="flex gap-4">
+        <div className="flex gap-3">
           <div className="inline-flex items-center rounded-xl bg-slate-200/60 p-1 border border-slate-300/80 shadow-inner">
             {/* ================= NON-CLUBBED ================= */}
             <button
@@ -597,6 +606,36 @@ const PurchaseOrderExcelFormate: React.FC = () => {
                 {filteredNonPo.length}
               </span>
             </button>
+
+            {/* ================= vendor data ================= */}
+            <button
+              type="button"
+              onClick={() => {
+                setSelectedPoType('vendorList');
+                setCurrentPage(1);
+                setExpandedPoNumbers(new Set());
+              }}
+              disabled={filteredVendorData.length === 0}
+              className={`group relative inline-flex items-center gap-2 px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all duration-200 ${
+                selectedPoType === 'vendorList'
+                  ? 'bg-red-500 text-white shadow-md shadow-red-500/25 ring-1 ring-red-500/30'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-300/40'
+              } disabled:opacity-40 disabled:cursor-not-allowed`}
+            >
+              {/* Active indicator */}
+              {selectedPoType === 'vendorList' && <span className="h-1.5 w-1.5 rounded-full bg-red-100 animate-pulse" />}
+
+              <span>Vendor</span>
+
+              {/* Count */}
+              <span
+                className={`min-w-[20px] h-4 px-1.5 inline-flex items-center justify-center rounded-full text-[10px] font-extrabold transition-colors ${
+                  selectedPoType === 'vendorList' ? 'bg-white/25 text-white' : 'bg-red-100 text-red-800 group-hover:bg-red-200/80'
+                }`}
+              >
+                {filteredVendorData.length}
+              </span>
+            </button>
           </div>
           <div className="inline-flex items-center gap-2 bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200/80 px-3 py-1.5 rounded-lg shadow-2xs">
             {/* Status / Indicator Icon */}
@@ -613,7 +652,7 @@ const PurchaseOrderExcelFormate: React.FC = () => {
           </div>
         </div>
         <div className="flex gap-3">
-          {selectedPoType !== 'non-po' && (
+          {selectedPoType !== 'non-po' && selectedPoType !== 'vendorList' && (
             <button
               disabled={paginatedData.length === 0}
               type="button"
@@ -704,7 +743,7 @@ const PurchaseOrderExcelFormate: React.FC = () => {
             <table className="min-w-full text-sm border-seperate border-spacing-0">
               <thead className="bg-primary sticky top-0 z-20 text-white font-bold text-xs uppercase border-b border-gray-300">
                 <tr>
-                  {selectedPoType !== 'non-po' && (
+                  {selectedPoType !== 'non-po' && selectedPoType !== 'vendorList' && (
                     <th
                       className="px-2 py-2 text-center border-r border-gray-200 cursor-pointer select-none hover:bg-primary-dark transition-colors"
                       title={isAllPageExpanded ? 'Collapse all on page' : 'Expand all on page'}
@@ -720,14 +759,14 @@ const PurchaseOrderExcelFormate: React.FC = () => {
                     </th>
                   )}
                   <th className="w-16 px-2 py-2 text-left border-r border-gray-200">Sr. No.</th>
-                  {selectedPoType !== 'non-po' && (
+                  {selectedPoType !== 'non-po' && selectedPoType !== 'vendorList' && (
                     <>
                       <th className="px-2 py-2 text-left border-r border-gray-200 min-w-[110px]">PO No</th>
                       <th className="px-2 py-2 text-left border-r border-gray-200 min-w-[130px]">PO Date</th>
                       <th className="px-2 py-2 text-right border-r border-gray-200 min-w-[160px]">PO Amount</th>
                     </>
                   )}
-                  {selectedPoType === 'non-po' && (
+                  {['non-po', 'vendorList'].includes(selectedPoType) && (
                     <>
                       <th className="px-2 py-2 text-left border-r border-gray-200 min-w-[110px]">Invoice No</th>
                       <th className="px-2 py-2 text-left border-r border-gray-200 min-w-[140px]">Invoice Date</th>

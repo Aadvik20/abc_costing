@@ -5,7 +5,7 @@ import PoDetailsContent from '@/components/dailogs/PoDetailsContent';
 import { formatDate, formatDecimal, formatRupees } from '@/lib/helperFunction';
 import { ChevronDown, ChevronRight, Download, FileStack, Layers, Loader2, Wallet } from 'lucide-react';
 import { useSearchParams } from 'react-router';
-import { exportPaginatedPoExcel } from '@/components/admin/exportPoExcel';
+import { exportAllPaymentDataToExcel } from '@/components/admin/exportPoExcel';
 import axiosInstance from '@/services/axiosInstance';
 
 export interface PurchaseOrderRow {
@@ -53,20 +53,20 @@ const TableRowItem: React.FC<TableRowItemProps> = React.memo(({ row, index, isEx
   return (
     <>
       <tr onClick={handleRowClick} className={`cursor-pointer transition-colors ${isExpanded ? 'bg-blue-50/70' : 'hover:bg-gray-50'}`}>
-        {selectedPoType !== 'non-po' && (
+        {selectedPoType !== 'non-po' && selectedPoType !== 'vendorList' && (
           <td className="px-2 py-1 text-center border-r border-gray-200 select-none">
             {isExpanded ? <ChevronDown className="h-4 w-4 text-blue-600 mx-auto" /> : <ChevronRight className="h-4 w-4 text-blue-600 mx-auto" />}
           </td>
         )}
         <td className="px-2 py-1 border-r border-gray-200 text-left font-bold">{index + 1}</td>
-        {selectedPoType !== 'non-po' && (
+        {selectedPoType !== 'non-po' && selectedPoType !== 'vendorList' && (
           <>
             <td className="px-2 py-1 border-r border-gray-200 font-bold text-blue-700 tabular-nums">{poNo || '-'}</td>
             <td className="px-2 py-1 border-r border-gray-200">{formatDate(row.poDate) || '-'}</td>
             <td className="px-2 py-1 border-r border-gray-200 text-right tabular-nums">{formatRupees(row.poOrderValue)}</td>
           </>
         )}
-        {selectedPoType === 'non-po' && (
+        {['non-po', 'vendorList'].includes(selectedPoType) && (
           <>
             <td className="px-2 py-1 border-r border-gray-200 font-bold text-blue-700 tabular-nums">{row.invoiceNumber || '-'}</td>
             <td className="px-2 py-1 border-r border-gray-200 font-bold text-blue-700">{formatDate(row.invoiceDate) || '-'}</td>
@@ -170,7 +170,8 @@ const PurchaseOrderV2: React.FC = () => {
   const [exporting, setExporting] = useState(false);
   const [clubbedPo, setClubbedPo] = useState<PurchaseOrderRow[]>([]);
   const [nonPo, setNonPo] = useState<PurchaseOrderRow[]>([]);
-  const [selectedPoType, setSelectedPoType] = useState<'non-clubbed' | 'clubbed' | 'non-po' | ''>('');
+  const [vendorList, setVendorList] = useState<PurchaseOrderRow[]>([]);
+  const [selectedPoType, setSelectedPoType] = useState<'non-clubbed' | 'clubbed' | 'non-po' | 'vendorList' | ''>('');
   const [selectedView, setSelectedView] = useState<'view1' | 'view2'>('view1');
 
   const handleFromDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -221,6 +222,7 @@ const PurchaseOrderV2: React.FC = () => {
       setUnits(res.data.units ?? []);
       setClubbedPo(res.data.clubbedPo ?? []);
       setNonPo(res?.data.sapNonPo ?? []);
+      setVendorList(res?.data.sapVendorList ?? []);
       setError(null);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to fetch Purchase Order data.';
@@ -260,7 +262,7 @@ const PurchaseOrderV2: React.FC = () => {
   const handleExportPage = async () => {
     setExporting(true);
     try {
-      await exportPaginatedPoExcel(paginatedData, fromDate, toDate, selectedPoType);
+      await exportAllPaymentDataToExcel(fromDate, toDate);
     } catch (err) {
       console.error('Export failed:', err);
     } finally {
@@ -330,6 +332,10 @@ const PurchaseOrderV2: React.FC = () => {
     return applyFilters(nonPo);
   }, [nonPo, applyFilters]);
 
+  const filteredVendorData = useMemo(() => {
+    return applyFilters(vendorList);
+  }, [vendorList, applyFilters]);
+
   const nonClubbedBankPayment = useMemo(() => {
     return filteredData.reduce((total, row) => total + (Number(row.bankPayment) || 0), 0);
   }, [filteredData]);
@@ -342,9 +348,13 @@ const PurchaseOrderV2: React.FC = () => {
     return filteredNonPo.reduce((total, row) => total + (Number(row.bankPayment) || 0), 0);
   }, [filteredNonPo]);
 
+  const vendorBankPayment = useMemo(() => {
+    return filteredVendorData.reduce((total, row) => total + (Number(row.bankPayment) || 0), 0);
+  }, [filteredVendorData]);
+
   const totalBankPayment = useMemo(() => {
-    return nonClubbedBankPayment + clubbedBankPayment + nonPoBankPayment;
-  }, [nonClubbedBankPayment, clubbedBankPayment, nonPoBankPayment]);
+    return nonClubbedBankPayment + clubbedBankPayment + nonPoBankPayment + vendorBankPayment;
+  }, [nonClubbedBankPayment, clubbedBankPayment, nonPoBankPayment, vendorBankPayment]);
 
   const displayData = useMemo(() => {
     if (!selectedPoType) {
@@ -358,9 +368,12 @@ const PurchaseOrderV2: React.FC = () => {
     if (selectedPoType === 'non-po') {
       return filteredNonPo;
     }
+    if (selectedPoType === 'vendorList') {
+      return filteredVendorData;
+    }
 
     return filteredData;
-  }, [selectedPoType, filteredData, filteredClubbedPo, filteredNonPo]);
+  }, [selectedPoType, filteredData, filteredClubbedPo, filteredNonPo, filteredVendorData]);
 
   const totalPages = Math.ceil(displayData.length / pageSize) || 1;
 
@@ -391,7 +404,7 @@ const PurchaseOrderV2: React.FC = () => {
     return paginatedData.every((row) => row.poNo && expandedPoNumbers.has(row.poNo));
   }, [paginatedData, expandedPoNumbers]);
   return (
-    <div className="p-4 space-y-4 min-h-screen">
+    <div className="p-4 space-y-4">
       {loading && <Loader />}
       <h1 className="text-xl sm:text-2xl font-extrabold text-gray-900 tracking-tight">Payment Details</h1>
 
@@ -560,7 +573,7 @@ const PurchaseOrderV2: React.FC = () => {
             </div>
           </div>
           {selectedView === 'view1' ? (
-            <div className="grid grid-cols-1 gap-3 md:grid-cols-4 mb-5">
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-5 mb-5">
               {/* Non-Clubbed PO Button */}
               <button
                 type="button"
@@ -680,6 +693,47 @@ const PurchaseOrderV2: React.FC = () => {
 
                   <div className="text-right mt-5">
                     <p className="text-3xl font-black tracking-tight text-slate-900">{formatRupees(nonPoBankPayment)}</p>
+                  </div>
+                </div>
+              </button>
+
+              {/* vendor Button */}
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedPoType('vendorList');
+                  setCurrentPage(1);
+                  setExpandedPoNumbers(new Set());
+                }}
+                className={`group relative flex flex-col justify-between overflow-hidden rounded-2xl border p-3 text-left transition-all duration-300 focus:outline-none ${
+                  selectedPoType === 'vendorList'
+                    ? 'border-red-500/80 bg-gradient-to-b from-red-50/60 to-white shadow-lg shadow-red-500/10 ring-2 ring-red-500/20'
+                    : 'border-slate-200/80 bg-gradient-to-b from-white to-slate-50/50 hover:-translate-y-0.5 hover:border-red-500/80 hover:shadow-md'
+                }`}
+              >
+                {/* Top Accent Line */}
+                <div
+                  className={`absolute left-0 top-0 h-1 w-full transition-colors duration-300 ${
+                    selectedPoType === 'vendorList' ? 'bg-red-500' : 'bg-transparent group-hover:bg-red-500/80'
+                  }`}
+                />
+
+                <div className="relative z-10 flex-1">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2.5">
+                      <div
+                        className={`flex h-9 w-9 items-center justify-center rounded-xl transition-colors duration-200 ${
+                          selectedPoType === 'vendorList' ? 'bg-red-600 text-white shadow-sm' : 'bg-red-50 text-red-600 ring-1 ring-amber-100'
+                        }`}
+                      >
+                        <Layers size={18} />
+                      </div>
+                      <span className="text-[11px] font-black uppercase tracking-[0.12em] text-slate-500">Total Payment Released for Vendors</span>
+                    </div>
+                  </div>
+
+                  <div className="text-right mt-5">
+                    <p className="text-3xl font-black tracking-tight text-slate-900">{formatRupees(vendorBankPayment)}</p>
                   </div>
                 </div>
               </button>
@@ -836,12 +890,57 @@ const PurchaseOrderV2: React.FC = () => {
                     <div>
                       <p className="text-[11px] font-black uppercase tracking-[0.12em] text-slate-500">Total Payment Released for Non POs</p>
 
-                      <p className="mt-0.5 text-xs text-slate-400">{filteredNonPo.length} PO(s)</p>
+                      <p className="mt-0.5 text-xs text-slate-400">{filteredNonPo.length}</p>
                     </div>
                   </div>
 
                   <div className="flex items-center gap-3">
                     <p className="text-2xl tabular-nums font-black text-slate-900">{formatRupees(nonPoBankPayment)}</p>
+                  </div>
+                </div>
+              </button>
+
+              <button
+                type="button"
+                disabled={filteredVendorData.length === 0}
+                onClick={() => {
+                  setSelectedPoType(selectedPoType === 'vendorList' ? '' : 'vendorList');
+                  setCurrentPage(1);
+                  setExpandedPoNumbers(new Set());
+                }}
+                className={`group relative w-full overflow-hidden rounded-2xl border p-4 text-left transition-all duration-300 ${
+                  selectedPoType === 'vendorList'
+                    ? 'rounded-b-none border-red-500/80 bg-gradient-to-r from-red-50/70 to-white shadow-lg ring-2 ring-red-500/20'
+                    : 'border-slate-200/80 bg-gradient-to-r from-white to-slate-50/50 hover:border-red-500/80 hover:shadow-md'
+                } disabled:cursor-not-allowed disabled:opacity-50`}
+              >
+                <div
+                  className={`absolute left-0 top-0 h-full w-1 ${selectedPoType === 'vendorList' ? 'bg-red-500' : 'bg-transparent group-hover:bg-red-500/80'}`}
+                />
+
+                <div className="relative z-10 flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <ChevronDown
+                      size={20}
+                      className={`transition-transform duration-300 ${selectedPoType === 'vendorList' ? 'rotate-180 text-red-600' : 'text-slate-400'}`}
+                    />
+                    <div
+                      className={`flex h-10 w-10 items-center justify-center rounded-xl ${
+                        selectedPoType === 'vendorList' ? 'bg-red-500 text-white' : 'bg-red-50 text-red-600'
+                      }`}
+                    >
+                      <Layers size={19} />
+                    </div>
+
+                    <div>
+                      <p className="text-[11px] font-black uppercase tracking-[0.12em] text-slate-500">Total Payment Released for Vendors</p>
+
+                      <p className="mt-0.5 text-xs text-slate-400">{filteredVendorData.length}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <p className="text-2xl tabular-nums font-black text-slate-900">{formatRupees(vendorBankPayment)}</p>
                   </div>
                 </div>
               </button>
@@ -859,7 +958,7 @@ const PurchaseOrderV2: React.FC = () => {
                     <div>
                       <p className="text-[11px] font-black uppercase tracking-[0.12em] text-slate-500">Total Payment Released</p>
 
-                      <p className="mt-0.5 text-xs text-slate-400">Non-Clubbed + Clubbed + Non PO</p>
+                      <p className="mt-0.5 text-xs text-slate-400">Non-Clubbed + Clubbed + Non PO + Vendor</p>
                     </div>
                   </div>
 
@@ -874,7 +973,7 @@ const PurchaseOrderV2: React.FC = () => {
         <>
           <div className="flex items-center justify-end gap-3">
             <div className="flex gap-3">
-              {selectedPoType !== 'non-po' && (
+              {selectedPoType !== 'non-po' && selectedPoType !== 'vendorList' && (
                 <button
                   disabled={paginatedData.length === 0}
                   type="button"
@@ -924,12 +1023,12 @@ const PurchaseOrderV2: React.FC = () => {
           {!loading && error && <div className="p-8 text-center text-red-600 font-bold bg-white rounded-xl border border-gray-200 shadow-sm">{error}</div>}
           {!loading && !error && (
             <div className="bg-white rounded-xl border-gray-200 shadow-sm flex flex-col">
-              <div className="overflow-x-visible">
+              <div className="overflow-x-auto max-h-[70vh]">
                 {/* TOTALS SUMMARY TABLE */}
                 <table className="min-w-full text-sm border-seperate border-spacing-0">
                   <thead className="bg-primary sticky top-0 z-20 text-white font-bold text-xs uppercase border-b border-gray-300">
                     <tr>
-                      {selectedPoType !== 'non-po' && (
+                      {selectedPoType !== 'non-po' && selectedPoType !== 'vendorList' && (
                         <th
                           className="px-2 py-2 text-center border-r border-gray-200 cursor-pointer select-none hover:bg-primary-dark transition-colors"
                           title={isAllPageExpanded ? 'Collapse all on page' : 'Expand all on page'}
@@ -945,14 +1044,14 @@ const PurchaseOrderV2: React.FC = () => {
                         </th>
                       )}
                       <th className="w-16 px-2 py-2 text-left border-r border-gray-200">Sr. No.</th>
-                      {selectedPoType !== 'non-po' && (
+                      {selectedPoType !== 'non-po' && selectedPoType !== 'vendorList' && (
                         <>
                           <th className="px-2 py-2 text-left border-r border-gray-200 min-w-[110px]">PO No</th>
                           <th className="px-2 py-2 text-left border-r border-gray-200 min-w-[130px]">PO Date</th>
                           <th className="px-2 py-2 text-right border-r border-gray-200 min-w-[160px]">PO Amount</th>
                         </>
                       )}
-                      {selectedPoType === 'non-po' && (
+                      {['non-po', 'vendorList'].includes(selectedPoType) && (
                         <>
                           <th className="px-2 py-2 text-left border-r border-gray-200 min-w-[110px]">Invoice No</th>
                           <th className="px-2 py-2 text-left border-r border-gray-200 min-w-[140px]">Invoice Date</th>
