@@ -7,6 +7,7 @@ import { ChevronDown, ChevronRight, Download, Loader2 } from 'lucide-react';
 import { useSearchParams } from 'react-router';
 import { exportAllPaymentDataToExcel } from '@/components/admin/exportPoExcel';
 import axiosInstance from '@/services/axiosInstance';
+import VendorInvoiceDetails from '@/components/dailogs/VendorInvoiceDetails';
 
 export interface PurchaseOrderRow {
   srNo?: number;
@@ -44,16 +45,20 @@ interface TableRowItemProps {
 
 const TableRowItem: React.FC<TableRowItemProps> = React.memo(({ row, index, isExpanded, onToggleExpand, selectedPoType }) => {
   const poNo = row.poNo || '';
+  const invoiceNumber = row.invoiceNumber || '';
+
+  const expandKey = selectedPoType === 'vendorList' ? invoiceNumber : poNo;
+
   const handleRowClick = () => {
-    if (poNo) {
-      onToggleExpand(poNo);
+    if (expandKey) {
+      onToggleExpand(expandKey);
     }
   };
 
   return (
     <>
       <tr onClick={handleRowClick} className={`cursor-pointer transition-colors ${isExpanded ? 'bg-blue-50/70' : 'hover:bg-gray-50'}`}>
-        {selectedPoType !== 'non-po' && selectedPoType !== 'vendorList' && (
+        {selectedPoType !== 'non-po' && (
           <td className="px-2 py-1 text-center border-r border-gray-200 select-none">
             {isExpanded ? <ChevronDown className="h-4 w-4 text-blue-600 mx-auto" /> : <ChevronRight className="h-4 w-4 text-blue-600 mx-auto" />}
           </td>
@@ -72,12 +77,14 @@ const TableRowItem: React.FC<TableRowItemProps> = React.memo(({ row, index, isEx
             <td className="px-2 py-1 border-r border-gray-200 font-bold text-blue-700">{formatDate(row.invoiceDate) || '-'}</td>
           </>
         )}
-        <td className="px-2 py-1 border-r border-gray-200">
-          <TooltipProvider delayDuration={0} skipDelayDuration={0}>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <div
-                  className="
+        {selectedPoType !== 'vendorList' && (
+          <>
+            <td className="px-2 py-1 border-r border-gray-200">
+              <TooltipProvider delayDuration={0} skipDelayDuration={0}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div
+                      className="
                     max-w-[180px]
                     truncate
                     cursor-pointer
@@ -89,15 +96,15 @@ const TableRowItem: React.FC<TableRowItemProps> = React.memo(({ row, index, isEx
                     hover:ring-1
                     hover:ring-primary/20
                   "
-                >
-                  {row.supplierCode || '-'}
-                </div>
-              </TooltipTrigger>
+                    >
+                      {row.supplierCode || '-'}
+                    </div>
+                  </TooltipTrigger>
 
-              <TooltipContent
-                side="top"
-                sideOffset={5}
-                className="
+                  <TooltipContent
+                    side="top"
+                    sideOffset={5}
+                    className="
                   max-w-md
                   break-words
                   rounded-md
@@ -108,24 +115,26 @@ const TableRowItem: React.FC<TableRowItemProps> = React.memo(({ row, index, isEx
                   text-white
                   shadow-lg
                 "
-              >
-                <p>{row.supplierCode || '-'}</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        </td>
-        <td className="px-2 py-1 border-r border-gray-200" onClick={(e) => e.stopPropagation()}>
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <div className="max-w-[100px] truncate cursor-pointer">{row.poType || '-'}</div>
-              </TooltipTrigger>
-              <TooltipContent className="max-w-md break-words">
-                <p>{row.poType || '-'}</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        </td>
+                  >
+                    <p>{row.supplierCode || '-'}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </td>
+            <td className="px-2 py-1 border-r border-gray-200" onClick={(e) => e.stopPropagation()}>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="max-w-[100px] truncate cursor-pointer">{row.poType || '-'}</div>
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-md break-words">
+                    <p>{row.poType || '-'}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </td>
+          </>
+        )}
         <td className="px-2 py-1 border-r border-gray-200">{row.unit || '-'}</td>
         <td className="px-2 py-1 border-r border-gray-200 text-right tabular-nums">{formatRupees(row.bankPayment)}</td>
         <td className="px-2 py-1 border-r border-gray-200 text-right tabular-nums">{formatDecimal(row.cgstAmount)}</td>
@@ -140,7 +149,7 @@ const TableRowItem: React.FC<TableRowItemProps> = React.memo(({ row, index, isEx
         <tr className="bg-gray-100/80">
           <td colSpan={14} className="p-2 border-b border-gray-300 min-w-full">
             <div className="bg-white p-2 rounded-lg shadow-inner border border-gray-200">
-              <PoDetailsContent poNumber={poNo} />
+              {selectedPoType === 'vendorList' ? <VendorInvoiceDetails invoiceNumber={invoiceNumber} /> : <PoDetailsContent poNumber={poNo} />}
             </div>
           </td>
         </tr>
@@ -235,6 +244,13 @@ const PurchaseOrderExcelFormate: React.FC = () => {
     fetchPurchaseOrders();
   }, []);
 
+  const getExpandKey = useCallback(
+    (row: PurchaseOrderRow) => {
+      return selectedPoType === 'vendorList' ? row.invoiceNumber || '' : row.poNo || '';
+    },
+    [selectedPoType]
+  );
+
   const toggleRowExpansion = useCallback((poNo?: string) => {
     if (!poNo) return;
     setExpandedPoNumbers((prev) => {
@@ -247,17 +263,24 @@ const PurchaseOrderExcelFormate: React.FC = () => {
       return next;
     });
   }, []);
-  const expandAllRows = useCallback((dataToExpand: PurchaseOrderRow[]) => {
-    setExpandedPoNumbers((prev) => {
-      const next = new Set(prev);
-      dataToExpand.forEach((row) => {
-        if (row.poNo) {
-          next.add(row.poNo);
-        }
+  const expandAllRows = useCallback(
+    (dataToExpand: PurchaseOrderRow[]) => {
+      setExpandedPoNumbers((prev) => {
+        const next = new Set(prev);
+
+        dataToExpand.forEach((row) => {
+          const expandKey = getExpandKey(row);
+
+          if (expandKey) {
+            next.add(expandKey);
+          }
+        });
+
+        return next;
       });
-      return next;
-    });
-  }, []);
+    },
+    [getExpandKey]
+  );
   const handleExportPage = async () => {
     if (!selectedPoType || !paginatedData.length) return;
 
@@ -271,18 +294,28 @@ const PurchaseOrderExcelFormate: React.FC = () => {
       setExporting(false);
     }
   };
-  const collapseAllRows = useCallback((dataToCollapse?: PurchaseOrderRow[]) => {
-    setExpandedPoNumbers((prev) => {
-      if (!dataToCollapse) return new Set(); // Clears everything
-      const next = new Set(prev);
-      dataToCollapse.forEach((row) => {
-        if (row.poNo) {
-          next.delete(row.poNo);
+  const collapseAllRows = useCallback(
+    (dataToCollapse?: PurchaseOrderRow[]) => {
+      setExpandedPoNumbers((prev) => {
+        if (!dataToCollapse) {
+          return new Set();
         }
+
+        const next = new Set(prev);
+
+        dataToCollapse.forEach((row) => {
+          const expandKey = getExpandKey(row);
+
+          if (expandKey) {
+            next.delete(expandKey);
+          }
+        });
+
+        return next;
       });
-      return next;
-    });
-  }, []);
+    },
+    [getExpandKey]
+  );
 
   useEffect(() => {
     setCurrentPage(1);
@@ -403,9 +436,15 @@ const PurchaseOrderExcelFormate: React.FC = () => {
 
   const endIndex = Math.min(currentPage * pageSize, displayData.length);
   const isAllPageExpanded = useMemo(() => {
-    if (!paginatedData || paginatedData.length === 0) return false;
-    return paginatedData.every((row) => row.poNo && expandedPoNumbers.has(row.poNo));
-  }, [paginatedData, expandedPoNumbers]);
+    if (!paginatedData || paginatedData.length === 0) {
+      return false;
+    }
+    return paginatedData.every((row) => {
+      const expandKey = getExpandKey(row);
+      return !!expandKey && expandedPoNumbers.has(expandKey);
+    });
+  }, [paginatedData, expandedPoNumbers, getExpandKey]);
+
   return (
     <div className="p-4 space-y-4 min-h-screen">
       <h1 className="text-xl sm:text-2xl font-extrabold text-gray-900 tracking-tight">Payment Details</h1>
@@ -625,7 +664,7 @@ const PurchaseOrderExcelFormate: React.FC = () => {
               {/* Active indicator */}
               {selectedPoType === 'vendorList' && <span className="h-1.5 w-1.5 rounded-full bg-red-100 animate-pulse" />}
 
-              <span>Vendor</span>
+              <span>Employee Vendor</span>
 
               {/* Count */}
               <span
@@ -645,14 +684,14 @@ const PurchaseOrderExcelFormate: React.FC = () => {
             </span>
 
             {/* Label & Type */}
-            <span className="text-[11px] font-bold text-slate-900 uppercase tracking-wide">Total Bank Payment for the selected period ({selectedPoType}):</span>
+            <span className="text-[11px] font-bold text-slate-900 uppercase tracking-wide">Total Bank Payment for the selected tab:</span>
 
             {/* Amount Value */}
             <span className="text-sm font-extrabold text-emerald-700 tabular-nums">{formatRupees(totals.bankPayment)}</span>
           </div>
         </div>
         <div className="flex gap-3">
-          {selectedPoType !== 'non-po' && selectedPoType !== 'vendorList' && (
+          {selectedPoType !== 'non-po' && (
             <button
               disabled={paginatedData.length === 0}
               type="button"
@@ -743,7 +782,7 @@ const PurchaseOrderExcelFormate: React.FC = () => {
             <table className="min-w-full text-sm border-seperate border-spacing-0">
               <thead className="bg-primary sticky top-0 z-20 text-white font-bold text-xs uppercase border-b border-gray-300">
                 <tr>
-                  {selectedPoType !== 'non-po' && selectedPoType !== 'vendorList' && (
+                  {selectedPoType !== 'non-po' && (
                     <th
                       className="px-2 py-2 text-center border-r border-gray-200 cursor-pointer select-none hover:bg-primary-dark transition-colors"
                       title={isAllPageExpanded ? 'Collapse all on page' : 'Expand all on page'}
@@ -772,8 +811,12 @@ const PurchaseOrderExcelFormate: React.FC = () => {
                       <th className="px-2 py-2 text-left border-r border-gray-200 min-w-[140px]">Invoice Date</th>
                     </>
                   )}
-                  <th className="px-2 py-2 text-left border-r border-gray-200 min-w-[180px]">Supplier Code</th>
-                  <th className="px-2 py-2 text-left border-r border-gray-200 min-w-[120px]">PO Type</th>
+                  {selectedPoType !== 'vendorList' && (
+                    <>
+                      <th className="px-2 py-2 text-left border-r border-gray-200 min-w-[180px]">Supplier Code</th>
+                      <th className="px-2 py-2 text-left border-r border-gray-200 min-w-[120px]">PO Type</th>
+                    </>
+                  )}
                   <th className="px-2 py-2 text-left border-r border-gray-200 min-w-[120px]">Unit</th>
                   <th className="px-2 py-2 text-right border-r border-gray-200 min-w-[150px]">Bank Payment</th>
                   <th className="px-2 py-2 text-right border-r border-gray-200 min-w-[100px]">CGST</th>
@@ -795,12 +838,12 @@ const PurchaseOrderExcelFormate: React.FC = () => {
                   </tr>
                 ) : (
                   paginatedData.map((row, index) => {
-                    const poNo = row.poNo || '';
-                    const isExpanded = expandedPoNumbers.has(poNo);
+                    const expandKey = getExpandKey(row);
+                    const isExpanded = !!expandKey && expandedPoNumbers.has(expandKey);
                     const globalIndex = (currentPage - 1) * pageSize + index;
                     return (
                       <TableRowItem
-                        key={poNo + index}
+                        key={`${expandKey}-${index}`}
                         row={row}
                         index={globalIndex}
                         isExpanded={isExpanded}
