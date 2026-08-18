@@ -3,7 +3,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import Loader from '@/components/ui/loader';
 import PoDetailsContent from '@/components/dailogs/PoDetailsContent';
 import { formatDate, formatDecimal, formatRupees } from '@/lib/helperFunction';
-import { ChevronDown, ChevronRight, Download, FileStack, Layers, Loader2, Wallet } from 'lucide-react';
+import { AlertTriangle, ChevronDown, ChevronRight, Download, FileStack, Layers, Loader2, Wallet } from 'lucide-react';
 import { useSearchParams } from 'react-router';
 import { exportAllPaymentDataToExcel } from '@/components/admin/exportPoExcel';
 import axiosInstance from '@/services/axiosInstance';
@@ -52,23 +52,49 @@ const TableRowItem: React.FC<TableRowItemProps> = React.memo(({ row, index, isEx
 
   return (
     <>
-      <tr onClick={handleRowClick} className={`cursor-pointer transition-colors ${isExpanded ? 'bg-blue-50/70' : 'hover:bg-gray-50'}`}>
-        {selectedPoType !== 'non-po' && selectedPoType !== 'vendorList' && (
+      <tr
+        onClick={handleRowClick}
+        className={`cursor-pointer transition-colors ${
+          row.clubbedFlag === 'Y' ? 'bg-amber-100 hover:bg-amber-100' : isExpanded ? 'bg-blue-50/70' : 'hover:bg-gray-50'
+        }`}
+      >
+        {selectedPoType === 'po' && (
           <td className="px-2 py-1 text-center border-r border-gray-200 select-none">
             {isExpanded ? <ChevronDown className="h-4 w-4 text-blue-600 mx-auto" /> : <ChevronRight className="h-4 w-4 text-blue-600 mx-auto" />}
           </td>
         )}
         <td className="px-2 py-1 border-r border-gray-200 text-left font-bold">{index + 1}</td>
-        {selectedPoType !== 'non-po' && selectedPoType !== 'vendorList' && (
+        {selectedPoType === 'po' && (
           <>
-            <td className="px-2 py-1 border-r border-gray-200 font-bold text-blue-700 tabular-nums">{poNo || '-'}</td>
+            <td className="px-2 py-1 border-r border-gray-200 font-bold text-blue-700 tabular-nums">
+              <div className="flex items-center gap-2">
+                <span>{poNo || '-'}</span>
+
+                {row.clubbedFlag === 'Y' && (
+                  <div title={'This PO is part of a combined payment.'}>
+                    <AlertTriangle size={18} className="text-amber-700" strokeWidth={2.5} />
+                  </div>
+                )}
+              </div>
+            </td>
             <td className="px-2 py-1 border-r border-gray-200">{formatDate(row.poDate) || '-'}</td>
             <td className="px-2 py-1 border-r border-gray-200 text-right tabular-nums">{formatRupees(row.poOrderValue)}</td>
           </>
         )}
-        {['non-po', 'vendorList'].includes(selectedPoType) && (
+        {['non-po', 'vendor-salary', 'vendor-adv'].includes(selectedPoType) && (
           <>
-            <td className="px-2 py-1 border-r border-gray-200 font-bold text-blue-700 tabular-nums">{row.invoiceNumber || '-'}</td>
+            <td className="px-2 py-1 border-r border-gray-200 font-bold text-blue-700 tabular-nums">
+              {' '}
+              <div className="flex items-center gap-2">
+                <span>{row.invoiceNumber || '-'}</span>
+
+                {row.clubbedFlag === 'Y' && (
+                  <div title={'This invoice is part of a combined payment.'}>
+                    <AlertTriangle size={18} className="text-amber-700" strokeWidth={2.5} />
+                  </div>
+                )}
+              </div>
+            </td>
             <td className="px-2 py-1 border-r border-gray-200 font-bold text-blue-700">{formatDate(row.invoiceDate) || '-'}</td>
           </>
         )}
@@ -168,10 +194,10 @@ const PurchaseOrderV2: React.FC = () => {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [pageSize, setPageSize] = useState<number>(25);
   const [exporting, setExporting] = useState(false);
-  const [clubbedPo, setClubbedPo] = useState<PurchaseOrderRow[]>([]);
   const [nonPo, setNonPo] = useState<PurchaseOrderRow[]>([]);
-  const [vendorList, setVendorList] = useState<PurchaseOrderRow[]>([]);
-  const [selectedPoType, setSelectedPoType] = useState<'non-clubbed' | 'clubbed' | 'non-po' | 'vendorList' | ''>('');
+  const [vendorSalary, setVendorSalary] = useState<PurchaseOrderRow[]>([]);
+  const [vendorAdv, setVendorAdv] = useState<PurchaseOrderRow[]>([]);
+  const [selectedPoType, setSelectedPoType] = useState<'po' | 'non-po' | 'vendor-salary' | 'vendor-adv' | ''>('');
   const [selectedView, setSelectedView] = useState<'view1' | 'view2'>('view1');
 
   const handleFromDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -220,9 +246,9 @@ const PurchaseOrderV2: React.FC = () => {
       const res = await axiosInstance.get(url);
       setData(res.data.data ?? []);
       setUnits(res.data.units ?? []);
-      setClubbedPo(res.data.clubbedPo ?? []);
       setNonPo(res?.data.sapNonPo ?? []);
-      setVendorList(res?.data.sapVendorList ?? []);
+      setVendorSalary(res?.data.sapVendorListSalary ?? []);
+      setVendorAdv(res?.data.sapVendorListAdvanced ?? []);
       setError(null);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to fetch Purchase Order data.';
@@ -324,56 +350,56 @@ const PurchaseOrderV2: React.FC = () => {
     return applyFilters(data);
   }, [data, applyFilters]);
 
-  const filteredClubbedPo = useMemo(() => {
-    return applyFilters(clubbedPo);
-  }, [clubbedPo, applyFilters]);
-
   const filteredNonPo = useMemo(() => {
     return applyFilters(nonPo);
   }, [nonPo, applyFilters]);
 
-  const filteredVendorData = useMemo(() => {
-    return applyFilters(vendorList);
-  }, [vendorList, applyFilters]);
+  const filteredVendorSalary = useMemo(() => {
+    return applyFilters(vendorSalary);
+  }, [vendorSalary, applyFilters]);
 
-  const nonClubbedBankPayment = useMemo(() => {
+  const filteredVendorAdv = useMemo(() => {
+    return applyFilters(vendorAdv);
+  }, [vendorAdv, applyFilters]);
+
+  const poBankPayment = useMemo(() => {
     return filteredData.reduce((total, row) => total + (Number(row.bankPayment) || 0), 0);
   }, [filteredData]);
-
-  const clubbedBankPayment = useMemo(() => {
-    return filteredClubbedPo.reduce((total, row) => total + (Number(row.bankPayment) || 0), 0);
-  }, [filteredClubbedPo]);
 
   const nonPoBankPayment = useMemo(() => {
     return filteredNonPo.reduce((total, row) => total + (Number(row.bankPayment) || 0), 0);
   }, [filteredNonPo]);
 
-  const vendorBankPayment = useMemo(() => {
-    return filteredVendorData.reduce((total, row) => total + (Number(row.bankPayment) || 0), 0);
-  }, [filteredVendorData]);
+  const vendorSalaryBankPayment = useMemo(() => {
+    return filteredVendorSalary.reduce((total, row) => total + (Number(row.bankPayment) || 0), 0);
+  }, [filteredVendorSalary]);
+
+  const vendorAdvBankPayment = useMemo(() => {
+    return filteredVendorAdv.reduce((total, row) => total + (Number(row.bankPayment) || 0), 0);
+  }, [filteredVendorAdv]);
 
   const totalBankPayment = useMemo(() => {
-    return nonClubbedBankPayment + clubbedBankPayment + nonPoBankPayment + vendorBankPayment;
-  }, [nonClubbedBankPayment, clubbedBankPayment, nonPoBankPayment, vendorBankPayment]);
+    return poBankPayment + nonPoBankPayment + vendorSalaryBankPayment + vendorAdvBankPayment;
+  }, [poBankPayment, nonPoBankPayment, vendorAdvBankPayment, vendorSalaryBankPayment]);
 
   const displayData = useMemo(() => {
     if (!selectedPoType) {
       return [];
     }
 
-    if (selectedPoType === 'clubbed') {
-      return filteredClubbedPo;
-    }
-
     if (selectedPoType === 'non-po') {
       return filteredNonPo;
     }
-    if (selectedPoType === 'vendorList') {
-      return filteredVendorData;
+    if (selectedPoType === 'vendor-salary') {
+      return filteredVendorSalary;
+    }
+
+    if (selectedPoType === 'vendor-adv') {
+      return filteredVendorAdv;
     }
 
     return filteredData;
-  }, [selectedPoType, filteredData, filteredClubbedPo, filteredNonPo, filteredVendorData]);
+  }, [selectedPoType, filteredData, filteredNonPo, filteredVendorAdv, filteredVendorSalary]);
 
   const totalPages = Math.ceil(displayData.length / pageSize) || 1;
 
@@ -403,6 +429,7 @@ const PurchaseOrderV2: React.FC = () => {
     if (!paginatedData || paginatedData.length === 0) return false;
     return paginatedData.every((row) => row.poNo && expandedPoNumbers.has(row.poNo));
   }, [paginatedData, expandedPoNumbers]);
+
   return (
     <div className="p-4 space-y-4">
       {loading && <Loader />}
@@ -574,16 +601,16 @@ const PurchaseOrderV2: React.FC = () => {
           </div>
           {selectedView === 'view1' ? (
             <div className="grid grid-cols-1 gap-3 md:grid-cols-5 mb-5">
-              {/* Non-Clubbed PO Button */}
+              {/* PO Button */}
               <button
                 type="button"
                 onClick={() => {
-                  setSelectedPoType('non-clubbed');
+                  setSelectedPoType('po');
                   setCurrentPage(1);
                   setExpandedPoNumbers(new Set());
                 }}
                 className={`group relative flex flex-col justify-between overflow-hidden rounded-2xl border p-3 text-left transition-all duration-300 focus:outline-none ${
-                  selectedPoType === 'non-clubbed'
+                  selectedPoType === 'po'
                     ? 'border-emerald-500/80 bg-gradient-to-b from-emerald-50/60 to-white shadow-lg shadow-emerald-500/10 ring-2 ring-emerald-500/20'
                     : 'border-slate-200/80 bg-gradient-to-b from-white to-slate-50/50 hover:-translate-y-0.5 hover:border-emerald-500/80 hover:shadow-md'
                 }`}
@@ -591,7 +618,7 @@ const PurchaseOrderV2: React.FC = () => {
                 {/* Top Accent Line */}
                 <div
                   className={`absolute left-0 top-0 h-1 w-full transition-colors duration-300 ${
-                    selectedPoType === 'non-clubbed' ? 'bg-emerald-500' : 'bg-transparent group-hover:bg-emerald-500/80'
+                    selectedPoType === 'po' ? 'bg-emerald-500' : 'bg-transparent group-hover:bg-emerald-500/80'
                   }`}
                 />
 
@@ -600,58 +627,20 @@ const PurchaseOrderV2: React.FC = () => {
                     <div className="flex items-center gap-2.5">
                       <div
                         className={`flex h-9 w-9 items-center justify-center rounded-xl transition-colors duration-200 ${
-                          selectedPoType === 'non-clubbed' ? 'bg-emerald-500 text-white shadow-sm' : 'bg-emerald-50 text-emerald-600 ring-1 ring-emerald-100'
+                          selectedPoType === 'po' ? 'bg-emerald-500 text-white shadow-sm' : 'bg-emerald-50 text-emerald-600 ring-1 ring-emerald-100'
                         }`}
                       >
                         <FileStack size={18} />
                       </div>
-                      <span className="text-[11px] font-black uppercase tracking-[0.12em] text-slate-500">Total Payment Released for Non-Clubbed POs</span>
+                      <span className="text-[11px] font-black uppercase tracking-[0.12em] text-slate-500">PO</span>
+                      <span className="inline-flex min-w-[22px] h-[22px] items-center justify-center rounded-full bg-emerald-100 px-1.5 text-[11px] font-bold text-emerald-600 ring-1 ring-emerald-200">
+                        {filteredData.length}
+                      </span>
                     </div>
                   </div>
 
                   <div className="text-right mt-5">
-                    <p className="text-3xl font-black tracking-tight text-slate-900">{formatRupees(nonClubbedBankPayment)}</p>
-                  </div>
-                </div>
-              </button>
-
-              {/* Clubbed PO Button */}
-              <button
-                type="button"
-                onClick={() => {
-                  setSelectedPoType('clubbed');
-                  setCurrentPage(1);
-                  setExpandedPoNumbers(new Set());
-                }}
-                className={`group relative flex flex-col justify-between overflow-hidden rounded-2xl border p-3 text-left transition-all duration-300 focus:outline-none ${
-                  selectedPoType === 'clubbed'
-                    ? 'border-blue-500/80 bg-gradient-to-b from-blue-50/60 to-white shadow-lg shadow-blue-500/10 ring-2 ring-blue-500/20'
-                    : 'border-slate-200/80 bg-gradient-to-b from-white to-slate-50/50 hover:-translate-y-0.5 hover:border-blue-500/80 hover:shadow-md'
-                }`}
-              >
-                {/* Top Accent Line */}
-                <div
-                  className={`absolute left-0 top-0 h-1 w-full transition-colors duration-300 ${
-                    selectedPoType === 'clubbed' ? 'bg-blue-500' : 'bg-transparent group-hover:bg-blue-500/80'
-                  }`}
-                />
-
-                <div className="relative z-10 flex-1">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2.5">
-                      <div
-                        className={`flex h-9 w-9 items-center justify-center rounded-xl transition-colors duration-200 ${
-                          selectedPoType === 'clubbed' ? 'bg-blue-600 text-white shadow-sm' : 'bg-blue-50 text-blue-600 ring-1 ring-blue-100'
-                        }`}
-                      >
-                        <Layers size={18} />
-                      </div>
-                      <span className="text-[11px] font-black uppercase tracking-[0.12em] text-slate-500">Total Payment Released for Clubbed POs</span>
-                    </div>
-                  </div>
-
-                  <div className="text-right mt-5">
-                    <p className="text-3xl font-black tracking-tight text-slate-900">{formatRupees(clubbedBankPayment)}</p>
+                    <p className="text-3xl font-black tracking-tight text-slate-900">{formatRupees(poBankPayment)}</p>
                   </div>
                 </div>
               </button>
@@ -687,7 +676,10 @@ const PurchaseOrderV2: React.FC = () => {
                       >
                         <Layers size={18} />
                       </div>
-                      <span className="text-[11px] font-black uppercase tracking-[0.12em] text-slate-500">Total Payment Released for Non POs</span>
+                      <span className="text-[11px] font-black uppercase tracking-[0.12em] text-slate-500">NON PO</span>
+                      <span className="inline-flex min-w-[22px] h-[22px] items-center justify-center rounded-full bg-amber-100 px-1.5 text-[11px] font-bold text-amber-600 ring-1 ring-amber-200">
+                        {filteredNonPo.length}
+                      </span>
                     </div>
                   </div>
 
@@ -697,24 +689,24 @@ const PurchaseOrderV2: React.FC = () => {
                 </div>
               </button>
 
-              {/* vendor Button */}
+              {/* vendor salary Button */}
               <button
                 type="button"
                 onClick={() => {
-                  setSelectedPoType('vendorList');
+                  setSelectedPoType('vendor-salary');
                   setCurrentPage(1);
                   setExpandedPoNumbers(new Set());
                 }}
                 className={`group relative flex flex-col justify-between overflow-hidden rounded-2xl border p-3 text-left transition-all duration-300 focus:outline-none ${
-                  selectedPoType === 'vendorList'
-                    ? 'border-red-500/80 bg-gradient-to-b from-red-50/60 to-white shadow-lg shadow-red-500/10 ring-2 ring-red-500/20'
-                    : 'border-slate-200/80 bg-gradient-to-b from-white to-slate-50/50 hover:-translate-y-0.5 hover:border-red-500/80 hover:shadow-md'
+                  selectedPoType === 'vendor-salary'
+                    ? 'border-blue-500/80 bg-gradient-to-b from-blue-50/60 to-white shadow-lg shadow-blue-500/10 ring-2 ring-blue-500/20'
+                    : 'border-slate-200/80 bg-gradient-to-b from-white to-slate-50/50 hover:-translate-y-0.5 hover:border-blue-500/80 hover:shadow-md'
                 }`}
               >
                 {/* Top Accent Line */}
                 <div
                   className={`absolute left-0 top-0 h-1 w-full transition-colors duration-300 ${
-                    selectedPoType === 'vendorList' ? 'bg-red-500' : 'bg-transparent group-hover:bg-red-500/80'
+                    selectedPoType === 'vendor-salary' ? 'bg-blue-500' : 'bg-transparent group-hover:bg-blue-500/80'
                   }`}
                 />
 
@@ -723,17 +715,64 @@ const PurchaseOrderV2: React.FC = () => {
                     <div className="flex items-center gap-2.5">
                       <div
                         className={`flex h-9 w-9 items-center justify-center rounded-xl transition-colors duration-200 ${
-                          selectedPoType === 'vendorList' ? 'bg-red-600 text-white shadow-sm' : 'bg-red-50 text-red-600 ring-1 ring-amber-100'
+                          selectedPoType === 'vendor-salary' ? 'bg-blue-600 text-white shadow-sm' : 'bg-blue-50 text-blue-600 ring-1 ring-amber-100'
                         }`}
                       >
                         <Layers size={18} />
                       </div>
-                      <span className="text-[11px] font-black uppercase tracking-[0.12em] text-slate-500">Total Payment Released for Vendors</span>
+                      <span className="text-[11px] font-black uppercase tracking-[0.12em] text-slate-500">Employee Vendors</span>
+                      <span className="inline-flex min-w-[22px] h-[22px] items-center justify-center rounded-full bg-blue-100 px-1.5 text-[11px] font-bold text-blue-600 ring-1 ring-blue-200">
+                        {filteredVendorSalary.length}
+                      </span>
                     </div>
                   </div>
 
                   <div className="text-right mt-5">
-                    <p className="text-3xl font-black tracking-tight text-slate-900">{formatRupees(vendorBankPayment)}</p>
+                    <p className="text-3xl font-black tracking-tight text-slate-900">{formatRupees(vendorSalaryBankPayment)}</p>
+                  </div>
+                </div>
+              </button>
+
+              {/* vendor adv Button */}
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedPoType('vendor-adv');
+                  setCurrentPage(1);
+                  setExpandedPoNumbers(new Set());
+                }}
+                className={`group relative flex flex-col justify-between overflow-hidden rounded-2xl border p-3 text-left transition-all duration-300 focus:outline-none ${
+                  selectedPoType === 'vendor-adv'
+                    ? 'border-red-500/80 bg-gradient-to-b from-red-50/60 to-white shadow-lg shadow-red-500/10 ring-2 ring-red-500/20'
+                    : 'border-slate-200/80 bg-gradient-to-b from-white to-slate-50/50 hover:-translate-y-0.5 hover:border-red-500/80 hover:shadow-md'
+                }`}
+              >
+                {/* Top Accent Line */}
+                <div
+                  className={`absolute left-0 top-0 h-1 w-full transition-colors duration-300 ${
+                    selectedPoType === 'vendor-adv' ? 'bg-red-500' : 'bg-transparent group-hover:bg-red-500/80'
+                  }`}
+                />
+
+                <div className="relative z-10 flex-1">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2.5">
+                      <div
+                        className={`flex h-9 w-9 items-center justify-center rounded-xl transition-colors duration-200 ${
+                          selectedPoType === 'vendor-adv' ? 'bg-red-600 text-white shadow-sm' : 'bg-red-50 text-red-600 ring-1 ring-amber-100'
+                        }`}
+                      >
+                        <Layers size={18} />
+                      </div>
+                      <span className="text-[11px] font-black uppercase tracking-[0.12em] text-slate-500">Employee Vendors</span>
+                      <span className="inline-flex min-w-[22px] h-[22px] items-center justify-center rounded-full bg-red-100 px-1.5 text-[11px] font-bold text-red-600 ring-1 ring-red-200">
+                        {filteredVendorAdv.length}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="text-right mt-5">
+                    <p className="text-3xl font-black tracking-tight text-slate-900">{formatRupees(vendorAdvBankPayment)}</p>
                   </div>
                 </div>
               </button>
@@ -761,95 +800,47 @@ const PurchaseOrderV2: React.FC = () => {
             </div>
           ) : (
             <div className="flex flex-col gap-3 mb-5">
-              {/* Non-Clubbed */}
+              {/* po */}
               <button
                 type="button"
                 onClick={() => {
-                  setSelectedPoType(selectedPoType === 'non-clubbed' ? '' : 'non-clubbed');
+                  setSelectedPoType(selectedPoType === 'po' ? '' : 'po');
                   setCurrentPage(1);
                   setExpandedPoNumbers(new Set());
                 }}
                 className={`group relative w-full overflow-hidden rounded-2xl border p-4 text-left transition-all duration-300 ${
-                  selectedPoType === 'non-clubbed'
+                  selectedPoType === 'po'
                     ? 'rounded-b-none border-emerald-500/80 bg-gradient-to-r from-emerald-50/70 to-white shadow-lg ring-2 ring-emerald-500/20'
                     : 'border-slate-200/80 bg-gradient-to-r from-white to-slate-50/50 hover:border-emerald-500/80 hover:shadow-md'
                 }`}
               >
                 <div
-                  className={`absolute left-0 top-0 h-full w-1 ${
-                    selectedPoType === 'non-clubbed' ? 'bg-emerald-500' : 'bg-transparent group-hover:bg-emerald-500/80'
-                  }`}
+                  className={`absolute left-0 top-0 h-full w-1 ${selectedPoType === 'po' ? 'bg-emerald-500' : 'bg-transparent group-hover:bg-emerald-500/80'}`}
                 />
 
                 <div className="relative z-10 flex items-center justify-between gap-4">
                   <div className="flex items-center gap-3">
                     <ChevronDown
                       size={20}
-                      className={`transition-transform duration-300 ${selectedPoType === 'non-clubbed' ? 'rotate-180 text-emerald-600' : 'text-slate-400'}`}
+                      className={`transition-transform duration-300 ${selectedPoType === 'po' ? 'rotate-180 text-emerald-600' : 'text-slate-400'}`}
                     />
                     <div
                       className={`flex h-10 w-10 items-center justify-center rounded-xl ${
-                        selectedPoType === 'non-clubbed' ? 'bg-emerald-500 text-white' : 'bg-emerald-50 text-emerald-600'
+                        selectedPoType === 'po' ? 'bg-emerald-500 text-white' : 'bg-emerald-50 text-emerald-600'
                       }`}
                     >
                       <FileStack size={19} />
                     </div>
 
                     <div>
-                      <p className="text-[11px] font-black uppercase tracking-[0.12em] text-slate-500">Total Payment Released for Non-Clubbed POs</p>
+                      <p className="text-[11px] font-black uppercase tracking-[0.12em] text-slate-500">Total Payment Released for PO</p>
 
-                      <p className="mt-0.5 text-xs text-slate-400">{filteredData.length} PO(s)</p>
+                      <p className="mt-0.5 text-xs text-slate-400">{filteredData.length}</p>
                     </div>
                   </div>
 
                   <div className="flex items-center gap-3">
-                    <p className="text-2xl tabular-nums font-black text-slate-900">{formatRupees(nonClubbedBankPayment)}</p>
-                  </div>
-                </div>
-              </button>
-
-              {/* Clubbed */}
-              <button
-                type="button"
-                disabled={filteredClubbedPo.length === 0}
-                onClick={() => {
-                  setSelectedPoType(selectedPoType === 'clubbed' ? '' : 'clubbed');
-                  setCurrentPage(1);
-                  setExpandedPoNumbers(new Set());
-                }}
-                className={`group relative w-full overflow-hidden rounded-2xl border p-4 text-left transition-all duration-300 ${
-                  selectedPoType === 'clubbed'
-                    ? 'rounded-b-none border-blue-500/80 bg-gradient-to-r from-blue-50/70 to-white shadow-lg ring-2 ring-blue-500/20'
-                    : 'border-slate-200/80 bg-gradient-to-r from-white to-slate-50/50 hover:border-blue-500/80 hover:shadow-md'
-                } disabled:cursor-not-allowed disabled:opacity-50`}
-              >
-                <div
-                  className={`absolute left-0 top-0 h-full w-1 ${selectedPoType === 'clubbed' ? 'bg-blue-500' : 'bg-transparent group-hover:bg-blue-500/80'}`}
-                />
-
-                <div className="relative z-10 flex items-center justify-between gap-4">
-                  <div className="flex items-center gap-3">
-                    <ChevronDown
-                      size={20}
-                      className={`transition-transform duration-300 ${selectedPoType === 'clubbed' ? 'rotate-180 text-blue-600' : 'text-slate-400'}`}
-                    />
-                    <div
-                      className={`flex h-10 w-10 items-center justify-center rounded-xl ${
-                        selectedPoType === 'clubbed' ? 'bg-blue-600 text-white' : 'bg-blue-50 text-blue-600'
-                      }`}
-                    >
-                      <Layers size={19} />
-                    </div>
-
-                    <div>
-                      <p className="text-[11px] font-black uppercase tracking-[0.12em] text-slate-500">Total Payment Released for Clubbed POs</p>
-
-                      <p className="mt-0.5 text-xs text-slate-400">{filteredClubbedPo.length} PO(s)</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-3">
-                    <p className="text-2xl tabular-nums font-black text-slate-900">{formatRupees(clubbedBankPayment)}</p>
+                    <p className="text-2xl tabular-nums font-black text-slate-900">{formatRupees(poBankPayment)}</p>
                   </div>
                 </div>
               </button>
@@ -888,7 +879,7 @@ const PurchaseOrderV2: React.FC = () => {
                     </div>
 
                     <div>
-                      <p className="text-[11px] font-black uppercase tracking-[0.12em] text-slate-500">Total Payment Released for Non POs</p>
+                      <p className="text-[11px] font-black uppercase tracking-[0.12em] text-slate-500">Total Payment Released for Non PO</p>
 
                       <p className="mt-0.5 text-xs text-slate-400">{filteredNonPo.length}</p>
                     </div>
@@ -902,45 +893,90 @@ const PurchaseOrderV2: React.FC = () => {
 
               <button
                 type="button"
-                disabled={filteredVendorData.length === 0}
+                disabled={filteredVendorSalary.length === 0}
                 onClick={() => {
-                  setSelectedPoType(selectedPoType === 'vendorList' ? '' : 'vendorList');
+                  setSelectedPoType(selectedPoType === 'vendor-salary' ? '' : 'vendor-salary');
                   setCurrentPage(1);
                   setExpandedPoNumbers(new Set());
                 }}
                 className={`group relative w-full overflow-hidden rounded-2xl border p-4 text-left transition-all duration-300 ${
-                  selectedPoType === 'vendorList'
-                    ? 'rounded-b-none border-red-500/80 bg-gradient-to-r from-red-50/70 to-white shadow-lg ring-2 ring-red-500/20'
-                    : 'border-slate-200/80 bg-gradient-to-r from-white to-slate-50/50 hover:border-red-500/80 hover:shadow-md'
+                  selectedPoType === 'vendor-salary'
+                    ? 'rounded-b-none border-blue-500/80 bg-gradient-to-r from-blue-50/70 to-white shadow-lg ring-2 ring-blue-500/20'
+                    : 'border-slate-200/80 bg-gradient-to-r from-white to-slate-50/50 hover:border-blue-500/80 hover:shadow-md'
                 } disabled:cursor-not-allowed disabled:opacity-50`}
               >
                 <div
-                  className={`absolute left-0 top-0 h-full w-1 ${selectedPoType === 'vendorList' ? 'bg-red-500' : 'bg-transparent group-hover:bg-red-500/80'}`}
+                  className={`absolute left-0 top-0 h-full w-1 ${selectedPoType === 'vendor-salary' ? 'bg-blue-500' : 'bg-transparent group-hover:bg-blue-500/80'}`}
                 />
 
                 <div className="relative z-10 flex items-center justify-between gap-4">
                   <div className="flex items-center gap-3">
                     <ChevronDown
                       size={20}
-                      className={`transition-transform duration-300 ${selectedPoType === 'vendorList' ? 'rotate-180 text-red-600' : 'text-slate-400'}`}
+                      className={`transition-transform duration-300 ${selectedPoType === 'vendor-salary' ? 'rotate-180 text-blue-600' : 'text-slate-400'}`}
                     />
                     <div
                       className={`flex h-10 w-10 items-center justify-center rounded-xl ${
-                        selectedPoType === 'vendorList' ? 'bg-red-500 text-white' : 'bg-red-50 text-red-600'
+                        selectedPoType === 'vendor-salary' ? 'bg-blue-500 text-white' : 'bg-blue-50 text-blue-600'
                       }`}
                     >
                       <Layers size={19} />
                     </div>
 
                     <div>
-                      <p className="text-[11px] font-black uppercase tracking-[0.12em] text-slate-500">Total Payment Released for Vendors</p>
+                      <p className="text-[11px] font-black uppercase tracking-[0.12em] text-slate-500">Total Payment Released for Employee Vendor Salary</p>
 
-                      <p className="mt-0.5 text-xs text-slate-400">{filteredVendorData.length}</p>
+                      <p className="mt-0.5 text-xs text-slate-400">{filteredVendorSalary.length}</p>
                     </div>
                   </div>
 
                   <div className="flex items-center gap-3">
-                    <p className="text-2xl tabular-nums font-black text-slate-900">{formatRupees(vendorBankPayment)}</p>
+                    <p className="text-2xl tabular-nums font-black text-slate-900">{formatRupees(vendorSalaryBankPayment)}</p>
+                  </div>
+                </div>
+              </button>
+
+              <button
+                type="button"
+                disabled={filteredVendorAdv.length === 0}
+                onClick={() => {
+                  setSelectedPoType(selectedPoType === 'vendor-adv' ? '' : 'vendor-adv');
+                  setCurrentPage(1);
+                  setExpandedPoNumbers(new Set());
+                }}
+                className={`group relative w-full overflow-hidden rounded-2xl border p-4 text-left transition-all duration-300 ${
+                  selectedPoType === 'vendor-adv'
+                    ? 'rounded-b-none border-red-500/80 bg-gradient-to-r from-red-50/70 to-white shadow-lg ring-2 ring-red-500/20'
+                    : 'border-slate-200/80 bg-gradient-to-r from-white to-slate-50/50 hover:border-red-500/80 hover:shadow-md'
+                } disabled:cursor-not-allowed disabled:opacity-50`}
+              >
+                <div
+                  className={`absolute left-0 top-0 h-full w-1 ${selectedPoType === 'vendor-adv' ? 'bg-red-500' : 'bg-transparent group-hover:bg-red-500/80'}`}
+                />
+
+                <div className="relative z-10 flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <ChevronDown
+                      size={20}
+                      className={`transition-transform duration-300 ${selectedPoType === 'vendor-adv' ? 'rotate-180 text-red-600' : 'text-slate-400'}`}
+                    />
+                    <div
+                      className={`flex h-10 w-10 items-center justify-center rounded-xl ${
+                        selectedPoType === 'vendor-adv' ? 'bg-red-500 text-white' : 'bg-red-50 text-red-600'
+                      }`}
+                    >
+                      <Layers size={19} />
+                    </div>
+
+                    <div>
+                      <p className="text-[11px] font-black uppercase tracking-[0.12em] text-slate-500">Total Payment Released for Employee Vendor Advances</p>
+
+                      <p className="mt-0.5 text-xs text-slate-400">{filteredVendorAdv.length}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <p className="text-2xl tabular-nums font-black text-slate-900">{formatRupees(vendorAdvBankPayment)}</p>
                   </div>
                 </div>
               </button>
@@ -958,7 +994,7 @@ const PurchaseOrderV2: React.FC = () => {
                     <div>
                       <p className="text-[11px] font-black uppercase tracking-[0.12em] text-slate-500">Total Payment Released</p>
 
-                      <p className="mt-0.5 text-xs text-slate-400">Non-Clubbed + Clubbed + Non PO + Vendor</p>
+                      <p className="mt-0.5 text-xs text-slate-400">PO + Non PO + Employee Vendor Salary + Employee Vendor Advances</p>
                     </div>
                   </div>
 
@@ -973,7 +1009,7 @@ const PurchaseOrderV2: React.FC = () => {
         <>
           <div className="flex items-center justify-end gap-3">
             <div className="flex gap-3">
-              {selectedPoType !== 'non-po' && selectedPoType !== 'vendorList' && (
+              {selectedPoType === 'po' && (
                 <button
                   disabled={paginatedData.length === 0}
                   type="button"
@@ -1028,7 +1064,7 @@ const PurchaseOrderV2: React.FC = () => {
                 <table className="min-w-full text-sm border-seperate border-spacing-0">
                   <thead className="bg-primary sticky top-0 z-20 text-white font-bold text-xs uppercase border-b border-gray-300">
                     <tr>
-                      {selectedPoType !== 'non-po' && selectedPoType !== 'vendorList' && (
+                      {selectedPoType === 'po' && (
                         <th
                           className="px-2 py-2 text-center border-r border-gray-200 cursor-pointer select-none hover:bg-primary-dark transition-colors"
                           title={isAllPageExpanded ? 'Collapse all on page' : 'Expand all on page'}
@@ -1044,14 +1080,14 @@ const PurchaseOrderV2: React.FC = () => {
                         </th>
                       )}
                       <th className="w-16 px-2 py-2 text-left border-r border-gray-200">Sr. No.</th>
-                      {selectedPoType !== 'non-po' && selectedPoType !== 'vendorList' && (
+                      {selectedPoType === 'po' && (
                         <>
                           <th className="px-2 py-2 text-left border-r border-gray-200 min-w-[110px]">PO No</th>
                           <th className="px-2 py-2 text-left border-r border-gray-200 min-w-[130px]">PO Date</th>
                           <th className="px-2 py-2 text-right border-r border-gray-200 min-w-[160px]">PO Amount</th>
                         </>
                       )}
-                      {['non-po', 'vendorList'].includes(selectedPoType) && (
+                      {['non-po', 'vendor-salary', 'vendor-adv'].includes(selectedPoType) && (
                         <>
                           <th className="px-2 py-2 text-left border-r border-gray-200 min-w-[110px]">Invoice No</th>
                           <th className="px-2 py-2 text-left border-r border-gray-200 min-w-[140px]">Invoice Date</th>
