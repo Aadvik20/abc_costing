@@ -384,8 +384,8 @@ export const exportAllPaymentDataToExcel = async (fromDate?: string | null, toDa
     const responseData = res.data?.data || res.data || {};
     const nonPoList: MainPoRow[] = responseData.nonPoList || [];
     const poList: MainPoRow[] = responseData.poList || [];
-    const vendorSalary: MainPoRow[] = responseData?.sapVendorListSalary || [];
-    const vendorAdv: MainPoRow[] = responseData?.sapVendorListAdvanced || [];
+    const vendorSalary: MainPoRow[] = responseData?.salaryList || [];
+    const vendorAdv: MainPoRow[] = responseData?.advancedList || [];
 
     const workbook = new ExcelJS.Workbook();
 
