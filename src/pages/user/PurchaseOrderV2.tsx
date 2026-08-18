@@ -720,7 +720,7 @@ const PurchaseOrderV2: React.FC = () => {
                       >
                         <Layers size={18} />
                       </div>
-                      <span className="text-[11px] font-black uppercase tracking-[0.12em] text-slate-500">Employee Vendors</span>
+                      <span className="text-[11px] font-black uppercase tracking-[0.12em] text-slate-500">Employee Vendor Salary</span>
                       <span className="inline-flex min-w-[22px] h-[22px] items-center justify-center rounded-full bg-blue-100 px-1.5 text-[11px] font-bold text-blue-600 ring-1 ring-blue-200">
                         {filteredVendorSalary.length}
                       </span>
@@ -764,7 +764,7 @@ const PurchaseOrderV2: React.FC = () => {
                       >
                         <Layers size={18} />
                       </div>
-                      <span className="text-[11px] font-black uppercase tracking-[0.12em] text-slate-500">Employee Vendors</span>
+                      <span className="text-[11px] font-black uppercase tracking-[0.12em] text-slate-500">Employee Vendor Advances</span>
                       <span className="inline-flex min-w-[22px] h-[22px] items-center justify-center rounded-full bg-red-100 px-1.5 text-[11px] font-bold text-red-600 ring-1 ring-red-200">
                         {filteredVendorAdv.length}
                       </span>
