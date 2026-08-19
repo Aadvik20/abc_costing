@@ -399,7 +399,7 @@ const PurchaseOrderExcelFormate: React.FC = () => {
       return filteredVendorSalary;
     }
     if (selectedPoType === 'vendor-adv') {
-      return filteredVendorSalary;
+      return filteredVendorAdv;
     }
     return filteredData;
   }, [selectedPoType, filteredData, filteredNonPo, filteredVendorSalary, filteredVendorAdv]);
