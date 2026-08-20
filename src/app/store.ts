@@ -3,10 +3,8 @@ import { persistStore, persistReducer } from 'redux-persist';
 import storageSession from 'redux-persist/lib/storage/session';
 import { combineReducers } from 'redux';
 import userReducer from '@/features/user/userSlice';
-import poSlicereducer from '@/features/ManagePoSlice';
 import applicationsReducer from '@/features/applications/applicationSlice';
 import tokenDataReduer from '../features/user/TokenDataSlice';
-import FinanceSlicereducer from '@/features/FinanceSlice';
 import masterDatareducer from '@/features/masterData/masterSlice';
 
 const persistConfig = {

@@ -1,186 +1,14 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import Loader from '@/components/ui/loader';
-import PoDetailsContent from '@/components/dailogs/PoDetailsContent';
-import { formatDate, formatDecimal, formatRupees } from '@/lib/helperFunction';
-import { AlertTriangle, ChevronDown, ChevronRight, Download, FileStack, Layers, Loader2, Wallet } from 'lucide-react';
+import { formatRupees } from '@/lib/helperFunction';
+import { ChevronDown, FileStack, Layers, Wallet } from 'lucide-react';
 import { useSearchParams } from 'react-router';
 import { exportAllPaymentDataToExcel } from '@/components/admin/exportPoExcel';
 import axiosInstance from '@/services/axiosInstance';
 import Select from 'react-select';
+import PurchaseOrderTable, { PurchaseOrderRow } from '@/components/common/PurchaseOrderTable';
 
-export interface PurchaseOrderRow {
-  srNo?: number;
-  poNo?: string;
-  poOrderValue?: number;
-  poType?: string;
-  profitCenter?: string;
-  poType2?: string;
-  bankPayment?: number;
-  itTds?: number;
-  cgstAmount?: number;
-  poDate?: string;
-  invoiceDate?: string;
-  invoiceNumber?: string;
-  sgstAmount?: number;
-  igstAmount?: number;
-  cgsttds?: number;
-  sgsttds?: number;
-  igsttds?: number;
-  ittds?: number;
-  unit?: string;
-  month?: string;
-  year?: string;
-  supplierCode?: string;
-  expenseGLAccount?: string;
-  [key: string]: unknown;
-}
-
-interface TableRowItemProps {
-  row: PurchaseOrderRow;
-  index: number;
-  isExpanded: boolean;
-  onToggleExpand: (poNo: string) => void;
-  selectedPoType: string;
-}
-
-const TableRowItem: React.FC<TableRowItemProps> = React.memo(({ row, index, isExpanded, onToggleExpand, selectedPoType }) => {
-  const poNo = row.poNo || '';
-  const handleRowClick = () => {
-    if (poNo) {
-      onToggleExpand(poNo);
-    }
-  };
-
-  return (
-    <>
-      <tr
-        onClick={handleRowClick}
-        className={`cursor-pointer transition-colors ${
-          row.clubbedFlag === 'Y' ? 'bg-amber-100 hover:bg-amber-100' : isExpanded ? 'bg-blue-50/70' : 'hover:bg-gray-50'
-        }`}
-      >
-        {selectedPoType === 'po' && (
-          <td className="px-2 py-1 text-center border-r border-gray-200 select-none">
-            {isExpanded ? <ChevronDown className="h-4 w-4 text-blue-600 mx-auto" /> : <ChevronRight className="h-4 w-4 text-blue-600 mx-auto" />}
-          </td>
-        )}
-        <td className="px-2 py-1 border-r border-gray-200 text-left font-bold">{index + 1}</td>
-        {selectedPoType === 'po' && (
-          <>
-            <td className="px-2 py-1 border-r border-gray-200 font-bold text-blue-700 tabular-nums">
-              <div className="flex items-center gap-2">
-                <span>{poNo || '-'}</span>
-
-                {row.clubbedFlag === 'Y' && (
-                  <div title={'This PO is part of a combined payment.'}>
-                    <AlertTriangle size={18} className="text-amber-700" strokeWidth={2.5} />
-                  </div>
-                )}
-              </div>
-            </td>
-            <td className="px-2 py-1 border-r border-gray-200">{formatDate(row.poDate) || '-'}</td>
-            <td className="px-2 py-1 border-r border-gray-200 text-right tabular-nums">{formatRupees(row.poOrderValue)}</td>
-          </>
-        )}
-        {['non-po', 'vendor-salary', 'vendor-adv'].includes(selectedPoType) && (
-          <>
-            <td className="px-2 py-1 border-r border-gray-200 font-bold text-blue-700 tabular-nums">
-              {' '}
-              <div className="flex items-center gap-2">
-                <span>{row.invoiceNumber || '-'}</span>
-
-                {row.clubbedFlag === 'Y' && (
-                  <div title={'This invoice is part of a combined payment.'}>
-                    <AlertTriangle size={18} className="text-amber-700" strokeWidth={2.5} />
-                  </div>
-                )}
-              </div>
-            </td>
-            <td className="px-2 py-1 border-r border-gray-200 font-bold text-blue-700">{formatDate(row.invoiceDate) || '-'}</td>
-          </>
-        )}
-        <td className="px-2 py-1 border-r border-gray-200">{row.expenseGLAccount || '-'}</td>
-        <td className="px-2 py-1 border-r border-gray-200">
-          <TooltipProvider delayDuration={0} skipDelayDuration={0}>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <div
-                  className="
-            max-w-[180px]
-            truncate
-            cursor-pointer
-            rounded-md
-            px-2 py-1
-            transition-all duration-150
-            hover:bg-primary/10
-            hover:text-primary
-            hover:ring-1
-            hover:ring-primary/20
-          "
-                >
-                  {row.supplierCode || '-'}
-                </div>
-              </TooltipTrigger>
-
-              <TooltipContent
-                side="top"
-                sideOffset={5}
-                className="
-          max-w-md
-          break-words
-          rounded-md
-          bg-blue-700
-          px-3 py-2
-          text-xs
-          font-medium
-          text-white
-          shadow-lg
-        "
-              >
-                <p>{row.supplierCode || '-'}</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        </td>
-        <td className="px-2 py-1 border-r border-gray-200" onClick={(e) => e.stopPropagation()}>
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <div className="max-w-[100px] truncate cursor-pointer">{row.poType || '-'}</div>
-              </TooltipTrigger>
-              <TooltipContent className="max-w-md break-words">
-                <p>{row.poType || '-'}</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        </td>
-        <td className="px-2 py-1 border-r border-gray-200">{row.unit || '-'}</td>
-        <td className="px-2 py-1 border-r border-gray-200 text-right tabular-nums">{formatRupees(row.bankPayment)}</td>
-        <td className="px-2 py-1 border-r border-gray-200 text-right tabular-nums">{formatDecimal(row.cgstAmount)}</td>
-        <td className="px-2 py-1 border-r border-gray-200 text-right tabular-nums">{formatDecimal(row.cgsttds)}</td>
-        <td className="px-2 py-1 border-r border-gray-200 text-right tabular-nums">{formatDecimal(row.sgstAmount)}</td>
-        <td className="px-2 py-1 border-r border-gray-200 text-right tabular-nums">{formatDecimal(row.sgsttds)}</td>
-        <td className="px-2 py-1 border-r border-gray-200 text-right tabular-nums">{formatDecimal(row.igstAmount)}</td>
-        <td className="px-2 py-1 border-r border-gray-200 text-right tabular-nums">{formatDecimal(row.igsttds)}</td>
-        <td className="px-2 py-1 text-right tabular-nums">{formatDecimal(row.ittds)}</td>
-      </tr>
-      {isExpanded && (
-        <tr className="bg-gray-100/80">
-          <td colSpan={14} className="p-2 border-b border-gray-300 min-w-full">
-            <div className="bg-white p-2 rounded-lg shadow-inner border border-gray-200">
-              <PoDetailsContent poNumber={poNo} />
-            </div>
-          </td>
-        </tr>
-      )}
-    </>
-  );
-});
-
-TableRowItem.displayName = 'TableRowItem';
-
-const PAGE_SIZE_OPTIONS = [25, 50, 75, 100, 200];
+export type { PurchaseOrderRow };
 
 const PurchaseOrderV2: React.FC = () => {
   const [data, setData] = useState<PurchaseOrderRow[]>([]);
@@ -188,7 +16,6 @@ const PurchaseOrderV2: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [error, setError] = useState<string | null>(null);
   const [selectedUnit, setSelectedUnit] = useState<string>('');
-  const [expandedPoNumbers, setExpandedPoNumbers] = useState<Set<string>>(new Set());
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [units, setUnits] = useState<string[]>([]);
   const [glAccounts, setGlAccounts] = useState<string[]>([]);
@@ -196,8 +23,6 @@ const PurchaseOrderV2: React.FC = () => {
   const [fromDate, setFromDate] = useState<string>(searchParams.get('fromDate') || '');
   const [toDate, setToDate] = useState<string>(searchParams.get('toDate') || '');
   const [dateError, setDateError] = useState<string | null>(null);
-  const [currentPage, setCurrentPage] = useState<number>(1);
-  const [pageSize, setPageSize] = useState<number>(25);
   const [exporting, setExporting] = useState(false);
   const [nonPo, setNonPo] = useState<PurchaseOrderRow[]>([]);
   const [vendorSalary, setVendorSalary] = useState<PurchaseOrderRow[]>([]);
@@ -224,6 +49,7 @@ const PurchaseOrderV2: React.FC = () => {
       setDateError(null);
     }
   };
+
   const fetchPurchaseOrders = async () => {
     if (!fromDate && !toDate) return;
     const params = new URLSearchParams(searchParams);
@@ -258,40 +84,19 @@ const PurchaseOrderV2: React.FC = () => {
       setError(null);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to fetch Purchase Order data.';
-
       setError(message);
     } finally {
       setLoading(false);
     }
   };
+
   useEffect(() => {
     fetchPurchaseOrders();
   }, []);
 
-  const toggleRowExpansion = useCallback((poNo?: string) => {
-    if (!poNo) return;
-    setExpandedPoNumbers((prev) => {
-      const next = new Set(prev);
-      if (next.has(poNo)) {
-        next.delete(poNo);
-      } else {
-        next.add(poNo);
-      }
-      return next;
-    });
-  }, []);
-  const expandAllRows = useCallback((dataToExpand: PurchaseOrderRow[]) => {
-    setExpandedPoNumbers((prev) => {
-      const next = new Set(prev);
-      dataToExpand.forEach((row) => {
-        if (row.poNo) {
-          next.add(row.poNo);
-        }
-      });
-      return next;
-    });
-  }, []);
   const handleExportPage = async () => {
+    if (!selectedPoType || !displayData.length) return;
+
     setExporting(true);
     try {
       await exportAllPaymentDataToExcel(fromDate, toDate);
@@ -301,23 +106,6 @@ const PurchaseOrderV2: React.FC = () => {
       setExporting(false);
     }
   };
-  const collapseAllRows = useCallback((dataToCollapse?: PurchaseOrderRow[]) => {
-    setExpandedPoNumbers((prev) => {
-      if (!dataToCollapse) return new Set(); // Clears everything
-      const next = new Set(prev);
-      dataToCollapse.forEach((row) => {
-        if (row.poNo) {
-          next.delete(row.poNo);
-        }
-      });
-      return next;
-    });
-  }, []);
-
-  useEffect(() => {
-    setCurrentPage(1);
-    setExpandedPoNumbers(new Set());
-  }, [selectedUnit, searchQuery, selectedPoType]);
 
   const applyFilters = useCallback(
     (rows: PurchaseOrderRow[]) => {
@@ -412,13 +200,6 @@ const PurchaseOrderV2: React.FC = () => {
     return filteredData;
   }, [selectedPoType, filteredData, filteredNonPo, filteredVendorAdv, filteredVendorSalary]);
 
-  const totalPages = Math.ceil(displayData.length / pageSize) || 1;
-
-  const paginatedData = useMemo(() => {
-    const start = (currentPage - 1) * pageSize;
-    return displayData.slice(start, start + pageSize);
-  }, [displayData, currentPage, pageSize]);
-
   const handleResetFilters = () => {
     setSelectedUnit('');
     setSelectedGl('');
@@ -426,24 +207,10 @@ const PurchaseOrderV2: React.FC = () => {
     setFromDate('');
     setToDate('');
     setDateError(null);
-    setCurrentPage(1);
   };
-
-  const handlePageSizeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setPageSize(Number(e.target.value));
-    setCurrentPage(1);
-  };
-
-  const startIndex = displayData.length === 0 ? 0 : (currentPage - 1) * pageSize + 1;
-
-  const endIndex = Math.min(currentPage * pageSize, displayData.length);
-  const isAllPageExpanded = useMemo(() => {
-    if (!paginatedData || paginatedData.length === 0) return false;
-    return paginatedData.every((row) => row.poNo && expandedPoNumbers.has(row.poNo));
-  }, [paginatedData, expandedPoNumbers]);
 
   return (
-    <div className="p-4 space-y-4">
+    <div className="p-4 space-y-4 min-h-screen">
       {loading && <Loader />}
       <h1 className="text-xl sm:text-2xl font-extrabold text-gray-900 tracking-tight">Payment Details</h1>
 
@@ -470,7 +237,7 @@ const PurchaseOrderV2: React.FC = () => {
         )}
         {glAccounts.length > 0 && (
           <div className="lg:col-span-2">
-            <label htmlFor="unit-select" className="block text-xs font-semibold text-gray-700 mb-1">
+            <label htmlFor="gl-select" className="block text-xs font-semibold text-gray-700 mb-1">
               GL Account <span className="text-gray-400 font-normal">(Instant Filter)</span>
             </label>
 
@@ -607,9 +374,8 @@ const PurchaseOrderV2: React.FC = () => {
             value={fromDate}
             max={toDate || undefined || new Date().toISOString().split('T')[0]}
             onChange={handleFromDateChange}
-            className={`w-full h-10 px-2.5 border rounded-lg text-sm font-medium text-gray-800 focus:ring-2 focus:outline-none transition ${
-              dateError ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
-            }`}
+            className={`w-full h-10 px-2.5 border rounded-lg text-sm font-medium text-gray-800 focus:ring-2 focus:outline-none transition ${dateError ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
+              }`}
           />
         </div>
         <div className="lg:col-span-2">
@@ -623,9 +389,8 @@ const PurchaseOrderV2: React.FC = () => {
             min={fromDate || undefined}
             max={new Date().toISOString().split('T')[0]}
             onChange={handleToDateChange}
-            className={`w-full h-10 px-2.5 border rounded-lg text-sm font-medium text-gray-800 focus:ring-2 focus:outline-none transition ${
-              dateError ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
-            }`}
+            className={`w-full h-10 px-2.5 border rounded-lg text-sm font-medium text-gray-800 focus:ring-2 focus:outline-none transition ${dateError ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
+              }`}
           />
         </div>
         <div className="lg:col-span-2 flex items-center gap-1.5 sm:col-span-2">
@@ -690,14 +455,11 @@ const PurchaseOrderV2: React.FC = () => {
                 onClick={() => {
                   setSelectedView('view1');
                   setSelectedPoType('');
-                  setCurrentPage(1);
-                  setExpandedPoNumbers(new Set());
                 }}
-                className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 ${
-                  selectedView === 'view1'
-                    ? 'bg-white text-blue-700 shadow-sm ring-1 ring-slate-200'
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/70'
-                }`}
+                className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 ${selectedView === 'view1'
+                  ? 'bg-white text-blue-700 shadow-sm ring-1 ring-slate-200'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/70'
+                  }`}
               >
                 View 1
               </button>
@@ -708,14 +470,11 @@ const PurchaseOrderV2: React.FC = () => {
                 onClick={() => {
                   setSelectedView('view2');
                   setSelectedPoType('');
-                  setCurrentPage(1);
-                  setExpandedPoNumbers(new Set());
                 }}
-                className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 ${
-                  selectedView === 'view2'
-                    ? 'bg-white text-blue-700 shadow-sm ring-1 ring-slate-200'
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/70'
-                }`}
+                className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 ${selectedView === 'view2'
+                  ? 'bg-white text-blue-700 shadow-sm ring-1 ring-slate-200'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/70'
+                  }`}
               >
                 View 2
               </button>
@@ -728,29 +487,24 @@ const PurchaseOrderV2: React.FC = () => {
                 type="button"
                 onClick={() => {
                   setSelectedPoType('po');
-                  setCurrentPage(1);
-                  setExpandedPoNumbers(new Set());
                 }}
-                className={`group relative flex flex-col justify-between overflow-hidden rounded-2xl border p-3 text-left transition-all duration-300 focus:outline-none ${
-                  selectedPoType === 'po'
-                    ? 'border-emerald-500/80 bg-gradient-to-b from-emerald-50/60 to-white shadow-lg shadow-emerald-500/10 ring-2 ring-emerald-500/20'
-                    : 'border-slate-200/80 bg-gradient-to-b from-white to-slate-50/50 hover:-translate-y-0.5 hover:border-emerald-500/80 hover:shadow-md'
-                }`}
+                className={`group relative flex flex-col justify-between overflow-hidden rounded-2xl border p-3 text-left transition-all duration-300 focus:outline-none ${selectedPoType === 'po'
+                  ? 'border-emerald-500/80 bg-gradient-to-b from-emerald-50/60 to-white shadow-lg shadow-emerald-500/10 ring-2 ring-emerald-500/20'
+                  : 'border-slate-200/80 bg-gradient-to-b from-white to-slate-50/50 hover:-translate-y-0.5 hover:border-emerald-500/80 hover:shadow-md'
+                  }`}
               >
                 {/* Top Accent Line */}
                 <div
-                  className={`absolute left-0 top-0 h-1 w-full transition-colors duration-300 ${
-                    selectedPoType === 'po' ? 'bg-emerald-500' : 'bg-transparent group-hover:bg-emerald-500/80'
-                  }`}
+                  className={`absolute left-0 top-0 h-1 w-full transition-colors duration-300 ${selectedPoType === 'po' ? 'bg-emerald-500' : 'bg-transparent group-hover:bg-emerald-500/80'
+                    }`}
                 />
 
                 <div className="relative z-10 flex-1">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2.5">
                       <div
-                        className={`flex h-9 w-9 items-center justify-center rounded-xl transition-colors duration-200 ${
-                          selectedPoType === 'po' ? 'bg-emerald-500 text-white shadow-sm' : 'bg-emerald-50 text-emerald-600 ring-1 ring-emerald-100'
-                        }`}
+                        className={`flex h-9 w-9 items-center justify-center rounded-xl transition-colors duration-200 ${selectedPoType === 'po' ? 'bg-emerald-500 text-white shadow-sm' : 'bg-emerald-50 text-emerald-600 ring-1 ring-emerald-100'
+                          }`}
                       >
                         <FileStack size={18} />
                       </div>
@@ -772,29 +526,24 @@ const PurchaseOrderV2: React.FC = () => {
                 type="button"
                 onClick={() => {
                   setSelectedPoType('non-po');
-                  setCurrentPage(1);
-                  setExpandedPoNumbers(new Set());
                 }}
-                className={`group relative flex flex-col justify-between overflow-hidden rounded-2xl border p-3 text-left transition-all duration-300 focus:outline-none ${
-                  selectedPoType === 'non-po'
-                    ? 'border-amber-500/80 bg-gradient-to-b from-amber-50/60 to-white shadow-lg shadow-amber-500/10 ring-2 ring-amber-500/20'
-                    : 'border-slate-200/80 bg-gradient-to-b from-white to-slate-50/50 hover:-translate-y-0.5 hover:border-amber-500/80 hover:shadow-md'
-                }`}
+                className={`group relative flex flex-col justify-between overflow-hidden rounded-2xl border p-3 text-left transition-all duration-300 focus:outline-none ${selectedPoType === 'non-po'
+                  ? 'border-amber-500/80 bg-gradient-to-b from-amber-50/60 to-white shadow-lg shadow-amber-500/10 ring-2 ring-amber-500/20'
+                  : 'border-slate-200/80 bg-gradient-to-b from-white to-slate-50/50 hover:-translate-y-0.5 hover:border-amber-500/80 hover:shadow-md'
+                  }`}
               >
                 {/* Top Accent Line */}
                 <div
-                  className={`absolute left-0 top-0 h-1 w-full transition-colors duration-300 ${
-                    selectedPoType === 'non-po' ? 'bg-amber-500' : 'bg-transparent group-hover:bg-amber-500/80'
-                  }`}
+                  className={`absolute left-0 top-0 h-1 w-full transition-colors duration-300 ${selectedPoType === 'non-po' ? 'bg-amber-500' : 'bg-transparent group-hover:bg-amber-500/80'
+                    }`}
                 />
 
                 <div className="relative z-10 flex-1">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2.5">
                       <div
-                        className={`flex h-9 w-9 items-center justify-center rounded-xl transition-colors duration-200 ${
-                          selectedPoType === 'non-po' ? 'bg-amber-600 text-white shadow-sm' : 'bg-amber-50 text-amber-600 ring-1 ring-amber-100'
-                        }`}
+                        className={`flex h-9 w-9 items-center justify-center rounded-xl transition-colors duration-200 ${selectedPoType === 'non-po' ? 'bg-amber-600 text-white shadow-sm' : 'bg-amber-50 text-amber-600 ring-1 ring-amber-100'
+                          }`}
                       >
                         <Layers size={18} />
                       </div>
@@ -816,29 +565,24 @@ const PurchaseOrderV2: React.FC = () => {
                 type="button"
                 onClick={() => {
                   setSelectedPoType('vendor-salary');
-                  setCurrentPage(1);
-                  setExpandedPoNumbers(new Set());
                 }}
-                className={`group relative flex flex-col justify-between overflow-hidden rounded-2xl border p-3 text-left transition-all duration-300 focus:outline-none ${
-                  selectedPoType === 'vendor-salary'
-                    ? 'border-blue-500/80 bg-gradient-to-b from-blue-50/60 to-white shadow-lg shadow-blue-500/10 ring-2 ring-blue-500/20'
-                    : 'border-slate-200/80 bg-gradient-to-b from-white to-slate-50/50 hover:-translate-y-0.5 hover:border-blue-500/80 hover:shadow-md'
-                }`}
+                className={`group relative flex flex-col justify-between overflow-hidden rounded-2xl border p-3 text-left transition-all duration-300 focus:outline-none ${selectedPoType === 'vendor-salary'
+                  ? 'border-blue-500/80 bg-gradient-to-b from-blue-50/60 to-white shadow-lg shadow-blue-500/10 ring-2 ring-blue-500/20'
+                  : 'border-slate-200/80 bg-gradient-to-b from-white to-slate-50/50 hover:-translate-y-0.5 hover:border-blue-500/80 hover:shadow-md'
+                  }`}
               >
                 {/* Top Accent Line */}
                 <div
-                  className={`absolute left-0 top-0 h-1 w-full transition-colors duration-300 ${
-                    selectedPoType === 'vendor-salary' ? 'bg-blue-500' : 'bg-transparent group-hover:bg-blue-500/80'
-                  }`}
+                  className={`absolute left-0 top-0 h-1 w-full transition-colors duration-300 ${selectedPoType === 'vendor-salary' ? 'bg-blue-500' : 'bg-transparent group-hover:bg-blue-500/80'
+                    }`}
                 />
 
                 <div className="relative z-10 flex-1">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2.5">
                       <div
-                        className={`flex h-9 w-9 items-center justify-center rounded-xl transition-colors duration-200 ${
-                          selectedPoType === 'vendor-salary' ? 'bg-blue-600 text-white shadow-sm' : 'bg-blue-50 text-blue-600 ring-1 ring-amber-100'
-                        }`}
+                        className={`flex h-9 w-9 items-center justify-center rounded-xl transition-colors duration-200 ${selectedPoType === 'vendor-salary' ? 'bg-blue-600 text-white shadow-sm' : 'bg-blue-50 text-blue-600 ring-1 ring-amber-100'
+                          }`}
                       >
                         <Layers size={18} />
                       </div>
@@ -860,29 +604,24 @@ const PurchaseOrderV2: React.FC = () => {
                 type="button"
                 onClick={() => {
                   setSelectedPoType('vendor-adv');
-                  setCurrentPage(1);
-                  setExpandedPoNumbers(new Set());
                 }}
-                className={`group relative flex flex-col justify-between overflow-hidden rounded-2xl border p-3 text-left transition-all duration-300 focus:outline-none ${
-                  selectedPoType === 'vendor-adv'
-                    ? 'border-red-500/80 bg-gradient-to-b from-red-50/60 to-white shadow-lg shadow-red-500/10 ring-2 ring-red-500/20'
-                    : 'border-slate-200/80 bg-gradient-to-b from-white to-slate-50/50 hover:-translate-y-0.5 hover:border-red-500/80 hover:shadow-md'
-                }`}
+                className={`group relative flex flex-col justify-between overflow-hidden rounded-2xl border p-3 text-left transition-all duration-300 focus:outline-none ${selectedPoType === 'vendor-adv'
+                  ? 'border-red-500/80 bg-gradient-to-b from-red-50/60 to-white shadow-lg shadow-red-500/10 ring-2 ring-red-500/20'
+                  : 'border-slate-200/80 bg-gradient-to-b from-white to-slate-50/50 hover:-translate-y-0.5 hover:border-red-500/80 hover:shadow-md'
+                  }`}
               >
                 {/* Top Accent Line */}
                 <div
-                  className={`absolute left-0 top-0 h-1 w-full transition-colors duration-300 ${
-                    selectedPoType === 'vendor-adv' ? 'bg-red-500' : 'bg-transparent group-hover:bg-red-500/80'
-                  }`}
+                  className={`absolute left-0 top-0 h-1 w-full transition-colors duration-300 ${selectedPoType === 'vendor-adv' ? 'bg-red-500' : 'bg-transparent group-hover:bg-red-500/80'
+                    }`}
                 />
 
                 <div className="relative z-10 flex-1">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2.5">
                       <div
-                        className={`flex h-9 w-9 items-center justify-center rounded-xl transition-colors duration-200 ${
-                          selectedPoType === 'vendor-adv' ? 'bg-red-600 text-white shadow-sm' : 'bg-red-50 text-red-600 ring-1 ring-amber-100'
-                        }`}
+                        className={`flex h-9 w-9 items-center justify-center rounded-xl transition-colors duration-200 ${selectedPoType === 'vendor-adv' ? 'bg-red-600 text-white shadow-sm' : 'bg-red-50 text-red-600 ring-1 ring-amber-100'
+                          }`}
                       >
                         <Layers size={18} />
                       </div>
@@ -927,14 +666,11 @@ const PurchaseOrderV2: React.FC = () => {
                 type="button"
                 onClick={() => {
                   setSelectedPoType(selectedPoType === 'po' ? '' : 'po');
-                  setCurrentPage(1);
-                  setExpandedPoNumbers(new Set());
                 }}
-                className={`group relative w-full overflow-hidden rounded-2xl border p-4 text-left transition-all duration-300 ${
-                  selectedPoType === 'po'
-                    ? 'rounded-b-none border-emerald-500/80 bg-gradient-to-r from-emerald-50/70 to-white shadow-lg ring-2 ring-emerald-500/20'
-                    : 'border-slate-200/80 bg-gradient-to-r from-white to-slate-50/50 hover:border-emerald-500/80 hover:shadow-md'
-                }`}
+                className={`group relative w-full overflow-hidden rounded-2xl border p-4 text-left transition-all duration-300 ${selectedPoType === 'po'
+                  ? 'rounded-b-none border-emerald-500/80 bg-gradient-to-r from-emerald-50/70 to-white shadow-lg ring-2 ring-emerald-500/20'
+                  : 'border-slate-200/80 bg-gradient-to-r from-white to-slate-50/50 hover:border-emerald-500/80 hover:shadow-md'
+                  }`}
               >
                 <div
                   className={`absolute left-0 top-0 h-full w-1 ${selectedPoType === 'po' ? 'bg-emerald-500' : 'bg-transparent group-hover:bg-emerald-500/80'}`}
@@ -947,9 +683,8 @@ const PurchaseOrderV2: React.FC = () => {
                       className={`transition-transform duration-300 ${selectedPoType === 'po' ? 'rotate-180 text-emerald-600' : 'text-slate-400'}`}
                     />
                     <div
-                      className={`flex h-10 w-10 items-center justify-center rounded-xl ${
-                        selectedPoType === 'po' ? 'bg-emerald-500 text-white' : 'bg-emerald-50 text-emerald-600'
-                      }`}
+                      className={`flex h-10 w-10 items-center justify-center rounded-xl ${selectedPoType === 'po' ? 'bg-emerald-500 text-white' : 'bg-emerald-50 text-emerald-600'
+                        }`}
                     >
                       <FileStack size={19} />
                     </div>
@@ -973,14 +708,11 @@ const PurchaseOrderV2: React.FC = () => {
                 disabled={filteredNonPo.length === 0}
                 onClick={() => {
                   setSelectedPoType(selectedPoType === 'non-po' ? '' : 'non-po');
-                  setCurrentPage(1);
-                  setExpandedPoNumbers(new Set());
                 }}
-                className={`group relative w-full overflow-hidden rounded-2xl border p-4 text-left transition-all duration-300 ${
-                  selectedPoType === 'non-po'
-                    ? 'rounded-b-none border-amber-500/80 bg-gradient-to-r from-amber-50/70 to-white shadow-lg ring-2 ring-amber-500/20'
-                    : 'border-slate-200/80 bg-gradient-to-r from-white to-slate-50/50 hover:border-amber-500/80 hover:shadow-md'
-                } disabled:cursor-not-allowed disabled:opacity-50`}
+                className={`group relative w-full overflow-hidden rounded-2xl border p-4 text-left transition-all duration-300 ${selectedPoType === 'non-po'
+                  ? 'rounded-b-none border-amber-500/80 bg-gradient-to-r from-amber-50/70 to-white shadow-lg ring-2 ring-amber-500/20'
+                  : 'border-slate-200/80 bg-gradient-to-r from-white to-slate-50/50 hover:border-amber-500/80 hover:shadow-md'
+                  } disabled:cursor-not-allowed disabled:opacity-50`}
               >
                 <div
                   className={`absolute left-0 top-0 h-full w-1 ${selectedPoType === 'non-po' ? 'bg-amber-500' : 'bg-transparent group-hover:bg-amber-500/80'}`}
@@ -993,9 +725,8 @@ const PurchaseOrderV2: React.FC = () => {
                       className={`transition-transform duration-300 ${selectedPoType === 'non-po' ? 'rotate-180 text-amber-600' : 'text-slate-400'}`}
                     />
                     <div
-                      className={`flex h-10 w-10 items-center justify-center rounded-xl ${
-                        selectedPoType === 'non-po' ? 'bg-amber-500 text-white' : 'bg-amber-50 text-amber-600'
-                      }`}
+                      className={`flex h-10 w-10 items-center justify-center rounded-xl ${selectedPoType === 'non-po' ? 'bg-amber-500 text-white' : 'bg-amber-50 text-amber-600'
+                        }`}
                     >
                       <Layers size={19} />
                     </div>
@@ -1018,14 +749,11 @@ const PurchaseOrderV2: React.FC = () => {
                 disabled={filteredVendorSalary.length === 0}
                 onClick={() => {
                   setSelectedPoType(selectedPoType === 'vendor-salary' ? '' : 'vendor-salary');
-                  setCurrentPage(1);
-                  setExpandedPoNumbers(new Set());
                 }}
-                className={`group relative w-full overflow-hidden rounded-2xl border p-4 text-left transition-all duration-300 ${
-                  selectedPoType === 'vendor-salary'
-                    ? 'rounded-b-none border-blue-500/80 bg-gradient-to-r from-blue-50/70 to-white shadow-lg ring-2 ring-blue-500/20'
-                    : 'border-slate-200/80 bg-gradient-to-r from-white to-slate-50/50 hover:border-blue-500/80 hover:shadow-md'
-                } disabled:cursor-not-allowed disabled:opacity-50`}
+                className={`group relative w-full overflow-hidden rounded-2xl border p-4 text-left transition-all duration-300 ${selectedPoType === 'vendor-salary'
+                  ? 'rounded-b-none border-blue-500/80 bg-gradient-to-r from-blue-50/70 to-white shadow-lg ring-2 ring-blue-500/20'
+                  : 'border-slate-200/80 bg-gradient-to-r from-white to-slate-50/50 hover:border-blue-500/80 hover:shadow-md'
+                  } disabled:cursor-not-allowed disabled:opacity-50`}
               >
                 <div
                   className={`absolute left-0 top-0 h-full w-1 ${selectedPoType === 'vendor-salary' ? 'bg-blue-500' : 'bg-transparent group-hover:bg-blue-500/80'}`}
@@ -1038,9 +766,8 @@ const PurchaseOrderV2: React.FC = () => {
                       className={`transition-transform duration-300 ${selectedPoType === 'vendor-salary' ? 'rotate-180 text-blue-600' : 'text-slate-400'}`}
                     />
                     <div
-                      className={`flex h-10 w-10 items-center justify-center rounded-xl ${
-                        selectedPoType === 'vendor-salary' ? 'bg-blue-500 text-white' : 'bg-blue-50 text-blue-600'
-                      }`}
+                      className={`flex h-10 w-10 items-center justify-center rounded-xl ${selectedPoType === 'vendor-salary' ? 'bg-blue-500 text-white' : 'bg-blue-50 text-blue-600'
+                        }`}
                     >
                       <Layers size={19} />
                     </div>
@@ -1063,14 +790,11 @@ const PurchaseOrderV2: React.FC = () => {
                 disabled={filteredVendorAdv.length === 0}
                 onClick={() => {
                   setSelectedPoType(selectedPoType === 'vendor-adv' ? '' : 'vendor-adv');
-                  setCurrentPage(1);
-                  setExpandedPoNumbers(new Set());
                 }}
-                className={`group relative w-full overflow-hidden rounded-2xl border p-4 text-left transition-all duration-300 ${
-                  selectedPoType === 'vendor-adv'
-                    ? 'rounded-b-none border-red-500/80 bg-gradient-to-r from-red-50/70 to-white shadow-lg ring-2 ring-red-500/20'
-                    : 'border-slate-200/80 bg-gradient-to-r from-white to-slate-50/50 hover:border-red-500/80 hover:shadow-md'
-                } disabled:cursor-not-allowed disabled:opacity-50`}
+                className={`group relative w-full overflow-hidden rounded-2xl border p-4 text-left transition-all duration-300 ${selectedPoType === 'vendor-adv'
+                  ? 'rounded-b-none border-red-500/80 bg-gradient-to-r from-red-50/70 to-white shadow-lg ring-2 ring-red-500/20'
+                  : 'border-slate-200/80 bg-gradient-to-r from-white to-slate-50/50 hover:border-red-500/80 hover:shadow-md'
+                  } disabled:cursor-not-allowed disabled:opacity-50`}
               >
                 <div
                   className={`absolute left-0 top-0 h-full w-1 ${selectedPoType === 'vendor-adv' ? 'bg-red-500' : 'bg-transparent group-hover:bg-red-500/80'}`}
@@ -1083,9 +807,8 @@ const PurchaseOrderV2: React.FC = () => {
                       className={`transition-transform duration-300 ${selectedPoType === 'vendor-adv' ? 'rotate-180 text-red-600' : 'text-slate-400'}`}
                     />
                     <div
-                      className={`flex h-10 w-10 items-center justify-center rounded-xl ${
-                        selectedPoType === 'vendor-adv' ? 'bg-red-500 text-white' : 'bg-red-50 text-red-600'
-                      }`}
+                      className={`flex h-10 w-10 items-center justify-center rounded-xl ${selectedPoType === 'vendor-adv' ? 'bg-red-500 text-white' : 'bg-red-50 text-red-600'
+                        }`}
                     >
                       <Layers size={19} />
                     </div>
@@ -1127,182 +850,17 @@ const PurchaseOrderV2: React.FC = () => {
           )}
         </>
       )}
-      {selectedPoType && (
-        <>
-          <div className="flex items-center justify-end gap-3">
-            <div className="flex gap-3">
-              {selectedPoType === 'po' && (
-                <button
-                  disabled={paginatedData.length === 0}
-                  type="button"
-                  aria-label={isAllPageExpanded ? 'Collapse all on page' : 'Expand all on page'}
-                  onClick={() => {
-                    if (isAllPageExpanded) {
-                      collapseAllRows(paginatedData);
-                    } else {
-                      expandAllRows(paginatedData);
-                    }
-                  }}
-                  className="inline-flex items-center gap-2 px-3.5 py-2 bg-slate-800 hover:bg-slate-900 active:bg-slate-950 text-white font-semibold text-sm rounded-lg shadow-sm border border-slate-700/60 transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-1"
-                >
-                  {isAllPageExpanded ? (
-                    <>
-                      <ChevronDown className="h-4 w-4 text-slate-300" />
-                      <span>Collapse All</span>
-                    </>
-                  ) : (
-                    <>
-                      <ChevronRight className="h-4 w-4 text-slate-300" />
-                      <span>Expand All</span>
-                    </>
-                  )}
-                </button>
-              )}
-              <button
-                type="button"
-                onClick={handleExportPage}
-                disabled={exporting || !paginatedData.length}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-semibold text-sm rounded-lg shadow-sm transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-emerald-600"
-              >
-                {exporting ? (
-                  <>
-                    <Loader2 className="h-4 w-4 text-white animate-spin" />
-                    <span>Generating Excel...</span>
-                  </>
-                ) : (
-                  <>
-                    <Download className="h-4 w-4 text-white" />
-                    <span>Export Excel</span>
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
-          {!loading && error && <div className="p-8 text-center text-red-600 font-bold bg-white rounded-xl border border-gray-200 shadow-sm">{error}</div>}
-          {!loading && !error && (
-            <div className="bg-white rounded-xl border-gray-200 shadow-sm flex flex-col">
-              <div className="overflow-x-auto max-h-[70vh]">
-                {/* TOTALS SUMMARY TABLE */}
-                <table className="min-w-full text-sm border-seperate border-spacing-0">
-                  <thead className="bg-primary sticky top-0 z-20 text-white font-bold text-xs uppercase border-b border-gray-300">
-                    <tr>
-                      {selectedPoType === 'po' && (
-                        <th
-                          className="px-2 py-2 text-center border-r border-gray-200 cursor-pointer select-none hover:bg-primary-dark transition-colors"
-                          title={isAllPageExpanded ? 'Collapse all on page' : 'Expand all on page'}
-                          onClick={() => {
-                            if (isAllPageExpanded) {
-                              collapseAllRows(paginatedData);
-                            } else {
-                              expandAllRows(paginatedData);
-                            }
-                          }}
-                        >
-                          {isAllPageExpanded ? <ChevronDown className="h-5 w-5 text-white mx-auto" /> : <ChevronRight className="h-5 w-5 text-white mx-auto" />}
-                        </th>
-                      )}
-                      <th className="w-16 px-2 py-2 text-left border-r border-gray-200">Sr. No.</th>
-                      {selectedPoType === 'po' && (
-                        <>
-                          <th className="px-2 py-2 text-left border-r border-gray-200 min-w-[110px]">PO No</th>
-                          <th className="px-2 py-2 text-left border-r border-gray-200 min-w-[130px]">PO Date</th>
-                          <th className="px-2 py-2 text-right border-r border-gray-200 min-w-[160px]">PO Amount</th>
-                        </>
-                      )}
-                      {['non-po', 'vendor-salary', 'vendor-adv'].includes(selectedPoType) && (
-                        <>
-                          <th className="px-2 py-2 text-left border-r border-gray-200 min-w-[110px]">Invoice No</th>
-                          <th className="px-2 py-2 text-left border-r border-gray-200 min-w-[140px]">Invoice Date</th>
-                        </>
-                      )}
-                      <th className="px-2 py-2 text-left border-r border-gray-200 min-w-[120px]">GL Account</th>
-                      <th className="px-2 py-2 text-left border-r border-gray-200 min-w-[180px]">Supplier Code</th>
-                      <th className="px-2 py-2 text-left border-r border-gray-200 min-w-[120px]">PO Type</th>
-                      <th className="px-2 py-2 text-left border-r border-gray-200 min-w-[120px]">Unit</th>
-                      <th className="px-2 py-2 text-right border-r border-gray-200 min-w-[150px]">Bank Payment</th>
-                      <th className="px-2 py-2 text-right border-r border-gray-200 min-w-[100px]">CGST</th>
-                      <th className="px-2 py-2 text-right border-r border-gray-200 min-w-[100px]">CGST TDS</th>
-                      <th className="px-2 py-2 text-right border-r border-gray-200 min-w-[100px]">SGST</th>
-                      <th className="px-2 py-2 text-right border-r border-gray-200 min-w-[100px]">SGST TDS</th>
-                      <th className="px-2 py-2 text-right border-r border-gray-200 min-w-[100px]">IGST</th>
-                      <th className="px-2 py-2 text-right border-r border-gray-200 min-w-[110px]">IGST TDS</th>
-                      <th className="px-2 py-2 text-right min-w-[110px]">IT TDS</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-200 font-medium text-gray-900">
-                    {paginatedData.length === 0 ? (
-                      <tr>
-                        <td colSpan={14} className="p-8 text-center text-gray-500">
-                          <p className="font-medium">No matching records found.</p>
-                          <p className="text-sm mt-1">Please select a date range to search for records.</p>
-                        </td>
-                      </tr>
-                    ) : (
-                      paginatedData.map((row, index) => {
-                        const poNo = row.poNo || '';
-                        const isExpanded = expandedPoNumbers.has(poNo);
-                        const globalIndex = (currentPage - 1) * pageSize + index;
-                        return (
-                          <TableRowItem
-                            key={poNo + index}
-                            row={row}
-                            index={globalIndex}
-                            isExpanded={isExpanded}
-                            onToggleExpand={toggleRowExpansion}
-                            selectedPoType={selectedPoType}
-                          />
-                        );
-                      })
-                    )}
-                  </tbody>
-                </table>
-              </div>
-              <div className="p-4 bg-gray-50 border-t border-gray-200 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm font-medium text-gray-700">
-                <div className="flex flex-wrap items-center justify-center sm:justify-start gap-4 w-full sm:w-auto">
-                  <div className="flex items-center gap-2">
-                    <span>Rows per page:</span>
-                    <select
-                      value={pageSize}
-                      onChange={handlePageSizeChange}
-                      className="p-1.5 border border-gray-300 rounded-md bg-white text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                      {PAGE_SIZE_OPTIONS.map((option) => (
-                        <option key={option} value={option}>
-                          {option}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
 
-                  <div>
-                    Showing <span className="font-bold">{startIndex}</span> to <span className="font-bold">{endIndex}</span> of{' '}
-                    <span className="font-bold">{displayData.length}</span> entries
-                  </div>
-                </div>
-                <div className="flex items-center gap-2 w-full sm:w-auto justify-center sm:justify-end">
-                  <button
-                    onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                    disabled={currentPage === 1}
-                    className="px-3 py-1.5 border border-gray-300 rounded-md bg-white hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed font-semibold text-xs sm:text-sm transition"
-                  >
-                    Previous
-                  </button>
-                  <span className="px-2 text-xs sm:text-sm font-bold">
-                    Page {currentPage} of {totalPages}
-                  </span>
-                  <button
-                    onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-                    disabled={currentPage === totalPages || totalPages === 0}
-                    className="px-3 py-1.5 border border-gray-300 rounded-md bg-white hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed font-semibold text-xs sm:text-sm transition"
-                  >
-                    Next
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-        </>
+      {selectedPoType && !error && (
+        <PurchaseOrderTable
+          data={displayData}
+          selectedPoType={selectedPoType}
+          exporting={exporting}
+          onExport={handleExportPage}
+          maxHeight="max-h-[70vh]"
+        />
       )}
+      {!loading && error && <div className="p-8 text-center text-red-600 font-bold bg-white rounded-xl border border-gray-200 shadow-sm">{error}</div>}
     </div>
   );
 };
