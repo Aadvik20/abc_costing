@@ -7,6 +7,7 @@ import { AlertTriangle, ChevronDown, ChevronRight, Download, FileStack, Layers, 
 import { useSearchParams } from 'react-router';
 import { exportAllPaymentDataToExcel } from '@/components/admin/exportPoExcel';
 import axiosInstance from '@/services/axiosInstance';
+import Select from 'react-select';
 
 export interface PurchaseOrderRow {
   srNo?: number;
@@ -31,6 +32,7 @@ export interface PurchaseOrderRow {
   month?: string;
   year?: string;
   supplierCode?: string;
+  expenseGLAccount?: string;
   [key: string]: unknown;
 }
 
@@ -98,6 +100,7 @@ const TableRowItem: React.FC<TableRowItemProps> = React.memo(({ row, index, isEx
             <td className="px-2 py-1 border-r border-gray-200 font-bold text-blue-700">{formatDate(row.invoiceDate) || '-'}</td>
           </>
         )}
+        <td className="px-2 py-1 border-r border-gray-200">{row.expenseGLAccount || '-'}</td>
         <td className="px-2 py-1 border-r border-gray-200">
           <TooltipProvider delayDuration={0} skipDelayDuration={0}>
             <Tooltip>
@@ -188,6 +191,8 @@ const PurchaseOrderV2: React.FC = () => {
   const [expandedPoNumbers, setExpandedPoNumbers] = useState<Set<string>>(new Set());
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [units, setUnits] = useState<string[]>([]);
+  const [glAccounts, setGlAccounts] = useState<string[]>([]);
+  const [selectedGl, setSelectedGl] = useState<string>('');
   const [fromDate, setFromDate] = useState<string>(searchParams.get('fromDate') || '');
   const [toDate, setToDate] = useState<string>(searchParams.get('toDate') || '');
   const [dateError, setDateError] = useState<string | null>(null);
@@ -246,6 +251,7 @@ const PurchaseOrderV2: React.FC = () => {
       const res = await axiosInstance.get(url);
       setData(res.data.data ?? []);
       setUnits(res.data.units ?? []);
+      setGlAccounts(res.data.glAccounts ?? []);
       setNonPo(res?.data.sapNonPo ?? []);
       setVendorSalary(res?.data.sapVendorListSalary ?? []);
       setVendorAdv(res?.data.sapVendorListAdvanced ?? []);
@@ -321,6 +327,11 @@ const PurchaseOrderV2: React.FC = () => {
           return false;
         }
 
+        // gl filter
+        if (selectedGl && row.expenseGLAccount !== selectedGl) {
+          return false;
+        }
+
         // Search filter
         if (searchQuery.trim()) {
           const query = searchQuery.trim().toLowerCase();
@@ -343,7 +354,7 @@ const PurchaseOrderV2: React.FC = () => {
         return true;
       });
     },
-    [selectedUnit, searchQuery]
+    [selectedUnit, searchQuery, selectedGl]
   );
 
   const filteredData = useMemo(() => {
@@ -410,6 +421,7 @@ const PurchaseOrderV2: React.FC = () => {
 
   const handleResetFilters = () => {
     setSelectedUnit('');
+    setSelectedGl('');
     setSearchQuery('');
     setFromDate('');
     setToDate('');
@@ -436,8 +448,8 @@ const PurchaseOrderV2: React.FC = () => {
       <h1 className="text-xl sm:text-2xl font-extrabold text-gray-900 tracking-tight">Payment Details</h1>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3 items-end">
-        {data.length > 0 && (
-          <div className="lg:col-span-3">
+        {units.length > 0 && (
+          <div className="lg:col-span-2">
             <label htmlFor="unit-select" className="block text-xs font-semibold text-gray-700 mb-1">
               Unit <span className="text-gray-400 font-normal">(Instant Filter)</span>
             </label>
@@ -456,7 +468,117 @@ const PurchaseOrderV2: React.FC = () => {
             </select>
           </div>
         )}
-        <div className="lg:col-span-3">
+        {glAccounts.length > 0 && (
+          <div className="lg:col-span-2">
+            <label htmlFor="unit-select" className="block text-xs font-semibold text-gray-700 mb-1">
+              GL Account <span className="text-gray-400 font-normal">(Instant Filter)</span>
+            </label>
+
+            <Select
+              inputId="gl-select"
+              value={selectedGl ? { value: selectedGl, label: selectedGl } : null}
+              onChange={(option) => setSelectedGl(option?.value || '')}
+              options={[
+                { value: '', label: 'All GL' },
+                ...glAccounts.map((gl) => ({
+                  value: gl,
+                  label: gl,
+                })),
+              ]}
+              placeholder="All GL"
+              isSearchable
+              styles={{
+                control: (base, state) => ({
+                  ...base,
+                  minHeight: '40px',
+                  height: '40px',
+                  borderRadius: '8px',
+                  borderColor: state.isFocused ? '#3b82f6' : '#d1d5db',
+                  boxShadow: state.isFocused ? '0 0 0 2px rgba(59, 130, 246, 0.2)' : 'none',
+                  backgroundColor: '#fff',
+                  fontSize: '14px',
+                  fontWeight: 500,
+                  cursor: 'pointer',
+                  '&:hover': {
+                    borderColor: '#9ca3af',
+                  },
+                }),
+
+                valueContainer: (base) => ({
+                  ...base,
+                  height: '40px',
+                  padding: '0 12px',
+                }),
+
+                input: (base) => ({
+                  ...base,
+                  margin: 0,
+                  padding: 0,
+                  fontSize: '14px',
+                }),
+
+                singleValue: (base) => ({
+                  ...base,
+                  color: '#1f2937',
+                  fontWeight: 500,
+                }),
+
+                placeholder: (base) => ({
+                  ...base,
+                  color: '#1f2937',
+                  fontWeight: 500,
+                }),
+
+                indicatorsContainer: (base) => ({
+                  ...base,
+                  height: '40px',
+                }),
+                dropdownIndicator: (base) => ({
+                  ...base,
+                  padding: '0 10px',
+                  color: '#6b7280',
+                }),
+                indicatorSeparator: () => ({
+                  display: 'none',
+                }),
+                menu: (base) => ({
+                  ...base,
+                  marginTop: '4px',
+                  borderRadius: '8px',
+                  border: '1px solid #e5e7eb',
+                  boxShadow: '0 8px 20px rgba(0, 0, 0, 0.12)',
+                  overflow: 'hidden',
+                  zIndex: 9999,
+                  width: '100%',
+                }),
+                menuList: (base) => ({
+                  ...base,
+                  padding: '4px 0',
+                  maxHeight: '240px',
+                  overflowY: 'auto',
+                  overflowX: 'hidden',
+                  scrollbarWidth: 'thin',
+                  scrollbarColor: '#9ca3af transparent',
+                }),
+                option: (base, state) => ({
+                  ...base,
+                  padding: '8px 12px',
+                  minHeight: '36px',
+                  fontSize: '13px',
+                  fontWeight: 500,
+                  color: state.isSelected ? '#ffffff' : '#374151',
+                  backgroundColor: state.isSelected ? '#2563eb' : state.isFocused ? '#dbeafe' : '#ffffff',
+                  cursor: 'pointer',
+
+                  '&:active': {
+                    backgroundColor: '#1d4ed8',
+                  },
+                }),
+              }}
+            />
+          </div>
+        )}
+        <div className="lg:col-span-2">
           <label htmlFor="search-query" className="block text-xs font-semibold text-gray-700 mb-1">
             Search Query
           </label>
@@ -1093,6 +1215,7 @@ const PurchaseOrderV2: React.FC = () => {
                           <th className="px-2 py-2 text-left border-r border-gray-200 min-w-[140px]">Invoice Date</th>
                         </>
                       )}
+                      <th className="px-2 py-2 text-left border-r border-gray-200 min-w-[120px]">GL Account</th>
                       <th className="px-2 py-2 text-left border-r border-gray-200 min-w-[180px]">Supplier Code</th>
                       <th className="px-2 py-2 text-left border-r border-gray-200 min-w-[120px]">PO Type</th>
                       <th className="px-2 py-2 text-left border-r border-gray-200 min-w-[120px]">Unit</th>

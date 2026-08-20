@@ -38,6 +38,7 @@ export interface MainPoRow {
   igsttds?: number;
   ittds?: number;
   poDetails?: PoDetailItem[];
+  expenseGLAccount?: string;
   [key: string]: unknown;
 }
 
@@ -52,6 +53,7 @@ const buildNonPoSheet = (worksheet: ExcelJS.Worksheet, data: MainPoRow[]) => {
   worksheet.columns = [
     { header: 'Invoice No', key: 'invoiceNumber', width: 25 },
     { header: 'Invoice Date', key: 'invoiceDate', width: 20 },
+    { header: 'GL Account', key: 'glAccount', width: 25 },
     { header: 'Supplier Code', key: 'supplierCode', width: 45 },
     { header: 'Expenditure Type', key: 'poType', width: 24 },
     { header: 'Unit', key: 'unit', width: 18 },
@@ -75,6 +77,7 @@ const buildNonPoSheet = (worksheet: ExcelJS.Worksheet, data: MainPoRow[]) => {
     const mainRow = worksheet.addRow({
       invoiceNumber: po.invoiceNumber || '-',
       invoiceDate: formatDate(po.invoiceDate) || '-',
+      glAccount: po.expenseGLAccount || '-',
       supplierCode: po.supplierCode || '-',
       poType: po.poType || '-',
       unit: po.unit || '-',
@@ -115,6 +118,7 @@ const buildPoSheet = (worksheet: ExcelJS.Worksheet, data: MainPoRow[]) => {
     { header: 'PO No', key: 'recordIdentifier', width: 34 },
     { header: 'PO Date', key: 'poDate', width: 22 },
     { header: 'PO Amount', key: 'poOrderValue', width: 26 },
+    { header: 'GL Account', key: 'glAccount', width: 25 },
     { header: 'Supplier Code', key: 'supplierCode', width: 45 },
     { header: 'Expenditure Type', key: 'poType', width: 24 },
     { header: 'Unit', key: 'unit', width: 20 },
@@ -140,6 +144,7 @@ const buildPoSheet = (worksheet: ExcelJS.Worksheet, data: MainPoRow[]) => {
       recordIdentifier: po.poNo,
       poDate: formatDate(po.poDate) || '-',
       poOrderValue: po.poOrderValue ?? 0,
+      glAccount: po.expenseGLAccount || '-',
       supplierCode: po.supplierCode || '-',
       poType: po.poType || '-',
       unit: po.unit || '-',
