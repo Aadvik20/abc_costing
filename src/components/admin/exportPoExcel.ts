@@ -38,7 +38,7 @@ export interface MainPoRow {
   igsttds?: number;
   ittds?: number;
   poDetails?: PoDetailItem[];
-  expenseGLAccount?: string;
+  glAccount?: string;
   [key: string]: unknown;
 }
 
@@ -77,7 +77,7 @@ const buildNonPoSheet = (worksheet: ExcelJS.Worksheet, data: MainPoRow[]) => {
     const mainRow = worksheet.addRow({
       invoiceNumber: po.invoiceNumber || '-',
       invoiceDate: formatDate(po.invoiceDate) || '-',
-      glAccount: po.expenseGLAccount || '-',
+      glAccount: po.glAccount || '-',
       supplierCode: po.supplierCode || '-',
       poType: po.poType || '-',
       unit: po.unit || '-',
@@ -144,7 +144,7 @@ const buildPoSheet = (worksheet: ExcelJS.Worksheet, data: MainPoRow[]) => {
       recordIdentifier: po.poNo,
       poDate: formatDate(po.poDate) || '-',
       poOrderValue: po.poOrderValue ?? 0,
-      glAccount: po.expenseGLAccount || '-',
+      glAccount: po.glAccount || '-',
       supplierCode: po.supplierCode || '-',
       poType: po.poType || '-',
       unit: po.unit || '-',

@@ -28,7 +28,7 @@ export interface PurchaseOrderRow {
   month?: string;
   year?: string;
   supplierCode?: string;
-  expenseGLAccount?: string;
+  glAccount?: string;
   clubbedFlag?: string;
   [key: string]: unknown;
 }
@@ -101,7 +101,7 @@ const TableRowItem: React.FC<TableRowItemProps> = React.memo(({ row, index, isEx
             <td className="px-2 py-1 border-r border-gray-200 font-bold text-blue-700">{formatDate(row.invoiceDate) || '-'}</td>
           </>
         )}
-        <td className="px-2 py-1 border-r border-gray-200">{row.expenseGLAccount || '-'}</td>
+        <td className="px-2 py-1 border-r border-gray-200">{row.glAccount || '-'}</td>
         <td className="px-2 py-1 border-r border-gray-200">
           <TooltipProvider delayDuration={0} skipDelayDuration={0}>
             <Tooltip>

@@ -114,7 +114,7 @@ const PurchaseOrderExcelFormate: React.FC = () => {
         }
 
         // gl filter
-        if (selectedGl && row.expenseGLAccount !== selectedGl) {
+        if (selectedGl && row.glAccount !== selectedGl) {
           return false;
         }
 

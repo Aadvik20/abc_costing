@@ -116,7 +116,7 @@ const PurchaseOrderV2: React.FC = () => {
         }
 
         // gl filter
-        if (selectedGl && row.expenseGLAccount !== selectedGl) {
+        if (selectedGl && row.glAccount !== selectedGl) {
           return false;
         }
 
@@ -374,8 +374,9 @@ const PurchaseOrderV2: React.FC = () => {
             value={fromDate}
             max={toDate || undefined || new Date().toISOString().split('T')[0]}
             onChange={handleFromDateChange}
-            className={`w-full h-10 px-2.5 border rounded-lg text-sm font-medium text-gray-800 focus:ring-2 focus:outline-none transition ${dateError ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
-              }`}
+            className={`w-full h-10 px-2.5 border rounded-lg text-sm font-medium text-gray-800 focus:ring-2 focus:outline-none transition ${
+              dateError ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
+            }`}
           />
         </div>
         <div className="lg:col-span-2">
@@ -389,8 +390,9 @@ const PurchaseOrderV2: React.FC = () => {
             min={fromDate || undefined}
             max={new Date().toISOString().split('T')[0]}
             onChange={handleToDateChange}
-            className={`w-full h-10 px-2.5 border rounded-lg text-sm font-medium text-gray-800 focus:ring-2 focus:outline-none transition ${dateError ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
-              }`}
+            className={`w-full h-10 px-2.5 border rounded-lg text-sm font-medium text-gray-800 focus:ring-2 focus:outline-none transition ${
+              dateError ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
+            }`}
           />
         </div>
         <div className="lg:col-span-2 flex items-center gap-1.5 sm:col-span-2">
@@ -456,10 +458,11 @@ const PurchaseOrderV2: React.FC = () => {
                   setSelectedView('view1');
                   setSelectedPoType('');
                 }}
-                className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 ${selectedView === 'view1'
-                  ? 'bg-white text-blue-700 shadow-sm ring-1 ring-slate-200'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/70'
-                  }`}
+                className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 ${
+                  selectedView === 'view1'
+                    ? 'bg-white text-blue-700 shadow-sm ring-1 ring-slate-200'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/70'
+                }`}
               >
                 View 1
               </button>
@@ -471,10 +474,11 @@ const PurchaseOrderV2: React.FC = () => {
                   setSelectedView('view2');
                   setSelectedPoType('');
                 }}
-                className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 ${selectedView === 'view2'
-                  ? 'bg-white text-blue-700 shadow-sm ring-1 ring-slate-200'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/70'
-                  }`}
+                className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 ${
+                  selectedView === 'view2'
+                    ? 'bg-white text-blue-700 shadow-sm ring-1 ring-slate-200'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/70'
+                }`}
               >
                 View 2
               </button>
@@ -488,23 +492,26 @@ const PurchaseOrderV2: React.FC = () => {
                 onClick={() => {
                   setSelectedPoType('po');
                 }}
-                className={`group relative flex flex-col justify-between overflow-hidden rounded-2xl border p-3 text-left transition-all duration-300 focus:outline-none ${selectedPoType === 'po'
-                  ? 'border-emerald-500/80 bg-gradient-to-b from-emerald-50/60 to-white shadow-lg shadow-emerald-500/10 ring-2 ring-emerald-500/20'
-                  : 'border-slate-200/80 bg-gradient-to-b from-white to-slate-50/50 hover:-translate-y-0.5 hover:border-emerald-500/80 hover:shadow-md'
-                  }`}
+                className={`group relative flex flex-col justify-between overflow-hidden rounded-2xl border p-3 text-left transition-all duration-300 focus:outline-none ${
+                  selectedPoType === 'po'
+                    ? 'border-emerald-500/80 bg-gradient-to-b from-emerald-50/60 to-white shadow-lg shadow-emerald-500/10 ring-2 ring-emerald-500/20'
+                    : 'border-slate-200/80 bg-gradient-to-b from-white to-slate-50/50 hover:-translate-y-0.5 hover:border-emerald-500/80 hover:shadow-md'
+                }`}
               >
                 {/* Top Accent Line */}
                 <div
-                  className={`absolute left-0 top-0 h-1 w-full transition-colors duration-300 ${selectedPoType === 'po' ? 'bg-emerald-500' : 'bg-transparent group-hover:bg-emerald-500/80'
-                    }`}
+                  className={`absolute left-0 top-0 h-1 w-full transition-colors duration-300 ${
+                    selectedPoType === 'po' ? 'bg-emerald-500' : 'bg-transparent group-hover:bg-emerald-500/80'
+                  }`}
                 />
 
                 <div className="relative z-10 flex-1">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2.5">
                       <div
-                        className={`flex h-9 w-9 items-center justify-center rounded-xl transition-colors duration-200 ${selectedPoType === 'po' ? 'bg-emerald-500 text-white shadow-sm' : 'bg-emerald-50 text-emerald-600 ring-1 ring-emerald-100'
-                          }`}
+                        className={`flex h-9 w-9 items-center justify-center rounded-xl transition-colors duration-200 ${
+                          selectedPoType === 'po' ? 'bg-emerald-500 text-white shadow-sm' : 'bg-emerald-50 text-emerald-600 ring-1 ring-emerald-100'
+                        }`}
                       >
                         <FileStack size={18} />
                       </div>
@@ -527,23 +534,26 @@ const PurchaseOrderV2: React.FC = () => {
                 onClick={() => {
                   setSelectedPoType('non-po');
                 }}
-                className={`group relative flex flex-col justify-between overflow-hidden rounded-2xl border p-3 text-left transition-all duration-300 focus:outline-none ${selectedPoType === 'non-po'
-                  ? 'border-amber-500/80 bg-gradient-to-b from-amber-50/60 to-white shadow-lg shadow-amber-500/10 ring-2 ring-amber-500/20'
-                  : 'border-slate-200/80 bg-gradient-to-b from-white to-slate-50/50 hover:-translate-y-0.5 hover:border-amber-500/80 hover:shadow-md'
-                  }`}
+                className={`group relative flex flex-col justify-between overflow-hidden rounded-2xl border p-3 text-left transition-all duration-300 focus:outline-none ${
+                  selectedPoType === 'non-po'
+                    ? 'border-amber-500/80 bg-gradient-to-b from-amber-50/60 to-white shadow-lg shadow-amber-500/10 ring-2 ring-amber-500/20'
+                    : 'border-slate-200/80 bg-gradient-to-b from-white to-slate-50/50 hover:-translate-y-0.5 hover:border-amber-500/80 hover:shadow-md'
+                }`}
               >
                 {/* Top Accent Line */}
                 <div
-                  className={`absolute left-0 top-0 h-1 w-full transition-colors duration-300 ${selectedPoType === 'non-po' ? 'bg-amber-500' : 'bg-transparent group-hover:bg-amber-500/80'
-                    }`}
+                  className={`absolute left-0 top-0 h-1 w-full transition-colors duration-300 ${
+                    selectedPoType === 'non-po' ? 'bg-amber-500' : 'bg-transparent group-hover:bg-amber-500/80'
+                  }`}
                 />
 
                 <div className="relative z-10 flex-1">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2.5">
                       <div
-                        className={`flex h-9 w-9 items-center justify-center rounded-xl transition-colors duration-200 ${selectedPoType === 'non-po' ? 'bg-amber-600 text-white shadow-sm' : 'bg-amber-50 text-amber-600 ring-1 ring-amber-100'
-                          }`}
+                        className={`flex h-9 w-9 items-center justify-center rounded-xl transition-colors duration-200 ${
+                          selectedPoType === 'non-po' ? 'bg-amber-600 text-white shadow-sm' : 'bg-amber-50 text-amber-600 ring-1 ring-amber-100'
+                        }`}
                       >
                         <Layers size={18} />
                       </div>
@@ -566,23 +576,26 @@ const PurchaseOrderV2: React.FC = () => {
                 onClick={() => {
                   setSelectedPoType('vendor-salary');
                 }}
-                className={`group relative flex flex-col justify-between overflow-hidden rounded-2xl border p-3 text-left transition-all duration-300 focus:outline-none ${selectedPoType === 'vendor-salary'
-                  ? 'border-blue-500/80 bg-gradient-to-b from-blue-50/60 to-white shadow-lg shadow-blue-500/10 ring-2 ring-blue-500/20'
-                  : 'border-slate-200/80 bg-gradient-to-b from-white to-slate-50/50 hover:-translate-y-0.5 hover:border-blue-500/80 hover:shadow-md'
-                  }`}
+                className={`group relative flex flex-col justify-between overflow-hidden rounded-2xl border p-3 text-left transition-all duration-300 focus:outline-none ${
+                  selectedPoType === 'vendor-salary'
+                    ? 'border-blue-500/80 bg-gradient-to-b from-blue-50/60 to-white shadow-lg shadow-blue-500/10 ring-2 ring-blue-500/20'
+                    : 'border-slate-200/80 bg-gradient-to-b from-white to-slate-50/50 hover:-translate-y-0.5 hover:border-blue-500/80 hover:shadow-md'
+                }`}
               >
                 {/* Top Accent Line */}
                 <div
-                  className={`absolute left-0 top-0 h-1 w-full transition-colors duration-300 ${selectedPoType === 'vendor-salary' ? 'bg-blue-500' : 'bg-transparent group-hover:bg-blue-500/80'
-                    }`}
+                  className={`absolute left-0 top-0 h-1 w-full transition-colors duration-300 ${
+                    selectedPoType === 'vendor-salary' ? 'bg-blue-500' : 'bg-transparent group-hover:bg-blue-500/80'
+                  }`}
                 />
 
                 <div className="relative z-10 flex-1">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2.5">
                       <div
-                        className={`flex h-9 w-9 items-center justify-center rounded-xl transition-colors duration-200 ${selectedPoType === 'vendor-salary' ? 'bg-blue-600 text-white shadow-sm' : 'bg-blue-50 text-blue-600 ring-1 ring-amber-100'
-                          }`}
+                        className={`flex h-9 w-9 items-center justify-center rounded-xl transition-colors duration-200 ${
+                          selectedPoType === 'vendor-salary' ? 'bg-blue-600 text-white shadow-sm' : 'bg-blue-50 text-blue-600 ring-1 ring-amber-100'
+                        }`}
                       >
                         <Layers size={18} />
                       </div>
@@ -605,23 +618,26 @@ const PurchaseOrderV2: React.FC = () => {
                 onClick={() => {
                   setSelectedPoType('vendor-adv');
                 }}
-                className={`group relative flex flex-col justify-between overflow-hidden rounded-2xl border p-3 text-left transition-all duration-300 focus:outline-none ${selectedPoType === 'vendor-adv'
-                  ? 'border-red-500/80 bg-gradient-to-b from-red-50/60 to-white shadow-lg shadow-red-500/10 ring-2 ring-red-500/20'
-                  : 'border-slate-200/80 bg-gradient-to-b from-white to-slate-50/50 hover:-translate-y-0.5 hover:border-red-500/80 hover:shadow-md'
-                  }`}
+                className={`group relative flex flex-col justify-between overflow-hidden rounded-2xl border p-3 text-left transition-all duration-300 focus:outline-none ${
+                  selectedPoType === 'vendor-adv'
+                    ? 'border-red-500/80 bg-gradient-to-b from-red-50/60 to-white shadow-lg shadow-red-500/10 ring-2 ring-red-500/20'
+                    : 'border-slate-200/80 bg-gradient-to-b from-white to-slate-50/50 hover:-translate-y-0.5 hover:border-red-500/80 hover:shadow-md'
+                }`}
               >
                 {/* Top Accent Line */}
                 <div
-                  className={`absolute left-0 top-0 h-1 w-full transition-colors duration-300 ${selectedPoType === 'vendor-adv' ? 'bg-red-500' : 'bg-transparent group-hover:bg-red-500/80'
-                    }`}
+                  className={`absolute left-0 top-0 h-1 w-full transition-colors duration-300 ${
+                    selectedPoType === 'vendor-adv' ? 'bg-red-500' : 'bg-transparent group-hover:bg-red-500/80'
+                  }`}
                 />
 
                 <div className="relative z-10 flex-1">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2.5">
                       <div
-                        className={`flex h-9 w-9 items-center justify-center rounded-xl transition-colors duration-200 ${selectedPoType === 'vendor-adv' ? 'bg-red-600 text-white shadow-sm' : 'bg-red-50 text-red-600 ring-1 ring-amber-100'
-                          }`}
+                        className={`flex h-9 w-9 items-center justify-center rounded-xl transition-colors duration-200 ${
+                          selectedPoType === 'vendor-adv' ? 'bg-red-600 text-white shadow-sm' : 'bg-red-50 text-red-600 ring-1 ring-amber-100'
+                        }`}
                       >
                         <Layers size={18} />
                       </div>
@@ -667,10 +683,11 @@ const PurchaseOrderV2: React.FC = () => {
                 onClick={() => {
                   setSelectedPoType(selectedPoType === 'po' ? '' : 'po');
                 }}
-                className={`group relative w-full overflow-hidden rounded-2xl border p-4 text-left transition-all duration-300 ${selectedPoType === 'po'
-                  ? 'rounded-b-none border-emerald-500/80 bg-gradient-to-r from-emerald-50/70 to-white shadow-lg ring-2 ring-emerald-500/20'
-                  : 'border-slate-200/80 bg-gradient-to-r from-white to-slate-50/50 hover:border-emerald-500/80 hover:shadow-md'
-                  }`}
+                className={`group relative w-full overflow-hidden rounded-2xl border p-4 text-left transition-all duration-300 ${
+                  selectedPoType === 'po'
+                    ? 'rounded-b-none border-emerald-500/80 bg-gradient-to-r from-emerald-50/70 to-white shadow-lg ring-2 ring-emerald-500/20'
+                    : 'border-slate-200/80 bg-gradient-to-r from-white to-slate-50/50 hover:border-emerald-500/80 hover:shadow-md'
+                }`}
               >
                 <div
                   className={`absolute left-0 top-0 h-full w-1 ${selectedPoType === 'po' ? 'bg-emerald-500' : 'bg-transparent group-hover:bg-emerald-500/80'}`}
@@ -683,8 +700,9 @@ const PurchaseOrderV2: React.FC = () => {
                       className={`transition-transform duration-300 ${selectedPoType === 'po' ? 'rotate-180 text-emerald-600' : 'text-slate-400'}`}
                     />
                     <div
-                      className={`flex h-10 w-10 items-center justify-center rounded-xl ${selectedPoType === 'po' ? 'bg-emerald-500 text-white' : 'bg-emerald-50 text-emerald-600'
-                        }`}
+                      className={`flex h-10 w-10 items-center justify-center rounded-xl ${
+                        selectedPoType === 'po' ? 'bg-emerald-500 text-white' : 'bg-emerald-50 text-emerald-600'
+                      }`}
                     >
                       <FileStack size={19} />
                     </div>
@@ -709,10 +727,11 @@ const PurchaseOrderV2: React.FC = () => {
                 onClick={() => {
                   setSelectedPoType(selectedPoType === 'non-po' ? '' : 'non-po');
                 }}
-                className={`group relative w-full overflow-hidden rounded-2xl border p-4 text-left transition-all duration-300 ${selectedPoType === 'non-po'
-                  ? 'rounded-b-none border-amber-500/80 bg-gradient-to-r from-amber-50/70 to-white shadow-lg ring-2 ring-amber-500/20'
-                  : 'border-slate-200/80 bg-gradient-to-r from-white to-slate-50/50 hover:border-amber-500/80 hover:shadow-md'
-                  } disabled:cursor-not-allowed disabled:opacity-50`}
+                className={`group relative w-full overflow-hidden rounded-2xl border p-4 text-left transition-all duration-300 ${
+                  selectedPoType === 'non-po'
+                    ? 'rounded-b-none border-amber-500/80 bg-gradient-to-r from-amber-50/70 to-white shadow-lg ring-2 ring-amber-500/20'
+                    : 'border-slate-200/80 bg-gradient-to-r from-white to-slate-50/50 hover:border-amber-500/80 hover:shadow-md'
+                } disabled:cursor-not-allowed disabled:opacity-50`}
               >
                 <div
                   className={`absolute left-0 top-0 h-full w-1 ${selectedPoType === 'non-po' ? 'bg-amber-500' : 'bg-transparent group-hover:bg-amber-500/80'}`}
@@ -725,8 +744,9 @@ const PurchaseOrderV2: React.FC = () => {
                       className={`transition-transform duration-300 ${selectedPoType === 'non-po' ? 'rotate-180 text-amber-600' : 'text-slate-400'}`}
                     />
                     <div
-                      className={`flex h-10 w-10 items-center justify-center rounded-xl ${selectedPoType === 'non-po' ? 'bg-amber-500 text-white' : 'bg-amber-50 text-amber-600'
-                        }`}
+                      className={`flex h-10 w-10 items-center justify-center rounded-xl ${
+                        selectedPoType === 'non-po' ? 'bg-amber-500 text-white' : 'bg-amber-50 text-amber-600'
+                      }`}
                     >
                       <Layers size={19} />
                     </div>
@@ -750,10 +770,11 @@ const PurchaseOrderV2: React.FC = () => {
                 onClick={() => {
                   setSelectedPoType(selectedPoType === 'vendor-salary' ? '' : 'vendor-salary');
                 }}
-                className={`group relative w-full overflow-hidden rounded-2xl border p-4 text-left transition-all duration-300 ${selectedPoType === 'vendor-salary'
-                  ? 'rounded-b-none border-blue-500/80 bg-gradient-to-r from-blue-50/70 to-white shadow-lg ring-2 ring-blue-500/20'
-                  : 'border-slate-200/80 bg-gradient-to-r from-white to-slate-50/50 hover:border-blue-500/80 hover:shadow-md'
-                  } disabled:cursor-not-allowed disabled:opacity-50`}
+                className={`group relative w-full overflow-hidden rounded-2xl border p-4 text-left transition-all duration-300 ${
+                  selectedPoType === 'vendor-salary'
+                    ? 'rounded-b-none border-blue-500/80 bg-gradient-to-r from-blue-50/70 to-white shadow-lg ring-2 ring-blue-500/20'
+                    : 'border-slate-200/80 bg-gradient-to-r from-white to-slate-50/50 hover:border-blue-500/80 hover:shadow-md'
+                } disabled:cursor-not-allowed disabled:opacity-50`}
               >
                 <div
                   className={`absolute left-0 top-0 h-full w-1 ${selectedPoType === 'vendor-salary' ? 'bg-blue-500' : 'bg-transparent group-hover:bg-blue-500/80'}`}
@@ -766,8 +787,9 @@ const PurchaseOrderV2: React.FC = () => {
                       className={`transition-transform duration-300 ${selectedPoType === 'vendor-salary' ? 'rotate-180 text-blue-600' : 'text-slate-400'}`}
                     />
                     <div
-                      className={`flex h-10 w-10 items-center justify-center rounded-xl ${selectedPoType === 'vendor-salary' ? 'bg-blue-500 text-white' : 'bg-blue-50 text-blue-600'
-                        }`}
+                      className={`flex h-10 w-10 items-center justify-center rounded-xl ${
+                        selectedPoType === 'vendor-salary' ? 'bg-blue-500 text-white' : 'bg-blue-50 text-blue-600'
+                      }`}
                     >
                       <Layers size={19} />
                     </div>
@@ -791,10 +813,11 @@ const PurchaseOrderV2: React.FC = () => {
                 onClick={() => {
                   setSelectedPoType(selectedPoType === 'vendor-adv' ? '' : 'vendor-adv');
                 }}
-                className={`group relative w-full overflow-hidden rounded-2xl border p-4 text-left transition-all duration-300 ${selectedPoType === 'vendor-adv'
-                  ? 'rounded-b-none border-red-500/80 bg-gradient-to-r from-red-50/70 to-white shadow-lg ring-2 ring-red-500/20'
-                  : 'border-slate-200/80 bg-gradient-to-r from-white to-slate-50/50 hover:border-red-500/80 hover:shadow-md'
-                  } disabled:cursor-not-allowed disabled:opacity-50`}
+                className={`group relative w-full overflow-hidden rounded-2xl border p-4 text-left transition-all duration-300 ${
+                  selectedPoType === 'vendor-adv'
+                    ? 'rounded-b-none border-red-500/80 bg-gradient-to-r from-red-50/70 to-white shadow-lg ring-2 ring-red-500/20'
+                    : 'border-slate-200/80 bg-gradient-to-r from-white to-slate-50/50 hover:border-red-500/80 hover:shadow-md'
+                } disabled:cursor-not-allowed disabled:opacity-50`}
               >
                 <div
                   className={`absolute left-0 top-0 h-full w-1 ${selectedPoType === 'vendor-adv' ? 'bg-red-500' : 'bg-transparent group-hover:bg-red-500/80'}`}
@@ -807,8 +830,9 @@ const PurchaseOrderV2: React.FC = () => {
                       className={`transition-transform duration-300 ${selectedPoType === 'vendor-adv' ? 'rotate-180 text-red-600' : 'text-slate-400'}`}
                     />
                     <div
-                      className={`flex h-10 w-10 items-center justify-center rounded-xl ${selectedPoType === 'vendor-adv' ? 'bg-red-500 text-white' : 'bg-red-50 text-red-600'
-                        }`}
+                      className={`flex h-10 w-10 items-center justify-center rounded-xl ${
+                        selectedPoType === 'vendor-adv' ? 'bg-red-500 text-white' : 'bg-red-50 text-red-600'
+                      }`}
                     >
                       <Layers size={19} />
                     </div>
@@ -858,7 +882,7 @@ const PurchaseOrderV2: React.FC = () => {
           exporting={exporting}
           onExport={handleExportPage}
           maxHeight="max-h-[70vh]"
-          overFlow='overflow-x-auto'
+          overFlow="overflow-x-auto"
         />
       )}
       {!loading && error && <div className="p-8 text-center text-red-600 font-bold bg-white rounded-xl border border-gray-200 shadow-sm">{error}</div>}
