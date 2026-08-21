@@ -858,6 +858,7 @@ const PurchaseOrderV2: React.FC = () => {
           exporting={exporting}
           onExport={handleExportPage}
           maxHeight="max-h-[70vh]"
+          overFlow='overflow-x-auto'
         />
       )}
       {!loading && error && <div className="p-8 text-center text-red-600 font-bold bg-white rounded-xl border border-gray-200 shadow-sm">{error}</div>}

@@ -42,84 +42,72 @@ interface TableRowItemProps {
   renderExpanded?: (row: PurchaseOrderRow) => React.ReactNode;
 }
 
-const TableRowItem: React.FC<TableRowItemProps> = React.memo(
-  ({ row, index, isExpanded, onToggleExpand, selectedPoType, renderExpanded }) => {
-    const poNo = row.poNo || '';
-    const invoiceNumber = row.invoiceNumber || '';
+const TableRowItem: React.FC<TableRowItemProps> = React.memo(({ row, index, isExpanded, onToggleExpand, selectedPoType, renderExpanded }) => {
+  const poNo = row.poNo || '';
+  const invoiceNumber = row.invoiceNumber || '';
 
-    const expandKey = selectedPoType === 'vendorList' ? invoiceNumber : poNo;
+  const expandKey = selectedPoType === 'vendorList' ? invoiceNumber : poNo;
 
-    const handleRowClick = () => {
-      if (expandKey) {
-        onToggleExpand(expandKey);
-      }
-    };
+  const handleRowClick = () => {
+    if (expandKey) {
+      onToggleExpand(expandKey);
+    }
+  };
 
-    return (
-      <>
-        <tr
-          onClick={handleRowClick}
-          className={`cursor-pointer transition-colors ${row.clubbedFlag === 'Y'
-            ? 'bg-amber-100 hover:bg-amber-100'
-            : isExpanded
-              ? 'bg-blue-50/70'
-              : 'hover:bg-gray-50'
-            }`}
-        >
-          {selectedPoType === 'po' && (
-            <td className="px-2 py-1 text-center border-r border-gray-200 select-none">
-              {isExpanded ? (
-                <ChevronDown className="h-4 w-4 text-blue-600 mx-auto" />
-              ) : (
-                <ChevronRight className="h-4 w-4 text-blue-600 mx-auto" />
-              )}
+  return (
+    <>
+      <tr
+        onClick={handleRowClick}
+        className={`cursor-pointer transition-colors ${
+          row.clubbedFlag === 'Y' ? 'bg-amber-100 hover:bg-amber-100' : isExpanded ? 'bg-blue-50/70' : 'hover:bg-gray-50'
+        }`}
+      >
+        {selectedPoType === 'po' && (
+          <td className="px-2 py-1 text-center border-r border-gray-200 select-none">
+            {isExpanded ? <ChevronDown className="h-4 w-4 text-blue-600 mx-auto" /> : <ChevronRight className="h-4 w-4 text-blue-600 mx-auto" />}
+          </td>
+        )}
+        <td className="px-2 py-1 border-r border-gray-200 text-left font-bold">{index + 1}</td>
+        {selectedPoType === 'po' && (
+          <>
+            <td className="px-2 py-1 border-r border-gray-200 font-bold text-blue-700 tabular-nums">
+              <div className="flex items-center gap-2">
+                <span>{poNo || '-'}</span>
+
+                {row.clubbedFlag === 'Y' && (
+                  <div title={'This PO is part of a combined payment.'}>
+                    <AlertTriangle size={18} className="text-amber-700" strokeWidth={2.5} />
+                  </div>
+                )}
+              </div>
             </td>
-          )}
-          <td className="px-2 py-1 border-r border-gray-200 text-left font-bold">{index + 1}</td>
-          {selectedPoType === 'po' && (
-            <>
-              <td className="px-2 py-1 border-r border-gray-200 font-bold text-blue-700 tabular-nums">
-                <div className="flex items-center gap-2">
-                  <span>{poNo || '-'}</span>
+            <td className="px-2 py-1 border-r border-gray-200">{formatDate(row.poDate) || '-'}</td>
+            <td className="px-2 py-1 border-r border-gray-200 text-right tabular-nums">{formatRupees(row.poOrderValue)}</td>
+          </>
+        )}
+        {['non-po', 'vendor-salary', 'vendor-adv'].includes(selectedPoType) && (
+          <>
+            <td className="px-2 py-1 border-r border-gray-200 font-bold text-blue-700 tabular-nums">
+              <div className="flex items-center gap-2">
+                <span>{row.invoiceNumber || '-'}</span>
 
-                  {row.clubbedFlag === 'Y' && (
-                    <div title={'This PO is part of a combined payment.'}>
-                      <AlertTriangle size={18} className="text-amber-700" strokeWidth={2.5} />
-                    </div>
-                  )}
-                </div>
-              </td>
-              <td className="px-2 py-1 border-r border-gray-200">{formatDate(row.poDate) || '-'}</td>
-              <td className="px-2 py-1 border-r border-gray-200 text-right tabular-nums">
-                {formatRupees(row.poOrderValue)}
-              </td>
-            </>
-          )}
-          {['non-po', 'vendor-salary', 'vendor-adv'].includes(selectedPoType) && (
-            <>
-              <td className="px-2 py-1 border-r border-gray-200 font-bold text-blue-700 tabular-nums">
-                <div className="flex items-center gap-2">
-                  <span>{row.invoiceNumber || '-'}</span>
-
-                  {row.clubbedFlag === 'Y' && (
-                    <div title={'This invoice is part of a combined payment.'}>
-                      <AlertTriangle size={18} className="text-amber-700" strokeWidth={2.5} />
-                    </div>
-                  )}
-                </div>
-              </td>
-              <td className="px-2 py-1 border-r border-gray-200 font-bold text-blue-700">
-                {formatDate(row.invoiceDate) || '-'}
-              </td>
-            </>
-          )}
-          <td className="px-2 py-1 border-r border-gray-200">{row.expenseGLAccount || '-'}</td>
-          <td className="px-2 py-1 border-r border-gray-200">
-            <TooltipProvider delayDuration={0} skipDelayDuration={0}>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <div
-                    className="
+                {row.clubbedFlag === 'Y' && (
+                  <div title={'This invoice is part of a combined payment.'}>
+                    <AlertTriangle size={18} className="text-amber-700" strokeWidth={2.5} />
+                  </div>
+                )}
+              </div>
+            </td>
+            <td className="px-2 py-1 border-r border-gray-200 font-bold text-blue-700">{formatDate(row.invoiceDate) || '-'}</td>
+          </>
+        )}
+        <td className="px-2 py-1 border-r border-gray-200">{row.expenseGLAccount || '-'}</td>
+        <td className="px-2 py-1 border-r border-gray-200">
+          <TooltipProvider delayDuration={0} skipDelayDuration={0}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div
+                  className="
                       max-w-[180px]
                       truncate
                       cursor-pointer
@@ -131,15 +119,15 @@ const TableRowItem: React.FC<TableRowItemProps> = React.memo(
                       hover:ring-1
                       hover:ring-primary/20
                     "
-                  >
-                    {row.supplierCode || '-'}
-                  </div>
-                </TooltipTrigger>
+                >
+                  {row.supplierCode || '-'}
+                </div>
+              </TooltipTrigger>
 
-                <TooltipContent
-                  side="top"
-                  sideOffset={5}
-                  className="
+              <TooltipContent
+                side="top"
+                sideOffset={5}
+                className="
                     max-w-md
                     break-words
                     rounded-md
@@ -150,67 +138,52 @@ const TableRowItem: React.FC<TableRowItemProps> = React.memo(
                     text-white
                     shadow-lg
                   "
-                >
-                  <p>{row.supplierCode || '-'}</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+              >
+                <p>{row.supplierCode || '-'}</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </td>
+        <td className="px-2 py-1 border-r border-gray-200" onClick={(e) => e.stopPropagation()}>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="max-w-[100px] truncate cursor-pointer">{row.poType || '-'}</div>
+              </TooltipTrigger>
+              <TooltipContent className="max-w-md break-words">
+                <p>{row.poType || '-'}</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </td>
+        <td className="px-2 py-1 border-r border-gray-200">{row.unit || '-'}</td>
+        <td className="px-2 py-1 border-r border-gray-200 text-right tabular-nums">{formatRupees(row.bankPayment)}</td>
+        <td className="px-2 py-1 border-r border-gray-200 text-right tabular-nums">{formatDecimal(row.cgstAmount)}</td>
+        <td className="px-2 py-1 border-r border-gray-200 text-right tabular-nums">{formatDecimal(row.cgsttds)}</td>
+        <td className="px-2 py-1 border-r border-gray-200 text-right tabular-nums">{formatDecimal(row.sgstAmount)}</td>
+        <td className="px-2 py-1 border-r border-gray-200 text-right tabular-nums">{formatDecimal(row.sgsttds)}</td>
+        <td className="px-2 py-1 border-r border-gray-200 text-right tabular-nums">{formatDecimal(row.igstAmount)}</td>
+        <td className="px-2 py-1 border-r border-gray-200 text-right tabular-nums">{formatDecimal(row.igsttds)}</td>
+        <td className="px-2 py-1 text-right tabular-nums">{formatDecimal(row.ittds)}</td>
+      </tr>
+      {isExpanded && (
+        <tr className="bg-gray-100/80">
+          <td colSpan={selectedPoType === 'po' ? 17 : 14} className="p-2 border-b border-gray-300 min-w-full">
+            <div className="bg-white p-2 rounded-lg shadow-inner border border-gray-200">
+              {renderExpanded ? (
+                renderExpanded(row)
+              ) : selectedPoType === 'vendorList' ? (
+                <VendorInvoiceDetails invoiceNumber={invoiceNumber} />
+              ) : (
+                <PoDetailsContent poNumber={poNo} />
+              )}
+            </div>
           </td>
-          <td className="px-2 py-1 border-r border-gray-200" onClick={(e) => e.stopPropagation()}>
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <div className="max-w-[100px] truncate cursor-pointer">{row.poType || '-'}</div>
-                </TooltipTrigger>
-                <TooltipContent className="max-w-md break-words">
-                  <p>{row.poType || '-'}</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          </td>
-          <td className="px-2 py-1 border-r border-gray-200">{row.unit || '-'}</td>
-          <td className="px-2 py-1 border-r border-gray-200 text-right tabular-nums">
-            {formatRupees(row.bankPayment)}
-          </td>
-          <td className="px-2 py-1 border-r border-gray-200 text-right tabular-nums">
-            {formatDecimal(row.cgstAmount)}
-          </td>
-          <td className="px-2 py-1 border-r border-gray-200 text-right tabular-nums">
-            {formatDecimal(row.cgsttds)}
-          </td>
-          <td className="px-2 py-1 border-r border-gray-200 text-right tabular-nums">
-            {formatDecimal(row.sgstAmount)}
-          </td>
-          <td className="px-2 py-1 border-r border-gray-200 text-right tabular-nums">
-            {formatDecimal(row.sgsttds)}
-          </td>
-          <td className="px-2 py-1 border-r border-gray-200 text-right tabular-nums">
-            {formatDecimal(row.igstAmount)}
-          </td>
-          <td className="px-2 py-1 border-r border-gray-200 text-right tabular-nums">
-            {formatDecimal(row.igsttds)}
-          </td>
-          <td className="px-2 py-1 text-right tabular-nums">{formatDecimal(row.ittds)}</td>
         </tr>
-        {isExpanded && (
-          <tr className="bg-gray-100/80">
-            <td colSpan={selectedPoType === 'po' ? 17 : 14} className="p-2 border-b border-gray-300 min-w-full">
-              <div className="bg-white p-2 rounded-lg shadow-inner border border-gray-200">
-                {renderExpanded ? (
-                  renderExpanded(row)
-                ) : selectedPoType === 'vendorList' ? (
-                  <VendorInvoiceDetails invoiceNumber={invoiceNumber} />
-                ) : (
-                  <PoDetailsContent poNumber={poNo} />
-                )}
-              </div>
-            </td>
-          </tr>
-        )}
-      </>
-    );
-  }
-);
+      )}
+    </>
+  );
+});
 
 TableRowItem.displayName = 'TableRowItem';
 
@@ -226,6 +199,7 @@ export interface PurchaseOrderTableProps {
   showActionHeader?: boolean;
   renderExpanded?: (row: PurchaseOrderRow) => React.ReactNode;
   maxHeight?: string;
+  overFlow?: string;
   className?: string;
   initialPageSize?: number;
 }
@@ -240,6 +214,7 @@ export const PurchaseOrderTable: React.FC<PurchaseOrderTableProps> = ({
   showActionHeader = true,
   renderExpanded,
   maxHeight,
+  overFlow,
   className = '',
   initialPageSize = 25,
 }) => {
@@ -460,7 +435,7 @@ export const PurchaseOrderTable: React.FC<PurchaseOrderTableProps> = ({
       )}
 
       <div className={`bg-white rounded-xl border-gray-200 shadow-sm flex flex-col ${className}`}>
-        <div className={`overflow-x-auto ${maxHeight || ''}`}>
+        <div className={`${overFlow || ''} ${maxHeight || ''}`}>
           <table className="min-w-full text-sm border-seperate border-spacing-0">
             <thead className="bg-primary sticky top-0 z-20 text-white font-bold text-xs uppercase border-b border-gray-300">
               <tr>
@@ -476,11 +451,7 @@ export const PurchaseOrderTable: React.FC<PurchaseOrderTableProps> = ({
                       }
                     }}
                   >
-                    {isAllPageExpanded ? (
-                      <ChevronDown className="h-5 w-5 text-white mx-auto" />
-                    ) : (
-                      <ChevronRight className="h-5 w-5 text-white mx-auto" />
-                    )}
+                    {isAllPageExpanded ? <ChevronDown className="h-5 w-5 text-white mx-auto" /> : <ChevronRight className="h-5 w-5 text-white mx-auto" />}
                   </th>
                 )}
                 <th className="w-16 px-2 py-2 text-left border-r border-gray-200">Sr. No.</th>

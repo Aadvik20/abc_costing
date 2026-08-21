@@ -540,6 +540,7 @@ const PurchaseOrderExcelFormate: React.FC = () => {
           exporting={exporting}
           onExport={handleExportPage}
           actionHeaderLeft={actionHeaderLeft}
+          overFlow='overflow-x-visible'
         />
       )}
     </div>
