@@ -18,7 +18,7 @@ const PurchaseOrderExcelFormate: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [units, setUnits] = useState<string[]>([]);
   const [glAccounts, setGlAccounts] = useState<string[]>([]);
-  const [selectedGl, setSelectedGl] = useState<string>('');
+  const [selectedGl, setSelectedGl] = useState<string[]>([]);
   const [fromDate, setFromDate] = useState<string>(searchParams.get('fromDate') || '');
   const [toDate, setToDate] = useState<string>(searchParams.get('toDate') || '');
   const [dateError, setDateError] = useState<string | null>(null);
@@ -114,7 +114,7 @@ const PurchaseOrderExcelFormate: React.FC = () => {
         }
 
         // gl filter
-        if (selectedGl && row.glAccount !== selectedGl) {
+        if (selectedGl.length > 0 && (!row.glAccount || !selectedGl.includes(row.glAccount))) {
           return false;
         }
 
@@ -202,7 +202,7 @@ const PurchaseOrderExcelFormate: React.FC = () => {
 
   const handleResetFilters = () => {
     setSelectedUnit('');
-    setSelectedGl('');
+    setSelectedGl([]);
     setSearchQuery('');
     setFromDate('');
     setToDate('');
@@ -218,18 +218,16 @@ const PurchaseOrderExcelFormate: React.FC = () => {
           onClick={() => {
             setSelectedPoType('po');
           }}
-          className={`group relative inline-flex items-center gap-2 px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all duration-200 ${
-            selectedPoType === 'po'
-              ? 'bg-white text-emerald-900 shadow-sm ring-1 ring-emerald-500/30'
-              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-300/40'
-          }`}
+          className={`group relative inline-flex items-center gap-2 px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all duration-200 ${selectedPoType === 'po'
+            ? 'bg-white text-emerald-900 shadow-sm ring-1 ring-emerald-500/30'
+            : 'text-slate-600 hover:text-slate-900 hover:bg-slate-300/40'
+            }`}
         >
           {selectedPoType === 'po' && <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />}
           <span>PO</span>
           <span
-            className={`min-w-[20px] h-4 px-1.5 inline-flex items-center justify-center rounded-full text-[10px] font-extrabold transition-colors ${
-              selectedPoType === 'po' ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-300/80 text-slate-700 group-hover:bg-slate-400/50'
-            }`}
+            className={`min-w-[20px] h-4 px-1.5 inline-flex items-center justify-center rounded-full text-[10px] font-extrabold transition-colors ${selectedPoType === 'po' ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-300/80 text-slate-700 group-hover:bg-slate-400/50'
+              }`}
           >
             {filteredData.length}
           </span>
@@ -242,18 +240,16 @@ const PurchaseOrderExcelFormate: React.FC = () => {
             setSelectedPoType('non-po');
           }}
           disabled={filteredNonPo.length === 0}
-          className={`group relative inline-flex items-center gap-2 px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all duration-200 ${
-            selectedPoType === 'non-po'
-              ? 'bg-amber-500 text-white shadow-md shadow-amber-500/25 ring-1 ring-amber-500/30'
-              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-300/40'
-          } disabled:opacity-40 disabled:cursor-not-allowed`}
+          className={`group relative inline-flex items-center gap-2 px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all duration-200 ${selectedPoType === 'non-po'
+            ? 'bg-amber-500 text-white shadow-md shadow-amber-500/25 ring-1 ring-amber-500/30'
+            : 'text-slate-600 hover:text-slate-900 hover:bg-slate-300/40'
+            } disabled:opacity-40 disabled:cursor-not-allowed`}
         >
           {selectedPoType === 'non-po' && <span className="h-1.5 w-1.5 rounded-full bg-amber-100 animate-pulse" />}
           <span>Non PO</span>
           <span
-            className={`min-w-[20px] h-4 px-1.5 inline-flex items-center justify-center rounded-full text-[10px] font-extrabold transition-colors ${
-              selectedPoType === 'non-po' ? 'bg-white/25 text-white' : 'bg-amber-100 text-amber-800 group-hover:bg-amber-200/80'
-            }`}
+            className={`min-w-[20px] h-4 px-1.5 inline-flex items-center justify-center rounded-full text-[10px] font-extrabold transition-colors ${selectedPoType === 'non-po' ? 'bg-white/25 text-white' : 'bg-amber-100 text-amber-800 group-hover:bg-amber-200/80'
+              }`}
           >
             {filteredNonPo.length}
           </span>
@@ -266,18 +262,16 @@ const PurchaseOrderExcelFormate: React.FC = () => {
             setSelectedPoType('vendor-salary');
           }}
           disabled={filteredVendorSalary.length === 0}
-          className={`group relative inline-flex items-center gap-2 px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all duration-200 ${
-            selectedPoType === 'vendor-salary'
-              ? 'bg-blue-500 text-white shadow-md shadow-blue-500/25 ring-1 ring-blue-500/30'
-              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-300/40'
-          } disabled:opacity-40 disabled:cursor-not-allowed`}
+          className={`group relative inline-flex items-center gap-2 px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all duration-200 ${selectedPoType === 'vendor-salary'
+            ? 'bg-blue-500 text-white shadow-md shadow-blue-500/25 ring-1 ring-blue-500/30'
+            : 'text-slate-600 hover:text-slate-900 hover:bg-slate-300/40'
+            } disabled:opacity-40 disabled:cursor-not-allowed`}
         >
           {selectedPoType === 'vendor-salary' && <span className="h-1.5 w-1.5 rounded-full bg-blue-100 animate-pulse" />}
           <span>Employee Vendor Salary</span>
           <span
-            className={`min-w-[20px] h-4 px-1.5 inline-flex items-center justify-center rounded-full text-[10px] font-extrabold transition-colors ${
-              selectedPoType === 'vendor-salary' ? 'bg-white/25 text-white' : 'bg-blue-100 text-blue-800 group-hover:bg-blue-200/80'
-            }`}
+            className={`min-w-[20px] h-4 px-1.5 inline-flex items-center justify-center rounded-full text-[10px] font-extrabold transition-colors ${selectedPoType === 'vendor-salary' ? 'bg-white/25 text-white' : 'bg-blue-100 text-blue-800 group-hover:bg-blue-200/80'
+              }`}
           >
             {filteredVendorSalary.length}
           </span>
@@ -290,18 +284,16 @@ const PurchaseOrderExcelFormate: React.FC = () => {
             setSelectedPoType('vendor-adv');
           }}
           disabled={filteredVendorAdv.length === 0}
-          className={`group relative inline-flex items-center gap-2 px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all duration-200 ${
-            selectedPoType === 'vendor-adv'
-              ? 'bg-red-500 text-white shadow-md shadow-red-500/25 ring-1 ring-red-500/30'
-              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-300/40'
-          } disabled:opacity-40 disabled:cursor-not-allowed`}
+          className={`group relative inline-flex items-center gap-2 px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all duration-200 ${selectedPoType === 'vendor-adv'
+            ? 'bg-red-500 text-white shadow-md shadow-red-500/25 ring-1 ring-red-500/30'
+            : 'text-slate-600 hover:text-slate-900 hover:bg-slate-300/40'
+            } disabled:opacity-40 disabled:cursor-not-allowed`}
         >
           {selectedPoType === 'vendor-adv' && <span className="h-1.5 w-1.5 rounded-full bg-red-100 animate-pulse" />}
           <span>Employee Vendor Advances</span>
           <span
-            className={`min-w-[20px] h-4 px-1.5 inline-flex items-center justify-center rounded-full text-[10px] font-extrabold transition-colors ${
-              selectedPoType === 'vendor-adv' ? 'bg-white/25 text-white' : 'bg-red-100 text-red-800 group-hover:bg-red-200/80'
-            }`}
+            className={`min-w-[20px] h-4 px-1.5 inline-flex items-center justify-center rounded-full text-[10px] font-extrabold transition-colors ${selectedPoType === 'vendor-adv' ? 'bg-white/25 text-white' : 'bg-red-100 text-red-800 group-hover:bg-red-200/80'
+              }`}
           >
             {filteredVendorAdv.length}
           </span>
@@ -350,25 +342,30 @@ const PurchaseOrderExcelFormate: React.FC = () => {
 
             <Select
               inputId="gl-select"
-              value={selectedGl ? { value: selectedGl, label: selectedGl } : null}
-              onChange={(option) => setSelectedGl(option?.value || '')}
-              options={[
-                { value: '', label: 'All GL' },
-                ...glAccounts.map((gl) => ({
-                  value: gl,
-                  label: gl,
-                })),
-              ]}
-              placeholder="All GL"
+              isMulti
+              closeMenuOnSelect={false}
+              isClearable
+              value={selectedGl.map((gl) => ({ value: gl, label: gl }))}
+              onChange={(selected) => {
+                const values = selected ? (selected as { value: string; label: string }[]).map((opt) => opt.value) : [];
+                setSelectedGl(values);
+              }}
+              options={glAccounts.map((gl) => ({
+                value: gl,
+                label: gl,
+              }))}
+              placeholder="All GL Accounts"
               isSearchable
               styles={{
                 control: (base, state) => ({
                   ...base,
                   minHeight: '40px',
-                  height: '40px',
+                  maxHeight: '76px',
                   borderRadius: '8px',
                   borderColor: state.isFocused ? '#3b82f6' : '#d1d5db',
-                  boxShadow: state.isFocused ? '0 0 0 2px rgba(59, 130, 246, 0.2)' : 'none',
+                  boxShadow: state.isFocused
+                    ? '0 0 0 2px rgba(59, 130, 246, 0.2)'
+                    : 'none',
                   backgroundColor: '#fff',
                   fontSize: '14px',
                   fontWeight: 500,
@@ -377,39 +374,83 @@ const PurchaseOrderExcelFormate: React.FC = () => {
                     borderColor: '#9ca3af',
                   },
                 }),
+
                 valueContainer: (base) => ({
                   ...base,
-                  height: '40px',
-                  padding: '0 12px',
+                  padding: '4px 8px',
+                  gap: '2px',
+                  maxHeight: '68px',
+                  overflowY: 'auto',
+                  overflowX: 'hidden',
+                  scrollbarWidth: 'thin',
+                  scrollbarColor: '#9ca3af transparent',
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  alignContent: 'flex-start',
                 }),
+
+                multiValue: (base) => ({
+                  ...base,
+                  backgroundColor: '#eff6ff',
+                  borderRadius: '6px',
+                  border: '1px solid #bfdbfe',
+                  margin: '2px',
+                  flexShrink: 0,
+                }),
+
+                multiValueLabel: (base) => ({
+                  ...base,
+                  color: '#1d4ed8',
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  padding: '1px 4px',
+                }),
+
+                multiValueRemove: (base) => ({
+                  ...base,
+                  color: '#1d4ed8',
+                  borderRadius: '0 5px 5px 0',
+                  cursor: 'pointer',
+                  '&:hover': {
+                    backgroundColor: '#dbeafe',
+                    color: '#1e3a8a',
+                  },
+                }),
+
                 input: (base) => ({
                   ...base,
                   margin: 0,
                   padding: 0,
                   fontSize: '14px',
                 }),
-                singleValue: (base) => ({
-                  ...base,
-                  color: '#1f2937',
-                  fontWeight: 500,
-                }),
+
                 placeholder: (base) => ({
                   ...base,
-                  color: '#1f2937',
+                  color: '#6b7280',
                   fontWeight: 500,
                 }),
+
                 indicatorsContainer: (base) => ({
                   ...base,
-                  height: '40px',
                 }),
+
                 dropdownIndicator: (base) => ({
                   ...base,
-                  padding: '0 10px',
+                  padding: '0 8px',
                   color: '#6b7280',
                 }),
+
+                clearIndicator: (base) => ({
+                  ...base,
+                  padding: '0 6px',
+                  color: '#6b7280',
+                  cursor: 'pointer',
+                }),
+
                 indicatorSeparator: () => ({
                   display: 'none',
                 }),
+
                 menu: (base) => ({
                   ...base,
                   marginTop: '4px',
@@ -420,6 +461,7 @@ const PurchaseOrderExcelFormate: React.FC = () => {
                   zIndex: 9999,
                   width: '100%',
                 }),
+
                 menuList: (base) => ({
                   ...base,
                   padding: '4px 0',
@@ -429,6 +471,7 @@ const PurchaseOrderExcelFormate: React.FC = () => {
                   scrollbarWidth: 'thin',
                   scrollbarColor: '#9ca3af transparent',
                 }),
+
                 option: (base, state) => ({
                   ...base,
                   padding: '8px 12px',
@@ -438,6 +481,7 @@ const PurchaseOrderExcelFormate: React.FC = () => {
                   color: state.isSelected ? '#ffffff' : '#374151',
                   backgroundColor: state.isSelected ? '#2563eb' : state.isFocused ? '#dbeafe' : '#ffffff',
                   cursor: 'pointer',
+
                   '&:active': {
                     backgroundColor: '#1d4ed8',
                   },
@@ -475,9 +519,8 @@ const PurchaseOrderExcelFormate: React.FC = () => {
             value={fromDate}
             max={toDate || undefined || new Date().toISOString().split('T')[0]}
             onChange={handleFromDateChange}
-            className={`w-full h-10 px-2.5 border rounded-lg text-sm font-medium text-gray-800 focus:ring-2 focus:outline-none transition ${
-              dateError ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
-            }`}
+            className={`w-full h-10 px-2.5 border rounded-lg text-sm font-medium text-gray-800 focus:ring-2 focus:outline-none transition ${dateError ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
+              }`}
           />
         </div>
         <div className="lg:col-span-2">
@@ -491,9 +534,8 @@ const PurchaseOrderExcelFormate: React.FC = () => {
             min={fromDate || undefined}
             max={new Date().toISOString().split('T')[0]}
             onChange={handleToDateChange}
-            className={`w-full h-10 px-2.5 border rounded-lg text-sm font-medium text-gray-800 focus:ring-2 focus:outline-none transition ${
-              dateError ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
-            }`}
+            className={`w-full h-10 px-2.5 border rounded-lg text-sm font-medium text-gray-800 focus:ring-2 focus:outline-none transition ${dateError ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
+              }`}
           />
         </div>
         <div className="lg:col-span-2 flex items-center gap-1.5 sm:col-span-2">

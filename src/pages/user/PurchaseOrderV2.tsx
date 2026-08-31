@@ -19,7 +19,7 @@ const PurchaseOrderV2: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [units, setUnits] = useState<string[]>([]);
   const [glAccounts, setGlAccounts] = useState<string[]>([]);
-  const [selectedGl, setSelectedGl] = useState<string>('');
+  const [selectedGl, setSelectedGl] = useState<string[]>([]);
   const [fromDate, setFromDate] = useState<string>(searchParams.get('fromDate') || '');
   const [toDate, setToDate] = useState<string>(searchParams.get('toDate') || '');
   const [dateError, setDateError] = useState<string | null>(null);
@@ -116,7 +116,7 @@ const PurchaseOrderV2: React.FC = () => {
         }
 
         // gl filter
-        if (selectedGl && row.glAccount !== selectedGl) {
+        if (selectedGl.length > 0 && (!row.glAccount || !selectedGl.includes(row.glAccount))) {
           return false;
         }
 
@@ -202,7 +202,7 @@ const PurchaseOrderV2: React.FC = () => {
 
   const handleResetFilters = () => {
     setSelectedUnit('');
-    setSelectedGl('');
+    setSelectedGl([]);
     setSearchQuery('');
     setFromDate('');
     setToDate('');
@@ -243,22 +243,25 @@ const PurchaseOrderV2: React.FC = () => {
 
             <Select
               inputId="gl-select"
-              value={selectedGl ? { value: selectedGl, label: selectedGl } : null}
-              onChange={(option) => setSelectedGl(option?.value || '')}
-              options={[
-                { value: '', label: 'All GL' },
-                ...glAccounts.map((gl) => ({
-                  value: gl,
-                  label: gl,
-                })),
-              ]}
-              placeholder="All GL"
+              isMulti
+              closeMenuOnSelect={false}
+              isClearable
+              value={selectedGl.map((gl) => ({ value: gl, label: gl }))}
+              onChange={(selected) => {
+                const values = selected ? (selected as { value: string; label: string }[]).map((opt) => opt.value) : [];
+                setSelectedGl(values);
+              }}
+              options={glAccounts.map((gl) => ({
+                value: gl,
+                label: gl,
+              }))}
+              placeholder="All GL Accounts"
               isSearchable
               styles={{
                 control: (base, state) => ({
                   ...base,
                   minHeight: '40px',
-                  height: '40px',
+                  maxHeight: '76px',
                   borderRadius: '8px',
                   borderColor: state.isFocused ? '#3b82f6' : '#d1d5db',
                   boxShadow: state.isFocused ? '0 0 0 2px rgba(59, 130, 246, 0.2)' : 'none',
@@ -273,8 +276,44 @@ const PurchaseOrderV2: React.FC = () => {
 
                 valueContainer: (base) => ({
                   ...base,
-                  height: '40px',
-                  padding: '0 12px',
+                  padding: '4px 8px',
+                  gap: '2px',
+                  maxHeight: '68px',
+                  overflowY: 'auto',
+                  overflowX: 'hidden',
+                  scrollbarWidth: 'thin',
+                  scrollbarColor: '#9ca3af transparent',
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  alignContent: 'flex-start',
+                }),
+
+                multiValue: (base) => ({
+                  ...base,
+                  backgroundColor: '#eff6ff',
+                  borderRadius: '6px',
+                  border: '1px solid #bfdbfe',
+                  margin: '2px',
+                  flexShrink: 0,
+                }),
+
+                multiValueLabel: (base) => ({
+                  ...base,
+                  color: '#1d4ed8',
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  padding: '1px 4px',
+                }),
+
+                multiValueRemove: (base) => ({
+                  ...base,
+                  color: '#1d4ed8',
+                  borderRadius: '0 5px 5px 0',
+                  cursor: 'pointer',
+                  '&:hover': {
+                    backgroundColor: '#dbeafe',
+                    color: '#1e3a8a',
+                  },
                 }),
 
                 input: (base) => ({
@@ -284,30 +323,33 @@ const PurchaseOrderV2: React.FC = () => {
                   fontSize: '14px',
                 }),
 
-                singleValue: (base) => ({
-                  ...base,
-                  color: '#1f2937',
-                  fontWeight: 500,
-                }),
-
                 placeholder: (base) => ({
                   ...base,
-                  color: '#1f2937',
+                  color: '#6b7280',
                   fontWeight: 500,
                 }),
 
                 indicatorsContainer: (base) => ({
                   ...base,
-                  height: '40px',
                 }),
+
                 dropdownIndicator: (base) => ({
                   ...base,
-                  padding: '0 10px',
+                  padding: '0 8px',
                   color: '#6b7280',
                 }),
+
+                clearIndicator: (base) => ({
+                  ...base,
+                  padding: '0 6px',
+                  color: '#6b7280',
+                  cursor: 'pointer',
+                }),
+
                 indicatorSeparator: () => ({
                   display: 'none',
                 }),
+
                 menu: (base) => ({
                   ...base,
                   marginTop: '4px',
@@ -318,6 +360,7 @@ const PurchaseOrderV2: React.FC = () => {
                   zIndex: 9999,
                   width: '100%',
                 }),
+
                 menuList: (base) => ({
                   ...base,
                   padding: '4px 0',
@@ -327,6 +370,7 @@ const PurchaseOrderV2: React.FC = () => {
                   scrollbarWidth: 'thin',
                   scrollbarColor: '#9ca3af transparent',
                 }),
+
                 option: (base, state) => ({
                   ...base,
                   padding: '8px 12px',

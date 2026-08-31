@@ -4,9 +4,10 @@ import { formatDate, formatDecimal, formatRupees } from '@/lib/helperFunction';
 import { useSearchParams } from 'react-router';
 interface PoDetailsProps {
   poNumber?: string | number;
+  unit?: string;
 }
 
-const PoDetailsContent: React.FC<PoDetailsProps> = ({ poNumber }) => {
+const PoDetailsContent: React.FC<PoDetailsProps> = ({ poNumber, unit }) => {
   const { data, loading, error, refetch } = usePoDetails(poNumber);
   const [searchParams] = useSearchParams();
   const fromDate = searchParams.get('fromDate');
@@ -17,6 +18,9 @@ const PoDetailsContent: React.FC<PoDetailsProps> = ({ poNumber }) => {
     const fromTime = fromDate ? new Date(fromDate).setHours(0, 0, 0, 0) : null;
     const toTime = toDate ? new Date(toDate).setHours(23, 59, 59, 999) : null;
     return data.filter((item) => {
+      if (unit && String(item.unit).toLowerCase() !== String(unit).toLowerCase()) {
+        return false;
+      }
       if (!item.augdt) return false;
       const parts = String(item.augdt).split('-');
       if (parts.length !== 3) return false;
@@ -28,7 +32,7 @@ const PoDetailsContent: React.FC<PoDetailsProps> = ({ poNumber }) => {
       if (toTime && itemTime > toTime) return false;
       return true;
     });
-  }, [data, fromDate, toDate]);
+  }, [data, fromDate, toDate, unit]);
   return (
     <div className="w-full space-y-3">
       <div className="flex items-center justify-between border-b pb-2 border-gray-200">

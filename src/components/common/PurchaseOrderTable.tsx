@@ -175,7 +175,7 @@ const TableRowItem: React.FC<TableRowItemProps> = React.memo(({ row, index, isEx
               ) : selectedPoType === 'vendorList' ? (
                 <VendorInvoiceDetails invoiceNumber={invoiceNumber} />
               ) : (
-                <PoDetailsContent poNumber={poNo} />
+                <PoDetailsContent poNumber={poNo} unit={row.unit} />
               )}
             </div>
           </td>
