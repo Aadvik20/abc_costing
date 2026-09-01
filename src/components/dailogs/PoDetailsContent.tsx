@@ -21,8 +21,8 @@ const PoDetailsContent: React.FC<PoDetailsProps> = ({ poNumber, unit }) => {
       if (unit && String(item.unit).toLowerCase() !== String(unit).toLowerCase()) {
         return false;
       }
-      if (!item.augdt) return false;
-      const parts = String(item.augdt).split('-');
+      if (!item.clearingDate) return false;
+      const parts = String(item.clearingDate).split('-');
       if (parts.length !== 3) return false;
       const [day, month, year] = parts.map(Number);
       const itemDate = new Date(year, month - 1, day);
@@ -60,7 +60,8 @@ const PoDetailsContent: React.FC<PoDetailsProps> = ({ poNumber, unit }) => {
                 <th className="px-3 py-2.5 border-r border-gray-300 text-left">Invoice No</th>
                 <th className="px-3 py-2.5 border-r border-gray-300 text-right">Invoice Value</th>
                 <th className="px-3 py-2.5 border-r border-gray-300 text-right">Bank Payment</th>
-                <th className="px-3 py-2.5 border-r border-gray-300 text-center">Payment Date</th>
+                <th className="px-3 py-2.5 border-r border-gray-300 text-center">Payment Doc No</th>
+                <th className="px-3 py-2.5 border-r border-gray-300 text-center">Clearing Date</th>
                 <th className="px-3 py-2.5 border-r border-gray-300 text-right">CGST</th>
                 <th className="px-3 py-2.5 border-r border-gray-300 text-right">CGST TDS</th>
                 <th className="px-3 py-2.5 border-r border-gray-300 text-right">SGST</th>
@@ -77,7 +78,8 @@ const PoDetailsContent: React.FC<PoDetailsProps> = ({ poNumber, unit }) => {
                   <td className="px-3 py-2 border-r border-gray-200 text-left whitespace-nowrap font-bold text-blue-700">{item.invoice}</td>
                   <td className="px-3 py-2 border-r border-gray-200 text-right whitespace-nowrap">{formatRupees(item.invoiceValue)}</td>
                   <td className="px-3 py-2 border-r border-gray-200 text-right whitespace-nowrap">{formatRupees(item.bankPayment)}</td>
-                  <td className="px-3 py-2 border-r border-gray-200 text-center whitespace-nowrap">{formatDate(item.augdt)}</td>
+                  <td className="px-3 py-2 border-r border-gray-200 text-center whitespace-nowrap">{item.paymentDoc}</td>
+                  <td className="px-3 py-2 border-r border-gray-200 text-center whitespace-nowrap">{formatDate(item.clearingDate)}</td>
                   <td className="px-3 py-2 border-r border-gray-200 text-right whitespace-nowrap">{formatDecimal(item.cgstAmount)}</td>
                   <td className="px-3 py-2 border-r border-gray-200 text-right whitespace-nowrap">{formatDecimal(item.cgsttds)}</td>
                   <td className="px-3 py-2 border-r border-gray-200 text-right whitespace-nowrap">{formatDecimal(item.sgstAmount)}</td>

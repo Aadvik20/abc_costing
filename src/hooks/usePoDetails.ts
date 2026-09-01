@@ -5,7 +5,7 @@ export interface PoDetailItem {
   invoice: string;
   invoiceValue: number;
   bankPayment: number;
-  augdt: string;
+  clearingDate: string;
   sgstAmount: number;
   cgstAmount: number;
   igstAmount: number;
@@ -13,6 +13,7 @@ export interface PoDetailItem {
   cgsttds: number;
   igsttds: number;
   ittds: number;
+  paymentDoc: string;
   [key: string]: unknown;
 }
 

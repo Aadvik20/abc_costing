@@ -30,6 +30,8 @@ export interface PurchaseOrderRow {
   supplierCode?: string;
   glAccount?: string;
   clubbedFlag?: string;
+  paymentDoc?: string;
+  clearingDate?: string;
   [key: string]: unknown;
 }
 
@@ -157,6 +159,12 @@ const TableRowItem: React.FC<TableRowItemProps> = React.memo(({ row, index, isEx
           </TooltipProvider>
         </td>
         <td className="px-2 py-1 border-r border-gray-200">{row.unit || '-'}</td>
+        {selectedPoType !== 'po' && (
+          <>
+            <td className="px-2 py-1 border-r border-gray-200">{row.paymentDoc || '-'}</td>
+            <td className="px-2 py-1 border-r border-gray-200">{formatDate(row.clearingDate) || '-'}</td>
+          </>
+        )}
         <td className="px-2 py-1 border-r border-gray-200 text-right tabular-nums">{formatRupees(row.bankPayment)}</td>
         <td className="px-2 py-1 border-r border-gray-200 text-right tabular-nums">{formatDecimal(row.cgstAmount)}</td>
         <td className="px-2 py-1 border-r border-gray-200 text-right tabular-nums">{formatDecimal(row.cgsttds)}</td>
@@ -499,6 +507,12 @@ export const PurchaseOrderTable: React.FC<PurchaseOrderTableProps> = ({
                 <th className="px-2 py-2 text-left border-r border-gray-200 min-w-[180px]">Supplier Code</th>
                 <th className="px-2 py-2 text-left border-r border-gray-200 min-w-[120px]">PO Type</th>
                 <th className="px-2 py-2 text-left border-r border-gray-200 min-w-[120px]">Unit</th>
+                {selectedPoType !== 'po' && (
+                  <>
+                    <th className="px-2 py-2 text-left border-r border-gray-200 min-w-[140px]">Payment Doc No</th>
+                    <th className="px-2 py-2 text-left border-r border-gray-200 min-w-[140px]">Clearing Date</th>
+                  </>
+                )}
                 <th
                   onClick={() => handleSort('bankPayment')}
                   className="px-2 py-2 text-right border-r border-gray-200 min-w-[150px] cursor-pointer select-none hover:bg-blue-700/80 transition-colors group"
