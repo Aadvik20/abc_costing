@@ -8,7 +8,7 @@ export interface PoDetailItem {
   invoice: string;
   invoiceValue: number;
   bankPayment: number;
-  augdt: string;
+  clearingDate: string;
   sgstAmount: number;
   cgstAmount: number;
   igstAmount: number;
@@ -17,6 +17,7 @@ export interface PoDetailItem {
   igsttds: number;
   ittds: number;
   poType?: string;
+  paymentDoc: string;
   [key: string]: unknown;
 }
 
@@ -39,6 +40,8 @@ export interface MainPoRow {
   ittds?: number;
   poDetails?: PoDetailItem[];
   glAccount?: string;
+  clearingDate?: string;
+  paymentDoc?: string;
   [key: string]: unknown;
 }
 
@@ -57,6 +60,8 @@ const buildNonPoSheet = (worksheet: ExcelJS.Worksheet, data: MainPoRow[]) => {
     { header: 'Supplier Code', key: 'supplierCode', width: 45 },
     { header: 'Expenditure Type', key: 'poType', width: 24 },
     { header: 'Unit', key: 'unit', width: 18 },
+    { header: 'Payment Doc No', key: 'paymentDoc', width: 25 },
+    { header: 'Clearing Date', key: 'clearingDate', width: 20 },
     { header: 'Bank Payment', key: 'bankPayment', width: 22 },
     { header: 'CGST', key: 'cgstAmount', width: 18 },
     { header: 'CGST TDS', key: 'cgsttds', width: 18 },
@@ -81,6 +86,8 @@ const buildNonPoSheet = (worksheet: ExcelJS.Worksheet, data: MainPoRow[]) => {
       supplierCode: po.supplierCode || '-',
       poType: po.poType || '-',
       unit: po.unit || '-',
+      paymentDoc: po.paymentDoc || '-',
+      clearingDate: formatDate(po.clearingDate) || '-',
       bankPayment: po.bankPayment ?? 0,
       cgstAmount: po.cgstAmount ?? 0,
       cgsttds: po.cgsttds ?? 0,
@@ -178,8 +185,9 @@ const buildPoSheet = (worksheet: ExcelJS.Worksheet, data: MainPoRow[]) => {
       const subHeaderRow = worksheet.addRow({
         recordIdentifier: '   ↳ Invoice Number',
         poOrderValue: 'Invoice Value',
+        poType: 'Payment Doc No',
+        unit: 'Clearing Date',
         bankPayment: 'Bank Payment',
-        poDate: 'Payment Date',
         cgstAmount: 'CGST',
         cgsttds: 'CGST TDS',
         sgstAmount: 'SGST',
@@ -201,8 +209,9 @@ const buildPoSheet = (worksheet: ExcelJS.Worksheet, data: MainPoRow[]) => {
         const subRow = worksheet.addRow({
           recordIdentifier: `     ${inv.invoice}`,
           poOrderValue: inv.invoiceValue ?? 0,
+          poType: inv.paymentDoc || '-',
+          unit: formatDate(inv.clearingDate) || '-',
           bankPayment: inv.bankPayment ?? 0,
-          poDate: formatDate(inv.augdt) || '-',
           cgstAmount: inv.cgstAmount ?? 0,
           cgsttds: inv.cgsttds ?? 0,
           sgstAmount: inv.sgstAmount ?? 0,
