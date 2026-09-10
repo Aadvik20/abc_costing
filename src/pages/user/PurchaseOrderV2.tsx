@@ -116,8 +116,12 @@ const PurchaseOrderV2: React.FC = () => {
         }
 
         // gl filter
-        if (selectedGl.length > 0 && (!row.glAccount || !selectedGl.includes(row.glAccount))) {
-          return false;
+        // gl filter
+        if (selectedGl.length > 0) {
+          const rowGl = row.glAccount ?? '';
+          if (!selectedGl.includes(rowGl)) {
+            return false;
+          }
         }
 
         // Search filter
@@ -251,10 +255,7 @@ const PurchaseOrderV2: React.FC = () => {
                 const values = selected ? (selected as { value: string; label: string }[]).map((opt) => opt.value) : [];
                 setSelectedGl(values);
               }}
-              options={glAccounts.map((gl) => ({
-                value: gl,
-                label: gl,
-              }))}
+              options={[{ value: '', label: '(Blank)' }, ...glAccounts.map((gl) => ({ value: gl, label: gl }))]}
               placeholder="All GL Accounts"
               isSearchable
               styles={{
