@@ -15,7 +15,6 @@ interface EnhancedDatePickerProps {
   minDate?: Date;
   maxDate?: Date;
   disabled?: boolean;
-  isClearable?: boolean;
   showMonthDropdown?: boolean;
   showYearDropdown?: boolean;
   dropdownMode?: 'scroll' | 'select';

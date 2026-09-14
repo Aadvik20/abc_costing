@@ -1,4 +1,4 @@
-import { X, CheckIcon, AlertCircle, Info, AlertTriangle } from 'lucide-react';
+import { X, CheckIcon, Info, AlertTriangle } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 // 1. Define supported types for better variety

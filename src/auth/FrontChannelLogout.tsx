@@ -1,4 +1,3 @@
-import { environment } from '@/config';
 import { broadcastLogoutEvent } from '@/auth/globalLogoutSync';
 import { UserManager } from 'oidc-client-ts';
 import { useEffect, useState } from 'react';

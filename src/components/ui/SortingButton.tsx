@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { ArrowUpDown } from 'lucide-react';
 import { Button } from './button';
 
 const SortingButton = ({ headerText, column }: { headerText: string; column: unknown }) => {

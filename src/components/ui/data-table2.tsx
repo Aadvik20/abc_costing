@@ -11,7 +11,7 @@ import {
   useReactTable,
 } from '@tanstack/react-table';
 
-import { ArrowUp, ArrowDown, ArrowUpDown, ListFilter, Search, ChevronRight, ChevronLeft, X, RefreshCw } from 'lucide-react';
+import {ListFilter, Search, ChevronRight, ChevronLeft, X } from 'lucide-react';
 
 import { Input } from './input';
 import { Button } from './button';
@@ -158,7 +158,6 @@ export default function TableList({
                     </>
                   ) : (
                     <>
-                      {/* <RefreshCw className="h-4 w-4" /> */}
                       <span>Refresh</span>
                     </>
                   )}
@@ -183,17 +182,6 @@ export default function TableList({
                     {header.isPlaceholder ? null : (
                       <div className="flex items-center justify-center gap-1">
                         {flexRender(header.column.columnDef.header, header.getContext())}
-                        {/* {header.column.getCanSort() && (
-                          <>
-                            {header.column.getIsSorted() === 'asc' ? (
-                              <ArrowUp className="h-4 w-4" strokeWidth={3} />
-                            ) : header.column.getIsSorted() === 'desc' ? (
-                              <ArrowDown className="h-4 w-4" strokeWidth={3} />
-                            ) : (
-                              <ArrowUpDown className="h-4 w-4" strokeWidth={3} />
-                            )}
-                          </>
-                        )} */}
                       </div>
                     )}
                   </th>

@@ -1,7 +1,6 @@
 import { useState } from 'react';
 
 import { Power, LogOut } from 'lucide-react';
-// import { useGlobalLogout } from './useGlobalLogout';
 import {
   AlertDialogDescription,
   AlertDialog,
@@ -14,7 +13,6 @@ import {
   AlertDialogCancel,
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
-import toast from 'react-hot-toast';
 import { useGlobalLogout } from './useGlobalLogout';
 
 const LogoutButton = () => {

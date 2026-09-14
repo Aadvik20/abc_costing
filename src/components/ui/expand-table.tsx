@@ -13,12 +13,11 @@ import {
   useReactTable,
 } from '@tanstack/react-table';
 
-import { ChevronDown, ChevronRight, ListFilter, Search, ChevronLeft, X, RefreshCw } from 'lucide-react';
+import { ChevronDown, ChevronRight, Search, ChevronLeft, X, RefreshCw } from 'lucide-react';
 
 import { Input } from './input';
 import { Button } from './button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './select';
-import { Checkbox } from './checkbox';
 
 interface ExpandableTableProps {
   data: any[];

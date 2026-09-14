@@ -1,10 +1,6 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import axios from 'axios';
-import { environment } from '@/config';
-import { useAppSelector } from '@/app/hooks';
-import { RootState } from '@/app/store';
 const ErrorFallbackUI = () => {
   const handleRefresh = () => {
     window.location.reload();

@@ -1,6 +1,5 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Routes, Route } from 'react-router';
-import { useEffect } from 'react';
 import PrivateRoute from './PrivateRoute';
 import Unauthorized from '@/pages/unauthorized/Unauthorized';
 import NotFound from '@/pages/notFound/NotFound';

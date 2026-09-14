@@ -1,7 +1,6 @@
 import * as React from 'react';
-import { ChevronsRight, ChevronsLeft, Eye, Inbox } from 'lucide-react';
+import { ChevronsRight, ChevronsLeft, Eye, LogOut } from 'lucide-react';
 import { NavMain } from '@/components/nav-main';
-import { LogOut, LayoutDashboard } from 'lucide-react';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarMenu, SidebarMenuButton, SidebarRail, SidebarSeparator, useSidebar } from '@/components/ui/sidebar';
 import { Separator } from '@radix-ui/react-separator';
 import { useNavigate } from 'react-router';
