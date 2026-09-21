@@ -11,11 +11,10 @@ import {
   useReactTable,
 } from '@tanstack/react-table';
 
-import {ListFilter, Search, ChevronRight, ChevronLeft, X } from 'lucide-react';
+import { ArrowUp, ArrowDown, ArrowUpDown, ListFilter, Search, ChevronRight, ChevronLeft, X, Inbox } from 'lucide-react';
 
 import { Input } from './input';
 import { Button } from './button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './select';
 import { Checkbox } from './checkbox';
 
 interface TableListProps {
@@ -30,6 +29,10 @@ interface TableListProps {
   onRefresh?: () => void;
   onRowClick?: (rowData: any) => void;
   rowClassName?: (row: any) => string; // ✅ New prop
+  showSortIcon?: boolean;
+  pageSizeOptions?: number[];
+  initialPageSize?: number;
+  initialColumnVisibility?: VisibilityState;
 }
 
 export default function TableList({
@@ -44,12 +47,45 @@ export default function TableList({
   onRowClick,
   rowClassName,
   onRefresh,
+  showSortIcon,
+  pageSizeOptions = [5, 10, 20, 50, 100],
+  initialPageSize = 10,
+  initialColumnVisibility = {},
 }: TableListProps) {
+  const defaultVisibility = React.useMemo(() => {
+    const visibility: VisibilityState = { ...initialColumnVisibility };
+    columns.forEach((col: any) => {
+      const colId = col.id || col.accessorKey;
+      if (colId && (col.hidden === true || col.isVisible === false || col.meta?.hidden === true)) {
+        if (visibility[colId] === undefined) {
+          visibility[colId] = false;
+        }
+      }
+    });
+    return visibility;
+  }, [columns, initialColumnVisibility]);
+
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
-  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
+  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>(defaultVisibility);
   const [rowSelection, setRowSelection] = React.useState({});
   const [globalFilter, setGlobalFilter] = React.useState<string>('');
+
+  React.useEffect(() => {
+    if (Object.keys(defaultVisibility).length > 0) {
+      setColumnVisibility((prev) => {
+        let changed = false;
+        const next = { ...prev };
+        for (const key of Object.keys(defaultVisibility)) {
+          if (next[key] === undefined) {
+            next[key] = defaultVisibility[key];
+            changed = true;
+          }
+        }
+        return changed ? next : prev;
+      });
+    }
+  }, [defaultVisibility]);
 
   const table = useReactTable({
     data,
@@ -73,6 +109,12 @@ export default function TableList({
       rowSelection,
       globalFilter,
     },
+    initialState: {
+      pagination: {
+        pageSize: initialPageSize,
+      },
+      columnVisibility: defaultVisibility,
+    },
   });
 
   const hasCheckboxColumn = columns.some((column) => column.id === 'select');
@@ -82,6 +124,11 @@ export default function TableList({
   const totalPages = table.getPageCount();
   const currentRangeStart = pageIndex * pageSize + 1;
   const currentRangeEnd = Math.min((pageIndex + 1) * pageSize, totalRows);
+  const [goToPage, setGoToPage] = React.useState<string>('1');
+
+  React.useEffect(() => {
+    setGoToPage(String(pageIndex + 1));
+  }, [pageIndex]);
 
   const getPaginationButtons = () => {
     const maxVisible = 5;
@@ -122,7 +169,7 @@ export default function TableList({
                 <div className="absolute z-10 hidden group-hover:block top-full right-0 mt-1 w-48 bg-white border rounded-md shadow-lg text-xs">
                   <div className="p-2 space-y-1 max-h-64 overflow-y-auto">
                     {table.getAllLeafColumns().map((column) => {
-                      if (column.getCanHide()) {
+                      if (column.getCanHide() && (column.columnDef as any)?.hidden !== true) {
                         return (
                           <div key={column.id} className="flex items-center gap-2 px-2 py-1 hover:bg-blue-50 cursor-pointer">
                             <Checkbox id={`column-toggle-${column.id}`} checked={column.getIsVisible()} onCheckedChange={() => column.toggleVisibility()} />
@@ -168,20 +215,35 @@ export default function TableList({
         </div>
       )}
 
-      <div className="overflow-auto rounded-2xl border border-blue-200 shadow-lg">
-        <table className="min-w-full text-sm text-left text-gray-800 font-sans">
-          <thead className="bg-gradient-to-r from-blue-600 to-blue-700 text-white text-xs font-semibold uppercase tracking-wider">
+      <div className="rounded-lg border overflow-x-auto overflow-y-auto">
+        <table className="w-full table-fixed border-separate border-spacing-0">
+          <thead className="bg-gradient-to-r from-blue-700 to-blue-700 text-white text-xs font-semibold uppercase tracking-wider">
             {table.getHeaderGroups().map((headerGroup) => (
               <tr key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
                   <th
                     key={header.id}
+                    style={{
+                      width: header.column.columnDef.size,
+                      minWidth: header.column.columnDef.size,
+                    }}
                     className="px-4 py-3 text-center whitespace-nowrap cursor-pointer select-none"
                     onClick={header.column.getToggleSortingHandler()}
                   >
                     {header.isPlaceholder ? null : (
                       <div className="flex items-center justify-center gap-1">
                         {flexRender(header.column.columnDef.header, header.getContext())}
+                        {(header.column.columnDef as any).showSortIcon !== false && (
+                          <>
+                            {header.column.getIsSorted() === 'asc' ? (
+                              <ArrowUp className="h-4 w-4" strokeWidth={3} />
+                            ) : header.column.getIsSorted() === 'desc' ? (
+                              <ArrowDown className="h-4 w-4" strokeWidth={3} />
+                            ) : (
+                              <ArrowUpDown className="h-4 w-4" strokeWidth={3} />
+                            )}
+                          </>
+                        )}
                       </div>
                     )}
                   </th>
@@ -195,12 +257,20 @@ export default function TableList({
                 <tr
                   key={row.id}
                   onClick={() => onRowClick?.(row.original)}
-                  className={`odd:bg-white even:bg-blue-50 hover:bg-blue-100 transition-colors duration-200 cursor-pointer border-b border-blue-100 ${
-                    rowClassName?.(row) || ''
-                  }`}
+                  className={`bg-white hover:bg-blue-100 transition-colors duration-200 cursor-pointer border-b border-blue-100 ${rowClassName?.(row) || ''}`}
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <td key={cell.id} className="px-4 py-3 text-center">
+                    <td
+                      key={cell.id}
+                      style={{
+                        width: cell.column.columnDef.size,
+                        minWidth: cell.column.columnDef.size,
+                      }}
+                      className=" px-4 py-1
+                    text-sm text-slate-700
+                    whitespace-nowrap
+                    border-b"
+                    >
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </td>
                   ))}
@@ -208,8 +278,11 @@ export default function TableList({
               ))
             ) : (
               <tr>
-                <td colSpan={columns.length} className="text-center py-6 text-gray-500 italic border-t border-blue-100">
-                  No results found.
+                <td colSpan={table.getVisibleLeafColumns().length || columns.length} className="text-center py-6 text-gray-500 italic border-t border-blue-100">
+                  <div className="flex flex-col items-center justify-center text-slate-400">
+                    <Inbox className="h-8 w-8 mb-2" />
+                    <p className="text-sm font-medium">No Results found.</p>
+                  </div>
                 </td>
               </tr>
             )}
@@ -218,47 +291,97 @@ export default function TableList({
       </div>
 
       {/* Pagination */}
-      <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-xs mt-4 font-sans">
-        <div className="flex items-center gap-2">
-          <span className="text-muted-foreground">Rows per page:</span>
-          <Select value={pageSize.toString()} onValueChange={(value) => table.setPageSize(Number(value))}>
-            <SelectTrigger className="h-8 w-[72px] border border-blue-200 text-xs rounded-md">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent className="text-xs">
-              {[5, 10, 20, 30, 50, 100].map((size) => (
-                <SelectItem key={size} value={size.toString()}>
-                  {size}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <div className="text-muted-foreground">
+      <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+        {/* LEFT */}
+        <div className="text-sm flex items-center gap-4 text-muted-foreground w-full sm:w-1/3 flex-wrap">
+          <div>
             {hasCheckboxColumn
               ? `${table.getSelectedRowModel().flatRows.length} of ${totalRows} row(s) selected.`
               : `Showing ${currentRangeStart}-${currentRangeEnd} of ${totalRows}`}
           </div>
+
+          {/* PAGE SIZE */}
+          <div className="flex items-center gap-2">
+            <span>Rows:</span>
+
+            <select className="border rounded-md px-2 py-1 text-sm" value={pageSize} onChange={(e) => table.setPageSize(Number(e.target.value))}>
+              {pageSizeOptions.map((size) => (
+                <option key={size} value={size}>
+                  {size}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
-        <div className="flex items-center gap-1">
-          <Button variant="outline" size="sm" disabled={!table.getCanPreviousPage()} onClick={() => table.previousPage()}>
-            <ChevronLeft />
+
+        {/* RIGHT */}
+        <div className="flex flex-wrap justify-end items-center gap-2">
+          {/* GO TO PAGE */}
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground whitespace-nowrap">Go to page</span>
+
+            <Input
+              type="text"
+              inputMode="numeric"
+              min={1}
+              max={totalPages}
+              value={goToPage}
+              onChange={(e) => {
+                const value = e.target.value;
+
+                setGoToPage(value);
+
+                if (value === '') return;
+
+                const page = Number(value) - 1;
+
+                if (!isNaN(page) && page >= 0 && page < totalPages) {
+                  table.setPageIndex(page);
+                }
+              }}
+              onBlur={() => {
+                if (goToPage === '') {
+                  setGoToPage(String(pageIndex + 1));
+                }
+              }}
+              className="w-20 h-9"
+            />
+          </div>
+
+          {/* PREVIOUS */}
+          <Button variant="outline" disabled={!table.getCanPreviousPage()} onClick={() => table.previousPage()}>
+            <ChevronLeft className="h-4 w-4" />
             Previous
           </Button>
 
-          {paginationButtons.map((btn, idx) =>
-            typeof btn === 'string' ? (
-              <span key={idx} className="px-2 text-muted-foreground">
-                …
-              </span>
-            ) : (
-              <Button key={btn} variant={btn === pageIndex ? 'default' : 'secondary'} size="sm" onClick={() => table.setPageIndex(btn)}>
-                {btn + 1}
-              </Button>
-            )
-          )}
+          {/* PAGE BUTTONS */}
+          {Array.from(new Set(paginationButtons)).map((button, index) => {
+            if (button === 'ellipsis-start' || button === 'ellipsis-end') {
+              return (
+                <span key={`ellipsis-${index}`} className="px-2 text-gray-400">
+                  ...
+                </span>
+              );
+            }
 
-          <Button variant="outline" size="sm" disabled={!table.getCanNextPage()} onClick={() => table.nextPage()}>
-            Next <ChevronRight />
+            return (
+              <Button
+                variant="outline"
+                key={`page-${button}`}
+                className={`hover:bg-primary hover:text-white transition-colors duration-300 ease-in-out ${
+                  button === pageIndex ? 'bg-primary text-white' : ''
+                }`}
+                onClick={() => table.setPageIndex(button as number)}
+              >
+                {(button as number) + 1}
+              </Button>
+            );
+          })}
+
+          {/* NEXT */}
+          <Button variant="outline" disabled={!table.getCanNextPage()} onClick={() => table.nextPage()}>
+            Next
+            <ChevronRight className="h-4 w-4" />
           </Button>
         </div>
       </div>

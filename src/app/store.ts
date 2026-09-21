@@ -5,6 +5,7 @@ import { combineReducers } from 'redux';
 import userReducer from '@/features/user/userSlice';
 import applicationsReducer from '@/features/applications/applicationSlice';
 import tokenDataReduer from '../features/user/TokenDataSlice';
+import poSlicereducer from '@/features/user/PoSlice';
 import masterDatareducer from '@/features/masterData/masterSlice';
 
 const persistConfig = {
@@ -16,6 +17,7 @@ const persistConfig = {
 const rootReducer = combineReducers({
   user: userReducer,
   applications: applicationsReducer,
+  poSlice: poSlicereducer,
   tokenData: tokenDataReduer,
   masterData: masterDatareducer,
 });

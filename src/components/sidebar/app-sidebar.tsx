@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { ChevronLeft, ChevronRight, LogOut, Hotel, Home } from 'lucide-react';
+import { ChevronLeft, ChevronRight, LogOut, Hotel, AlertTriangle, PauseCircle, DollarSign, FileText, ListChecks, Users, Clock, FolderOpen } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import { NavMain } from '@/components/nav-main';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarMenu, SidebarMenuButton, SidebarRail, SidebarSeparator, useSidebar } from '@/components/ui/sidebar';
@@ -17,15 +17,51 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   const canAccessAdminDashboard = false;
   const allNavItems: NavItem[] = [
     {
-      title: 'Payment Details',
-      url: '/paymentDetails',
-      icon: Home,
+      title: 'Adverse Report',
+      url: '/adverseReport',
+      icon: AlertTriangle, // Adverse / Warning
       roles: [-1], //user
     },
     {
-      title: 'Payment Details V2',
-      url: '/paymentDetailsV2',
-      icon: Home,
+      title: 'Non Movement Balances',
+      url: '/nonMovementBalances',
+      icon: PauseCircle, // Non-movement / Stagnant
+      roles: [-1], //user
+    },
+    {
+      title: 'Payroll Report',
+      url: '/payroll',
+      icon: DollarSign, // Payroll / Salary
+      roles: [-1], //user
+    },
+    {
+      title: 'PO Report',
+      url: '/poReport',
+      icon: FileText, // Purchase Order / Document
+      roles: [-1], //user
+    },
+    {
+      title: 'GRIR Line Items',
+      url: '/grirLineItems',
+      icon: ListChecks, // Goods Receipt / Line items
+      roles: [-1], //user
+    },
+    {
+      title: 'Vendor Outstanding Report',
+      url: '/vendorOutstandingReport',
+      icon: Users, // Vendor / Supplier
+      roles: [-1], //user
+    },
+    {
+      title: 'Park But Not Posted',
+      url: '/parkButNotPosted',
+      icon: Clock, // Parked / Pending
+      roles: [-1], //user
+    },
+    {
+      title: 'Open Item',
+      url: '/openItem',
+      icon: FolderOpen, // Open status / Items
       roles: [-1], //user
     },
   ];

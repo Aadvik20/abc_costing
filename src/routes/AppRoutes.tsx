@@ -16,8 +16,14 @@ import AppLayout from '@/components/layout/app-layout';
 import { fetchMasterData } from '@/features/masterData/masterSlice';
 import { fetchApplications } from '@/features/applications/applicationSlice';
 import Dashboard from '@/pages/user/Dashboard';
-import PurchaseOrderExcelFormate from '@/pages/user/PurchaseOrderExcelFormate';
-import PurchaseOrderV2 from '@/pages/user/PurchaseOrderV2';
+import PoReport from '@/pages/user/Po/PoReport';
+import AdverseReport from '@/pages/user/AdverseReport';
+import NonMovementBalances from '@/pages/user/NonMovementBalances';
+import Payroll from '@/pages/user/Payroll/Payroll';
+import GrirLineItems from '@/pages/user/GrirLineItems';
+import VendorOutstandingReport from '@/pages/user/VendorOutstandingReport';
+import ParkButNotPosted from '@/pages/user/ParkButNotPosted';
+import OpenItem from '@/pages/user/OpenItem';
 
 const AppRoutes = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -49,8 +55,14 @@ const AppRoutes = () => {
             <Route path="/dashboard" element={<Dashboard />} />
           </Route>
           <Route element={<PrivateRoute allowedRoles={[-1]} />}>
-            <Route path="/paymentDetails" element={<PurchaseOrderExcelFormate />} />
-            <Route path="/paymentDetailsV2" element={<PurchaseOrderV2 />} />
+            <Route path="/adverseReport" element={<AdverseReport />} />
+            <Route path="/nonMovementBalances" element={<NonMovementBalances />} />
+            <Route path="/payroll" element={<Payroll />} />
+            <Route path="/poReport" element={<PoReport />} />
+            <Route path="/grirLineItems" element={<GrirLineItems />} />
+            <Route path="/vendorOutstandingReport" element={<VendorOutstandingReport />} />
+            <Route path="/parkButNotPosted" element={<ParkButNotPosted />} />
+            <Route path="/openItem" element={<OpenItem />} />
           </Route>
         </Route>
         <Route element={<AppLayout isAdmin={true} />}>

@@ -1,6 +1,26 @@
 import { oidcConfig } from '@/auth/config';
 import { format, isValid, parse, parseISO } from 'date-fns';
 
+export const customSelectStyles = {
+  control: (provided: any) => ({
+    ...provided,
+    minHeight: '40px',
+    maxHeight: '80px',
+  }),
+
+  valueContainer: (provided: any) => ({
+    ...provided,
+    flexWrap: 'wrap',
+    overflowY: 'auto',
+    maxHeight: '80px',
+  }),
+
+  multiValue: (provided: any) => ({
+    ...provided,
+    flexShrink: 0,
+  }),
+};
+
 export const setSessionItem = (key: string, value: any) => {
   const valueToStore = typeof value === 'object' ? JSON.stringify(value) : value;
   sessionStorage.setItem(key, valueToStore);
