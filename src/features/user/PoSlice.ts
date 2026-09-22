@@ -6,14 +6,14 @@ export type PO = {
   poDescription: string;
   supplierCode: string;
   contractNo: string;
-  capexOpex: string;
+  capexopex: string;
   createdBy: string;
   unit: string;
   department: string;
   poOrderValue: number;
   currency: string;
   deliveredValue: number;
-  pendingLiabilities: number;
+  balancetobeinvoice: number;
   bankPaymentReleased: number;
   invoiceValue: number;
   pktblSapDump: number;
@@ -44,8 +44,8 @@ const initialState: PoState = {
 
 export const fetchPoData = createAsyncThunk<PO[], void, { rejectValue: string }>('po/fetchPoData', async (_, { rejectWithValue }) => {
   try {
-    const response = await axiosInstance.get('/Util/po-details?unitId=0&DeptId=0');
-    return response.data.data.poList as PO[];
+    const response = await axiosInstance.get('/Reports/poreport');
+    return response.data.data as PO[];
   } catch (err: any) {
     const errorMessage = err.response?.data?.message || 'Failed to fetch Data';
     return rejectWithValue(errorMessage);
@@ -55,11 +55,7 @@ export const fetchPoData = createAsyncThunk<PO[], void, { rejectValue: string }>
 const poSlice = createSlice({
   name: 'po',
   initialState,
-  reducers: {
-    removePoByPktblSapDump: (state, action: PayloadAction<number>) => {
-      state.po = state.po.filter((item) => Number(item.pktblSapDump) !== action.payload);
-    },
-  },
+  reducers: {},
   extraReducers: (builder) => {
     builder
       .addCase(fetchPoData.pending, (state) => {
@@ -75,7 +71,5 @@ const poSlice = createSlice({
       });
   },
 });
-
-export const { removePoByPktblSapDump } = poSlice.actions;
 
 export default poSlice.reducer;

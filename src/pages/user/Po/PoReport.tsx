@@ -32,15 +32,15 @@ const PoReport: React.FC = () => {
     }
 
     return {
-      zeroPoData: po.filter((item) => Number(item.pendingLiabilities) === 0),
+      zeroPoData: po.filter((item) => Number(item.balancetobeinvoice) === 0),
 
-      negativePoData: po.filter((item) => Number(item.pendingLiabilities) < 0),
+      negativePoData: po.filter((item) => Number(item.balancetobeinvoice) < 0),
     };
   }, [po]);
 
   return (
     <div className="p-4">
-      {loading && <Loader/>}
+      {loading && <Loader />}
       {/* Top Header & Navigation Tabs */}
       <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4 pb-3">
         <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">Payroll Reports</h1>

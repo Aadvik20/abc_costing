@@ -1,12 +1,89 @@
 import ReportTable from '@/components/common/ReportTable';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import React, { useMemo } from 'react';
+import { FilterX, X } from 'lucide-react';
+import React, { useMemo, useState } from 'react';
 
 interface ZeroPoReportProps {
   data: any[];
 }
 
 const ZeroPoReport: React.FC<ZeroPoReportProps> = ({ data }) => {
+  const [selectedUnit, setSelectedUnit] = useState<string>('all');
+  const [selectedCapexOpex, setSelectedCapexOpex] = useState<string>('all');
+  const { unitOptions, capexOpexOptions } = useMemo(() => {
+    if (!Array.isArray(data)) {
+      return {
+        unitOptions: [],
+        capexOpexOptions: [],
+      };
+    }
+
+    const units = [...new Set(data.map((item) => item.unit).filter(Boolean))];
+
+    const capexOpex = [...new Set(data.map((item) => item.capexopex).filter(Boolean))];
+
+    return {
+      unitOptions: units,
+      capexOpexOptions: capexOpex,
+    };
+  }, [data]);
+
+  const filteredData = useMemo(() => {
+    if (!Array.isArray(data)) return [];
+
+    return data.filter((item) => {
+      const matchUnit = selectedUnit === 'all' || item.unit === selectedUnit;
+      const matchCapexOpex = selectedCapexOpex === 'all' || item.capexopex === selectedCapexOpex;
+      return matchUnit && matchCapexOpex;
+    });
+  }, [data, selectedUnit, selectedCapexOpex]);
+
+  const rightElements = (
+    <div className="flex items-center gap-2">
+      <select
+        value={selectedUnit}
+        onChange={(e) => setSelectedUnit(e.target.value)}
+        className="h-[30px] w-[180px] px-2 text-xs font-medium bg-white text-slate-800 border border-slate-300 rounded focus:outline-none focus:border-blue-500 cursor-pointer shadow-xs"
+      >
+        <option value="all">All Units</option>
+        {unitOptions.map((unit) => (
+          <option key={unit} value={unit}>
+            {unit}
+          </option>
+        ))}
+      </select>
+
+      <select
+        value={selectedCapexOpex}
+        onChange={(e) => setSelectedCapexOpex(e.target.value)}
+        className="h-[30px] w-[180px] px-2 text-xs font-medium bg-white text-slate-800 border border-slate-300 rounded focus:outline-none focus:border-blue-500 cursor-pointer shadow-xs"
+      >
+        <option value="all">All Nature of Contract</option>
+        {capexOpexOptions.map((option) => (
+          <option key={option} value={option}>
+            {option}
+          </option>
+        ))}
+      </select>
+
+      {/* Reset Button */}
+      {(selectedUnit !== 'all' || selectedCapexOpex !== 'all') && (
+        <button
+          onClick={() => {
+            setSelectedUnit('all');
+            setSelectedCapexOpex('all');
+          }}
+          className="flex items-center gap-1 h-[30px] px-2.5 text-xs font-medium text-slate-600 bg-white border border-slate-300 hover:bg-slate-100 hover:text-slate-900 rounded transition-colors"
+          title="Reset all filters"
+        >
+          <FilterX className="w-3.5 h-3.5" />
+          <span>Reset</span>
+        </button>
+      )}
+    </div>
+  );
+
   const columns = useMemo(
     () => [
       {
@@ -17,18 +94,11 @@ const ZeroPoReport: React.FC<ZeroPoReportProps> = ({ data }) => {
         cell: ({ row }: any) => <div className="font-semibold text-center">{row.index + 1}</div>,
       },
       {
-        accessorKey: 'capexOpx',
+        accessorKey: 'poNo',
         header: 'Purchasing Documents',
         size: 200,
         enableSorting: false,
-        cell: ({ row }: any) => <div className="font-semibold">{row?.original?.capexOpx || '-'}</div>,
-      },
-      {
-        accessorKey: 'capexOpex',
-        header: 'Profit Center',
-        size: 140,
-        enableSorting: false,
-        cell: ({ row }: any) => <div className="font-semibold">{row?.original?.capexOpex || '-'}</div>,
+        cell: ({ row }: any) => <div className="font-semibold tabular-nums">{row?.original?.poNo || '-'}</div>,
       },
       {
         accessorKey: 'unit',
@@ -38,25 +108,19 @@ const ZeroPoReport: React.FC<ZeroPoReportProps> = ({ data }) => {
         cell: ({ row }: any) => <div className="font-semibold">{row?.original?.unit || '-'}</div>,
       },
       {
-        accessorKey: 'capexOpe',
-        header: 'Plant Location',
-        size: 140,
-        enableSorting: false,
-        cell: ({ row }: any) => <div className="font-semibold">{row?.original?.capexOpe || '-'}</div>,
-      },
-      {
-        accessorKey: 'contractNo',
+        accessorKey: 'contractno',
         header: 'Contract NO.',
         size: 220,
+        enableSorting: false,
         cell: ({ row }) => (
           <TooltipProvider delayDuration={0} skipDelayDuration={0}>
             <Tooltip>
               <TooltipTrigger asChild>
-                <div className="max-w-[220px] truncate font-semibold cursor-pointer">{row?.original?.contractNo || '-'}</div>
+                <div className="max-w-[220px] truncate font-semibold cursor-pointer">{row?.original?.contractno || '-'}</div>
               </TooltipTrigger>
 
               <TooltipContent className="max-w-md break-words">
-                <p>{row?.original?.contractNo || '-'}</p>
+                <p>{row?.original?.contractno || '-'}</p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
@@ -70,18 +134,30 @@ const ZeroPoReport: React.FC<ZeroPoReportProps> = ({ data }) => {
         cell: ({ row }: any) => <div className="font-semibold ">{row?.original?.contractN || '-'}</div>,
       },
       {
-        accessorKey: 'poN',
+        accessorKey: 'capexopex',
         header: 'Nature of Contract',
         size: 180,
         enableSorting: false,
-        cell: ({ row }: any) => <span className="font-semibold">{row.original.poN || '-'}</span>,
+        cell: ({ row }: any) => <span className="font-semibold">{row.original.capexopex || '-'}</span>,
       },
       {
-        accessorKey: 'poNw',
+        accessorKey: 'suppliercode',
         header: 'Name of Vendor',
-        size: 160,
+        size: 250,
         enableSorting: false,
-        cell: ({ row }: any) => <span className="font-semibold">{row.original.poNw || '-'}</span>,
+        cell: ({ row }) => (
+          <TooltipProvider delayDuration={0} skipDelayDuration={0}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="max-w-[250px] truncate font-semibold cursor-pointer">{row?.original?.suppliercode || '-'}</div>
+              </TooltipTrigger>
+
+              <TooltipContent className="max-w-md break-words">
+                <p>{row?.original?.suppliercode || '-'}</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        ),
       },
       {
         accessorKey: 'glaccount',
@@ -109,7 +185,7 @@ const ZeroPoReport: React.FC<ZeroPoReportProps> = ({ data }) => {
     ],
     []
   );
-  return <ReportTable columns={columns} data={data} />;
+  return <ReportTable columns={columns} data={filteredData} showSearchInput={true} rightElements={rightElements} />;
 };
 
 export default ZeroPoReport;
