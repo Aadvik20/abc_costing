@@ -1,13 +1,13 @@
 const DFCCIL_UAT = {
-  apiUrl: 'https://uatdevbudgetapi.dfccil.com/api',
+  apiUrl: 'https://uatadverseapi.dfccil.com/api',
   orgHierarchy: 'https://uatorganization.dfccil.com/api',
   logoutUrl: 'https://uat.dfccil.com/DfcHome',
   exitUrl: 'https://uatlogin.dfccil.com/applications',
   authUrl: 'https://app2.dfccil.com',
-  clientId: '29d9a04b724941b3a490899d950aa3ce',
+  clientId: 'd46b7d786c604ab0820fedfc52f701db',
   postLogout: 'https://uatlogin.dfccil.com/signout',
   redirectPath: 'dashboard',
-  applicationId: 76,
+  applicationId: 101,
 };
 
 const DFCCIL_PROD = {
@@ -23,5 +23,3 @@ const DFCCIL_PROD = {
 };
 
 export const environment = DFCCIL_UAT;
-
-export const SESSION_CHECK_INTERVAL = 20 * 60 * 1000;

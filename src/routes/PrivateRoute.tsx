@@ -17,9 +17,8 @@ const PrivateRoute: React.FC<PrivateRouteProps> = ({ allowedRoles = [] }) => {
   const dispatch = useAppDispatch();
   const location = useLocation();
   const navigate = useNavigate();
-  useSessionChecker();
 
-  const { loading: userLoading , Roles } = useAppSelector((state) => state.user);
+  const { loading: userLoading, Roles } = useAppSelector((state) => state.user);
   const isAuthenticated = auth.isAuthenticated;
   const isInitializing = auth.isLoading;
   const redirectHandled = useRef(false);

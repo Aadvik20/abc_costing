@@ -4,6 +4,6 @@ export type NavItem = {
   title: string;
   url?: string;
   icon?: LucideIcon;
-  roles: Number[];
+  roles: string[];
   children?: NavItem[];
 };

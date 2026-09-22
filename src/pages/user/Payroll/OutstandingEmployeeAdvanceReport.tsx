@@ -1,17 +1,29 @@
 import ReportTable from '@/components/common/ReportTable';
+import Loader from '@/components/ui/loader';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { formatDate, formatRupees } from '@/lib/helperFunction';
-import React, { useMemo, useState } from 'react';
+import axiosInstance from '@/services/axiosInstance';
+import React, { useEffect, useMemo, useState } from 'react';
 
 const OutstandingEmployeeAdvanceReport = () => {
-  //   const dispatch = useAppDispatch();
+  const [loading, setLoading] = useState(false);
   const [data, setData] = useState([]);
-  //   const { po, loading } = useAppSelector((state) => state.poSlice);
 
-  //   useEffect(() => {
-  //     if (!po || po?.length === 0) {
-  //       dispatch(fetchPoData());
-  //     }
-  //   }, [dispatch, po]);
+  const fetchdata = async () => {
+    setLoading(true);
+    try {
+      const res = await axiosInstance.get('/Reports/outstanding-employees');
+      setData(res.data?.data);
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchdata();
+  }, []);
 
   const columns = useMemo(
     () => [
@@ -25,7 +37,7 @@ const OutstandingEmployeeAdvanceReport = () => {
       {
         accessorKey: 'category',
         header: 'Category',
-        size: 120,
+        size: 160,
         enableSorting: false,
         cell: ({ row }: any) => <div className="font-semibold">{row?.original?.category || '-'}</div>,
       },
@@ -34,56 +46,79 @@ const OutstandingEmployeeAdvanceReport = () => {
         header: 'Profit Center',
         size: 130,
         enableSorting: false,
-        cell: ({ row }: any) => <span className="font-semibold">{row.original.profitCenter || '-'}</span>,
+        cell: ({ row }: any) => <span className="font-semibold tabular-nums">{row.original.profitCenter || '-'}</span>,
       },
       {
-        accessorKey: 'unitName',
+        accessorKey: 'unit',
         header: 'Unit Name',
-        size: 120,
+        size: 170,
         enableSorting: false,
-        cell: ({ row }: any) => <div className="font-semibold">{row?.original?.unitName || '-'}</div>,
+        cell: ({ row }: any) => <div className="font-semibold">{row?.original?.unit || '-'}</div>,
+      },
+      // {
+      //   accessorKey: 'glAccount',
+      //   header: 'SAP GL Account',
+      //   size: 150,
+      //   enableSorting: false,
+      //   cell: ({ row }: any) => <div className="font-semibold">{row?.original?.glAccount || '-'}</div>,
+      // },
+      // {
+      //   accessorKey: 'glDescription',
+      //   header: 'GL Description',
+      //   size: 180,
+      //   enableSorting: false,
+      //   cell: ({ row }: any) => <div className="font-semibold">{row.original.glDescription || '-'}</div>,
+      // },
+      {
+        accessorKey: 'sapGl',
+        header: 'GL Account',
+        size: 220,
+        enableSorting: false,
+        cell: ({ row }) => (
+          <div className="w-[220px]">
+            <div className="font-semibold tabular-nums">{row.original.sapGl || '-'}</div>
+
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="mt-1 text-xs text-slate-500 truncate cursor-pointer max-w-[250px]">{row.original.descGl}</div>
+                </TooltipTrigger>
+
+                <TooltipContent className="max-w-md break-words">
+                  <p>{row.original.descGl}</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
+        ),
       },
       {
-        accessorKey: 'glAccount',
-        header: 'SAP GL Account',
-        size: 150,
-        enableSorting: false,
-        cell: ({ row }: any) => <div className="font-semibold">{row?.original?.glAccount || '-'}</div>,
-      },
-      {
-        accessorKey: 'glDescription',
-        header: 'GL Description',
-        size: 180,
-        enableSorting: false,
-        cell: ({ row }: any) => <div className="font-semibold">{row.original.glDescription || '-'}</div>,
-      },
-      {
-        accessorKey: 'vendorCode',
+        accessorKey: 'employeeCode',
         header: 'Employee Code',
         size: 180,
         enableSorting: false,
-        cell: ({ row }: any) => <div className="font-semibold">{row.original.vendorCode || '-'}</div>,
+        cell: ({ row }: any) => <div className="font-semibold tabular-nums">{row.original.employeeCode || '-'}</div>,
       },
       {
-        accessorKey: 'vendorName',
+        accessorKey: 'empName',
         header: 'Employee Name',
-        size: 180,
+        size: 220,
         enableSorting: false,
-        cell: ({ row }: any) => <div className="font-semibold">{row.original.vendorName || '-'}</div>,
+        cell: ({ row }: any) => <div className="font-semibold">{row.original.empName || '-'}</div>,
       },
       {
-        accessorKey: 'amount',
+        accessorKey: 'outstandingAdvanceAmount',
         header: 'Outstanding Advance Amount',
         size: 270,
         enableSorting: true,
-        cell: ({ row }: any) => <div className="text-right font-semibold tabular-nums">{formatRupees(row.original.amount)}</div>,
+        cell: ({ row }: any) => <div className="text-right font-semibold tabular-nums">{formatRupees(row.original.outstandingAdvanceAmount)}</div>,
       },
       {
-        accessorKey: 'postingDate',
+        accessorKey: 'periodOfOutstanding',
         header: 'Period of Outstanding',
         size: 220,
         enableSorting: true,
-        cell: ({ row }: any) => <div className="font-semibold">{formatDate(row?.original?.postingDate || '-')}</div>,
+        cell: ({ row }: any) => <div className="font-semibold tabular-nums">{row?.original?.periodOfOutstanding || '-'}</div>,
       },
       {
         accessorKey: 'reason',
@@ -95,8 +130,12 @@ const OutstandingEmployeeAdvanceReport = () => {
     ],
     []
   );
-
-  return <ReportTable data={data} columns={columns} showSearchInput={true} />;
+  return (
+    <div>
+      {loading && <Loader />}
+      <ReportTable data={data} columns={columns} showSearchInput={true} />
+    </div>
+  );
 };
 
 export default OutstandingEmployeeAdvanceReport;

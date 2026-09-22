@@ -20,53 +20,53 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
       title: 'Adverse Report',
       url: '/adverseReport',
       icon: AlertTriangle, // Adverse / Warning
-      roles: [-1], //user
+      roles: ['User'], //user
     },
     {
       title: 'Non Movement Balances',
       url: '/nonMovementBalances',
       icon: PauseCircle, // Non-movement / Stagnant
-      roles: [-1], //user
+      roles: ['User'], //user
     },
     {
       title: 'Payroll Report',
       url: '/payroll',
       icon: DollarSign, // Payroll / Salary
-      roles: [-1], //user
+      roles: ['User'], //user
     },
     {
       title: 'PO Report',
       url: '/poReport',
       icon: FileText, // Purchase Order / Document
-      roles: [-1], //user
+      roles: ['User'], //user
     },
     {
       title: 'GRIR Line Items',
       url: '/grirLineItems',
       icon: ListChecks, // Goods Receipt / Line items
-      roles: [-1], //user
+      roles: ['User'], //user
     },
     {
       title: 'Vendor Outstanding Report',
       url: '/vendorOutstandingReport',
       icon: Users, // Vendor / Supplier
-      roles: [-1], //user
+      roles: ['User'], //user
     },
     {
       title: 'Park But Not Posted',
       url: '/parkButNotPosted',
       icon: Clock, // Parked / Pending
-      roles: [-1], //user
+      roles: ['User'], //user
     },
     {
       title: 'Open Item',
       url: '/openItem',
       icon: FolderOpen, // Open status / Items
-      roles: [-1], //user
+      roles: ['User'], //user
     },
   ];
 
-  const navMainItems = allNavItems.filter((item) => item.roles.some((role) => Roles.includes(role)));
+  const navMainItems = allNavItems.filter((item) => item.roles.some((role) => Roles?.includes(role)));
   const handleLogout = () => {
     clearAllStorage();
     window.location.href = environment.exitUrl;

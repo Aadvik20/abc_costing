@@ -7,7 +7,7 @@ import { AppSidebar } from '../sidebar/app-sidebar';
 import { AdminSidebar } from '../sidebar/AdminSidebar';
 
 interface AppLayoutProps {
-  isAdmin: boolean
+  isAdmin: boolean;
 }
 
 const AppLayout: React.FC<AppLayoutProps> = ({ isAdmin }) => {

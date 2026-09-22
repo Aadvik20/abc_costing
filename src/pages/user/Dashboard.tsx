@@ -7,7 +7,7 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const { Roles } = useAppSelector((state: RootState) => state.user);
   useEffect(() => {
-    if (Roles.includes(-1)) {
+    if (Roles.includes('User')) {
       navigate('/adverseReport');
     }
   }, [Roles]);

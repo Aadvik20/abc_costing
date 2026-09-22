@@ -1,6 +1,7 @@
 import { useAppDispatch, useAppSelector } from '@/app/hooks';
 import ReportTable from '@/components/common/ReportTable';
 import Loader from '@/components/ui/loader';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { fetchPoData } from '@/features/user/PoSlice';
 import { formatDate, formatRupees } from '@/lib/helperFunction';
 import React, { useEffect, useMemo, useState } from 'react';
@@ -46,19 +47,42 @@ const AdverseReport = () => {
         enableSorting: false,
         cell: ({ row }: any) => <div className="font-semibold">{row?.original?.unitName || '-'}</div>,
       },
+      // {
+      //   accessorKey: 'glAccount',
+      //   header: 'SAP GL Account',
+      //   size: 150,
+      //   enableSorting: false,
+      //   cell: ({ row }: any) => <div className="font-semibold">{row?.original?.glAccount || '-'}</div>,
+      // },
+      // {
+      //   accessorKey: 'glDescription',
+      //   header: 'GL Description',
+      //   size: 180,
+      //   enableSorting: false,
+      //   cell: ({ row }: any) => <div className="font-semibold">{row.original.glDescription || '-'}</div>,
+      // },
       {
-        accessorKey: 'glAccount',
-        header: 'SAP GL Account',
-        size: 150,
+        accessorKey: 'glaccount',
+        header: 'GL Account',
+        size: 220,
         enableSorting: false,
-        cell: ({ row }: any) => <div className="font-semibold">{row?.original?.glAccount || '-'}</div>,
-      },
-      {
-        accessorKey: 'glDescription',
-        header: 'GL Description',
-        size: 180,
-        enableSorting: false,
-        cell: ({ row }: any) => <div className="font-semibold">{row.original.glDescription || '-'}</div>,
+        cell: ({ row }) => (
+          <div className="w-[220px]">
+            <div className="font-semibold tabular-nums">{row.original.glaccount || '-'}</div>
+
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="mt-1 text-xs text-slate-500 truncate cursor-pointer max-w-[250px]">{row.original.glDescription}</div>
+                </TooltipTrigger>
+
+                <TooltipContent className="max-w-md break-words">
+                  <p>{row.original.glDescription}</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
+        ),
       },
       {
         accessorKey: 'vendorCode',

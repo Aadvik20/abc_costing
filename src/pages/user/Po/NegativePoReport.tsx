@@ -2,8 +2,7 @@ import ReportTable from '@/components/common/ReportTable';
 import { formatRupees } from '@/lib/helperFunction';
 import React, { useMemo, useState } from 'react';
 
-const NegativePoReport = () => {
-  const [data, setData] = useState([]);
+const NegativePoReport = (data) => {
   const columns = useMemo(
     () => [
       {

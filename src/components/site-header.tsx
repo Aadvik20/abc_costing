@@ -16,7 +16,6 @@ const SiteHeader: React.FC = () => {
   const user = useSelector((state: RootState) => state.user);
   const { toggleSidebar } = useSidebar();
   const { decoded } = useSelector((state: RootState) => state.tokenData);
-
   return (
     <div className="sticky top-0 z-50">
       {/* UAT Warning Marquee — hidden in production */}

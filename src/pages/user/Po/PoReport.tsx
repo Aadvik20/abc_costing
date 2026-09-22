@@ -1,9 +1,9 @@
 import { useAppDispatch, useAppSelector } from '@/app/hooks';
 import { fetchPoData } from '@/features/user/PoSlice';
-import { formatDate, formatRupees } from '@/lib/helperFunction';
 import React, { useEffect, useMemo, useState } from 'react';
 import ZeroPoReport from './ZeroPoReport';
 import NegativePoReport from './NegativePoReport';
+import Loader from '@/components/ui/loader';
 
 type TabType = 'po-report' | 'adverse-report';
 
@@ -18,27 +18,29 @@ const PoReport: React.FC = () => {
   const { po, loading } = useAppSelector((state) => state.poSlice);
 
   useEffect(() => {
-    if (!po || po?.length === 0) {
+    if (!po || po.length === 0) {
       dispatch(fetchPoData());
     }
   }, [dispatch, po]);
 
-  // Pre-calculate counts for both categories
-  const counts = useMemo(() => {
-    if (!Array.isArray(po)) return { zero: 0, negative: 0 };
-    return po.reduce(
-      (acc, item) => {
-        const val = Number(item.pendingLiabilities) || 0;
-        if (val === 0) acc.zero += 1;
-        else if (val < 0) acc.negative += 1;
-        return acc;
-      },
-      { zero: 0, negative: 0 }
-    );
+  const { zeroPoData, negativePoData } = useMemo(() => {
+    if (!Array.isArray(po)) {
+      return {
+        zeroPoData: [],
+        negativePoData: [],
+      };
+    }
+
+    return {
+      zeroPoData: po.filter((item) => Number(item.pendingLiabilities) === 0),
+
+      negativePoData: po.filter((item) => Number(item.pendingLiabilities) < 0),
+    };
   }, [po]);
 
   return (
     <div className="p-4">
+      {loading && <Loader/>}
       {/* Top Header & Navigation Tabs */}
       <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4 pb-3">
         <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">Payroll Reports</h1>
@@ -78,8 +80,8 @@ const PoReport: React.FC = () => {
 
       {/* Render Component Based on Active Tab */}
       <div className="w-full mt-4">
-        {activeTab === 'po-report' && <ZeroPoReport />}
-        {activeTab === 'adverse-report' && <NegativePoReport />}
+        {activeTab === 'po-report' && <ZeroPoReport data={zeroPoData} />}
+        {activeTab === 'adverse-report' && <NegativePoReport data={negativePoData} />}
       </div>
     </div>
   );

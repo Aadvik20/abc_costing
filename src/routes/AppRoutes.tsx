@@ -21,7 +21,7 @@ import AdverseReport from '@/pages/user/AdverseReport';
 import NonMovementBalances from '@/pages/user/NonMovementBalances';
 import Payroll from '@/pages/user/Payroll/Payroll';
 import GrirLineItems from '@/pages/user/GrirLineItems';
-import VendorOutstandingReport from '@/pages/user/VendorOutstandingReport';
+import VendorOutstandingReport from '@/pages/user/Vendor Outstanding/VendorOutstandingReport';
 import ParkButNotPosted from '@/pages/user/ParkButNotPosted';
 import OpenItem from '@/pages/user/OpenItem';
 
@@ -50,11 +50,11 @@ const AppRoutes = () => {
         <Route path="/unauthorized" element={<Unauthorized />} />
         <Route path="/logout-notification" element={<FrontChannelLogout />} />
         <Route element={<AppLayout isAdmin={false} />}>
-          <Route element={<PrivateRoute allowedRoles={[-1]} />}>
+          <Route element={<PrivateRoute allowedRoles={['User']} />}>
             <Route path="/" element={<HomePage />} />
             <Route path="/dashboard" element={<Dashboard />} />
           </Route>
-          <Route element={<PrivateRoute allowedRoles={[-1]} />}>
+          <Route element={<PrivateRoute allowedRoles={['User']} />}>
             <Route path="/adverseReport" element={<AdverseReport />} />
             <Route path="/nonMovementBalances" element={<NonMovementBalances />} />
             <Route path="/payroll" element={<Payroll />} />
@@ -66,7 +66,7 @@ const AppRoutes = () => {
           </Route>
         </Route>
         <Route element={<AppLayout isAdmin={true} />}>
-          <Route element={<PrivateRoute allowedRoles={[-1]} />}></Route>
+          <Route element={<PrivateRoute allowedRoles={['User']} />}></Route>
         </Route>
         <Route element={<AppLayout isAdmin={true} />}></Route>
         <Route path="*" element={<NotFound />} />

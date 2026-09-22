@@ -1,24 +1,22 @@
 import React, { useState } from 'react';
-import WageTypeGLReport from './WageTypeGLReport';
-import OutstandingEmployeeAdvanceReport from './OutstandingEmployeeAdvanceReport';
-import AssetStatusReport from './AssetStatusReport';
+import MsmeVendorReport from './MsmeVendorReport';
+import VendorAgeingReport from './VendorAgeingReport';
 
-type TabType = 'wage-gl' | 'emp-advance' | 'asset-status';
+type TabType = 'msme-report' | 'vendor-report';
 
-const Payroll = () => {
-  const [activeTab, setActiveTab] = useState<TabType>('wage-gl');
+const VendorOutstandingReport = () => {
+  const [activeTab, setActiveTab] = useState<TabType>('msme-report');
 
   const tabs: { id: TabType; label: string }[] = [
-    { id: 'wage-gl', label: 'Wage Type–G/L Account Linking' },
-    { id: 'emp-advance', label: 'Outstanding Employee Advance' },
-    { id: 'asset-status', label: 'Asset Status (Separated Employees)' },
+    { id: 'msme-report', label: 'MSME Vendor Outstanding and Ageing Report' },
+    { id: 'vendor-report', label: 'Vendor Ageing Schedule' },
   ];
 
   return (
     <div className="p-4">
       {/* Top Header & Navigation Tabs */}
-      <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4 pb-2">
-        <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">Payroll Reports</h1>
+      <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4 pb-3">
+        <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">Vendor Outstanding Reports</h1>
       </div>
 
       {/* Navigation Tabs */}
@@ -54,13 +52,11 @@ const Payroll = () => {
       </div>
 
       {/* Render Component Based on Active Tab */}
-      <div className="w-full mt-2">
-        {activeTab === 'wage-gl' && <WageTypeGLReport />}
-        {activeTab === 'emp-advance' && <OutstandingEmployeeAdvanceReport />}
-        {activeTab === 'asset-status' && <AssetStatusReport />}
+      <div className="w-full mt-4">
+        {activeTab === 'msme-report' && <MsmeVendorReport />}
+        {activeTab === 'vendor-report' && <VendorAgeingReport />}
       </div>
     </div>
   );
 };
-
-export default Payroll;
+export default VendorOutstandingReport;

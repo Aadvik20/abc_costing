@@ -1,8 +1,12 @@
 import ReportTable from '@/components/common/ReportTable';
-import React, { useMemo, useState } from 'react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import React, { useMemo } from 'react';
 
-const ZeroPoReport = () => {
-  const [data, setData] = useState([]);
+interface ZeroPoReportProps {
+  data: any[];
+}
+
+const ZeroPoReport: React.FC<ZeroPoReportProps> = ({ data }) => {
   const columns = useMemo(
     () => [
       {
@@ -13,11 +17,11 @@ const ZeroPoReport = () => {
         cell: ({ row }: any) => <div className="font-semibold text-center">{row.index + 1}</div>,
       },
       {
-        accessorKey: 'capexOpex',
+        accessorKey: 'capexOpx',
         header: 'Purchasing Documents',
         size: 200,
         enableSorting: false,
-        cell: ({ row }: any) => <div className="font-semibold">{row?.original?.capexOpex || '-'}</div>,
+        cell: ({ row }: any) => <div className="font-semibold">{row?.original?.capexOpx || '-'}</div>,
       },
       {
         accessorKey: 'capexOpex',
@@ -27,60 +31,80 @@ const ZeroPoReport = () => {
         cell: ({ row }: any) => <div className="font-semibold">{row?.original?.capexOpex || '-'}</div>,
       },
       {
-        accessorKey: 'capexOpex',
+        accessorKey: 'unit',
         header: 'Unit',
-        size: 110,
+        size: 130,
         enableSorting: false,
-        cell: ({ row }: any) => <div className="font-semibold">{row?.original?.capexOpex || '-'}</div>,
+        cell: ({ row }: any) => <div className="font-semibold">{row?.original?.unit || '-'}</div>,
       },
       {
-        accessorKey: 'capexOpex',
+        accessorKey: 'capexOpe',
         header: 'Plant Location',
         size: 140,
         enableSorting: false,
-        cell: ({ row }: any) => <div className="font-semibold">{row?.original?.capexOpex || '-'}</div>,
+        cell: ({ row }: any) => <div className="font-semibold">{row?.original?.capexOpe || '-'}</div>,
       },
       {
         accessorKey: 'contractNo',
         header: 'Contract NO.',
-        size: 250,
-        enableSorting: false,
-        cell: ({ row }: any) => <div className="font-semibold ">{row?.original?.contractNo || '-'}</div>,
+        size: 220,
+        cell: ({ row }) => (
+          <TooltipProvider delayDuration={0} skipDelayDuration={0}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="max-w-[220px] truncate font-semibold cursor-pointer">{row?.original?.contractNo || '-'}</div>
+              </TooltipTrigger>
+
+              <TooltipContent className="max-w-md break-words">
+                <p>{row?.original?.contractNo || '-'}</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        ),
       },
       {
-        accessorKey: 'contractNo',
+        accessorKey: 'contractN',
         header: 'Contract Description',
         size: 220,
         enableSorting: false,
-        cell: ({ row }: any) => <div className="font-semibold ">{row?.original?.contractNo || '-'}</div>,
+        cell: ({ row }: any) => <div className="font-semibold ">{row?.original?.contractN || '-'}</div>,
       },
       {
-        accessorKey: 'poNo',
+        accessorKey: 'poN',
         header: 'Nature of Contract',
         size: 180,
         enableSorting: false,
-        cell: ({ row }: any) => <span className="font-semibold">{row.original.poNo || '-'}</span>,
+        cell: ({ row }: any) => <span className="font-semibold">{row.original.poN || '-'}</span>,
       },
       {
-        accessorKey: 'poNo',
+        accessorKey: 'poNw',
         header: 'Name of Vendor',
         size: 160,
         enableSorting: false,
-        cell: ({ row }: any) => <span className="font-semibold">{row.original.poNo || '-'}</span>,
+        cell: ({ row }: any) => <span className="font-semibold">{row.original.poNw || '-'}</span>,
       },
       {
         accessorKey: 'glaccount',
         header: 'GL Account',
-        size: 150,
+        size: 220,
         enableSorting: false,
-        cell: ({ row }: any) => <div className="font-semibold tabular-nums">{row.original.glaccount || '-'}</div>,
-      },
-      {
-        accessorKey: 'glaccount',
-        header: 'GL Description',
-        size: 150,
-        enableSorting: false,
-        cell: ({ row }: any) => <div className="font-semibold">{row.original.glaccount || '-'}</div>,
+        cell: ({ row }) => (
+          <div className="w-[220px]">
+            <div className="font-semibold tabular-nums">{row.original.glaccount || '-'}</div>
+
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="mt-1 text-xs text-slate-500 truncate cursor-pointer max-w-[250px]">{row.original.glDescription}</div>
+                </TooltipTrigger>
+
+                <TooltipContent className="max-w-md break-words">
+                  <p>{row.original.glDescription}</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
+        ),
       },
     ],
     []

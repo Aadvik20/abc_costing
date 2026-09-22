@@ -6,7 +6,11 @@ import userReducer from '@/features/user/userSlice';
 import applicationsReducer from '@/features/applications/applicationSlice';
 import tokenDataReduer from '../features/user/TokenDataSlice';
 import poSlicereducer from '@/features/user/PoSlice';
+import pendingInventorySliceReducer from '@/features/user/GrirItemsSlice';
+import openItemSliceReducer from '@/features/user/OpenItemsSlice';
+import ParkItemSliceReducer from '@/features/user/ParkButNotPosted';
 import masterDatareducer from '@/features/masterData/masterSlice';
+import MsmeVendorSliceReducer from '@/features/user/MsmeVendorSlice';
 
 const persistConfig = {
   key: 'root',
@@ -18,6 +22,10 @@ const rootReducer = combineReducers({
   user: userReducer,
   applications: applicationsReducer,
   poSlice: poSlicereducer,
+  pendingInventorySlice: pendingInventorySliceReducer,
+  openItemSlice: openItemSliceReducer,
+  parkItemSlice: ParkItemSliceReducer,
+  msmeVendorSlice: MsmeVendorSliceReducer,
   tokenData: tokenDataReduer,
   masterData: masterDatareducer,
 });

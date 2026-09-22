@@ -11,7 +11,7 @@ import {
   useReactTable,
   ColumnDef,
 } from '@tanstack/react-table';
-import { ArrowUp, ArrowDown, ArrowUpDown, ListFilter, Search, ChevronRight, ChevronLeft, ChevronsLeft, ChevronsRight, X, Inbox, RotateCw } from 'lucide-react';
+import { ArrowUp, ArrowDown, ArrowUpDown, ListFilter, Search, ChevronRight, ChevronLeft, X, Inbox, RotateCw } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Checkbox } from '../ui/checkbox';
 import { Input } from '../ui/input';
@@ -177,7 +177,7 @@ export const ReportTable: React.FC<ReportTableProps> = ({
   const renderSortIcon = (columnId: string, canSort: boolean) => {
     if (!canSort) return null;
     if (sortField !== columnId) {
-      return <ArrowUpDown className="h-3 w-3 text-slate-400 opacity-60 group-hover:opacity-100 shrink-0" />;
+      return <ArrowUpDown className="h-3 w-3 text-white opacity-90 group-hover:opacity-100 shrink-0" />;
     }
     if (sortOrder === 'asc') {
       return <ArrowUp className="h-3 w-3 text-amber-300 shrink-0" strokeWidth={3} />;
@@ -264,9 +264,9 @@ export const ReportTable: React.FC<ReportTableProps> = ({
 
       {/* Main SAP Grid Frame */}
       <div className="bg-white border border-slate-300 shadow-2xs flex flex-col">
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto max-h-[60vh]">
           <table className="w-full text-xs border-collapse table-fixed">
-            <thead className="bg-[#1d2d3e] sticky top-0 z-20 text-white font-semibold uppercase tracking-wider border-b-2 border-slate-400 select-none">
+            <thead className="bg-blue-700 sticky top-0 z-20 text-white font-semibold uppercase tracking-wider border-b-2 border-blue-700 select-none">
               {table.getHeaderGroups().map((headerGroup) => (
                 <tr key={headerGroup.id}>
                   {headerGroup.headers.map((header) => {
@@ -281,8 +281,8 @@ export const ReportTable: React.FC<ReportTableProps> = ({
                           width: columnDef.size ? `${columnDef.size}px` : undefined,
                           minWidth: columnDef.size ? `${columnDef.size}px` : '100px',
                         }}
-                        className={`group px-3 py-2 text-center whitespace-nowrap border-r border-[#2c3e50] last:border-r-0 ${
-                          canSort ? 'cursor-pointer hover:bg-[#2c3e50] transition-colors' : ''
+                        className={`group px-3 py-2 text-center whitespace-nowrap border-r border-white last:border-r-0 ${
+                          canSort ? 'cursor-pointer hover:bg-blue-600 transition-colors' : ''
                         }`}
                         onClick={() => {
                           if (canSort) handleSort(columnId);
@@ -326,7 +326,7 @@ export const ReportTable: React.FC<ReportTableProps> = ({
                 ))
               ) : (
                 <tr>
-                  <td colSpan={table.getVisibleLeafColumns().length || columns.length} className="text-center py-12 text-slate-500 bg-slate-50">
+                  <td colSpan={table.getVisibleLeafColumns().length || columns.length} className="text-center py-12 text-slate-500 bg-white">
                     <div className="flex flex-col items-center justify-center">
                       <Inbox className="h-9 w-9 stroke-1 text-slate-400 mb-1.5" />
                       <p className="text-xs font-semibold text-slate-600">No data records found</p>
@@ -412,7 +412,7 @@ export const ReportTable: React.FC<ReportTableProps> = ({
                   variant="outline"
                   size="sm"
                   key={`page-${button}`}
-                  className={`text-xs ${button === pageIndex ? 'bg-[#1d2d3e] text-white hover:bg-[#2c3e50]' : ''}`}
+                  className={`text-xs ${button === pageIndex ? 'bg-blue-700 text-white hover:bg-blue-700 hover:text-white' : ''}`}
                   onClick={() => table.setPageIndex(button as number)}
                 >
                   {(button as number) + 1}

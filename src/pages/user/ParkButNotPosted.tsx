@@ -1,20 +1,20 @@
 import { useAppDispatch, useAppSelector } from '@/app/hooks';
 import ReportTable from '@/components/common/ReportTable';
 import Loader from '@/components/ui/loader';
+import { fetchParkItem } from '@/features/user/ParkButNotPosted';
 import { fetchPoData } from '@/features/user/PoSlice';
 import { formatDate, formatRupees } from '@/lib/helperFunction';
 import React, { useEffect, useMemo, useState } from 'react';
 
 const ParkButNotPosted = () => {
-  //   const dispatch = useAppDispatch();
-  const [data, setData] = useState([]);
-  //   const { po, loading } = useAppSelector((state) => state.poSlice);
+  const dispatch = useAppDispatch();
+  const { data, loading } = useAppSelector((state) => state.parkItemSlice);
 
-  //   useEffect(() => {
-  //     if (!po || po?.length === 0) {
-  //       dispatch(fetchPoData());
-  //     }
-  //   }, [dispatch, po]);
+  useEffect(() => {
+    if (!data || data?.length === 0) {
+      dispatch(fetchParkItem());
+    }
+  }, [dispatch, data]);
 
   const columns = useMemo(
     () => [
@@ -26,32 +26,39 @@ const ParkButNotPosted = () => {
         cell: ({ row }: any) => <div className="font-semibold text-center">{row.index + 1}</div>,
       },
       {
+        accessorKey: 'profitCentre',
+        header: 'Profit Center',
+        size: 120,
+        enableSorting: false,
+        cell: ({ row }: any) => <span className="font-semibold tabular-nums">{row.original.profitCentre || '-'}</span>,
+      },
+      {
         accessorKey: 'fiscalYear',
         header: 'Fiscal Year',
         size: 120,
-        enableSorting: false,
-        cell: ({ row }: any) => <span className="font-semibold">{row.original.fiscalYear || '-'}</span>,
+        enableSorting: true,
+        cell: ({ row }: any) => <span className="font-semibold tabular-nums">{row.original.fiscalYear || '-'}</span>,
       },
       {
-        accessorKey: 'Reference',
+        accessorKey: 'referenceNarration',
         header: 'Reference/Narration',
         size: 120,
         enableSorting: false,
-        cell: ({ row }: any) => <div className="font-semibold">{row?.original?.Reference || '-'}</div>,
+        cell: ({ row }: any) => <div className="font-semibold">{row?.original?.referenceNarration || '-'}</div>,
       },
       {
         accessorKey: 'postingDate',
         header: 'Posting Date',
         size: 140,
         enableSorting: true,
-        cell: ({ row }: any) => <div className="font-semibold">{formatDate(row?.original?.postingDate || '-')}</div>,
+        cell: ({ row }: any) => <div className="font-semibold tabular-nums">{formatDate(row?.original?.postingDate || '-')}</div>,
       },
       {
-        accessorKey: 'docNo',
+        accessorKey: 'documentNumber',
         header: 'Document No.',
         size: 130,
         enableSorting: false,
-        cell: ({ row }: any) => <span className="font-semibold tabular-nums">{row.original.docNo || '-'}</span>,
+        cell: ({ row }: any) => <span className="font-semibold tabular-nums">{row.original.documentNumber || '-'}</span>,
       },
     ],
     []
@@ -59,7 +66,7 @@ const ParkButNotPosted = () => {
 
   return (
     <div className="p-4 space-y-4">
-      {/* {loading && <Loader />} */}
+      {loading && <Loader />}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-2">
         <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">Park But Not Posted Documents</h1>
       </div>

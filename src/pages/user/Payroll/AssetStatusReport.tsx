@@ -1,17 +1,28 @@
 import ReportTable from '@/components/common/ReportTable';
+import Loader from '@/components/ui/loader';
 import { formatDate, formatRupees } from '@/lib/helperFunction';
-import React, { useMemo, useState } from 'react';
+import axiosInstance from '@/services/axiosInstance';
+import React, { useEffect, useMemo, useState } from 'react';
 
 const AssetStatusReport = () => {
-  //   const dispatch = useAppDispatch();
+  const [loading, setLoading] = useState(false);
   const [data, setData] = useState([]);
-  //   const { po, loading } = useAppSelector((state) => state.poSlice);
 
-  //   useEffect(() => {
-  //     if (!po || po?.length === 0) {
-  //       dispatch(fetchPoData());
-  //     }
-  //   }, [dispatch, po]);
+  const fetchdata = async () => {
+    setLoading(true);
+    try {
+      const res = await axiosInstance.get('/Reports/separated-employees');
+      setData(res.data?.data);
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchdata();
+  }, []);
 
   const columns = useMemo(
     () => [
@@ -23,11 +34,11 @@ const AssetStatusReport = () => {
         cell: ({ row }: any) => <div className="font-semibold text-center">{row.index + 1}</div>,
       },
       {
-        accessorKey: 'profitCenter',
+        accessorKey: 'profitCentre',
         header: 'Profit Center',
         size: 130,
         enableSorting: false,
-        cell: ({ row }: any) => <span className="font-semibold">{row.original.profitCenter || '-'}</span>,
+        cell: ({ row }: any) => <span className="font-semibold tabular-nums">{row.original.profitCentre || '-'}</span>,
       },
       {
         accessorKey: 'unitName',
@@ -37,59 +48,64 @@ const AssetStatusReport = () => {
         cell: ({ row }: any) => <div className="font-semibold">{row?.original?.unitName || '-'}</div>,
       },
       {
-        accessorKey: 'vendorCode',
+        accessorKey: 'employeeCode',
         header: 'Employee Code',
-        size: 130,
-        enableSorting: false,
-        cell: ({ row }: any) => <div className="font-semibold">{row.original.vendorCode || '-'}</div>,
-      },
-      {
-        accessorKey: 'vendorName',
-        header: 'Employee Name',
-        size: 130,
-        enableSorting: false,
-        cell: ({ row }: any) => <div className="font-semibold">{row.original.vendorName || '-'}</div>,
-      },
-      {
-        accessorKey: 'vendorName',
-        header: 'Assets Purchased',
         size: 150,
         enableSorting: false,
-        cell: ({ row }: any) => <div className="font-semibold">{row.original.vendorName || '-'}</div>,
+        cell: ({ row }: any) => <div className="font-semibold tabular-nums">{row.original.employeeCode || '-'}</div>,
       },
       {
-        accessorKey: 'postingDate',
+        accessorKey: 'nameOfEmployee',
+        header: 'Employee Name',
+        size: 180,
+        enableSorting: false,
+        cell: ({ row }: any) => <div className="font-semibold">{row.original.nameOfEmployee || '-'}</div>,
+      },
+      {
+        accessorKey: 'assetsPurchased',
+        header: 'Assets Purchased',
+        size: 160,
+        enableSorting: false,
+        cell: ({ row }: any) => <div className="font-semibold tabular-nums">{row.original.assetsPurchased || '-'}</div>,
+      },
+      {
+        accessorKey: 'dateOfPurchase',
         header: 'Date of Purchase',
-        size: 165,
+        size: 170,
         enableSorting: true,
-        cell: ({ row }: any) => <div className="font-semibold">{formatDate(row?.original?.postingDate || '-')}</div>,
+        cell: ({ row }: any) => <div className="font-semibold tabular-nums">{formatDate(row?.original?.dateOfPurchase || '-')}</div>,
       },
       {
-        accessorKey: 'amount',
+        accessorKey: 'costOfAssets',
         header: 'Cost of Assets',
-        size: 140,
+        size: 160,
         enableSorting: true,
-        cell: ({ row }: any) => <div className="text-right font-semibold tabular-nums">{formatRupees(row.original.amount)}</div>,
+        cell: ({ row }: any) => <div className="text-right font-semibold tabular-nums">{formatRupees(row.original.costOfAssets)}</div>,
       },
       {
-        accessorKey: 'postingDate',
+        accessorKey: 'wdvOfAssetsOnDateOfCessation',
         header: 'WDV of assets on date of cessation',
-        size: 280,
-        enableSorting: true,
-        cell: ({ row }: any) => <div className="font-semibold">{formatDate(row?.original?.postingDate || '-')}</div>,
+        size: 290,
+        enableSorting: false,
+        cell: ({ row }: any) => <div className="font-semibold tabular-nums">{row?.original?.wdvOfAssetsOnDateOfCessation || '-'}</div>,
       },
       {
-        accessorKey: 'reason',
+        accessorKey: 'statusOfAssets',
         header: 'Status of Assets ',
         size: 150,
         enableSorting: false,
-        cell: ({ row }: any) => <div className="font-semibold">{row.original.reason || '-'}</div>,
+        cell: ({ row }: any) => <div className="font-semibold">{row.original.statusOfAssets || '-'}</div>,
       },
     ],
     []
   );
 
-  return <ReportTable data={data} columns={columns} showSearchInput={true} />;
+  return (
+    <div>
+      {loading && <Loader />}
+      <ReportTable data={data} columns={columns} showSearchInput={true} />;
+    </div>
+  );
 };
 
 export default AssetStatusReport;
