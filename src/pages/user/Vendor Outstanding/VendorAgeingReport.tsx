@@ -1,9 +1,19 @@
+import { useAppDispatch, useAppSelector } from '@/app/hooks';
 import ReportTable from '@/components/common/ReportTable';
+import Loader from '@/components/ui/loader';
+import { fetchVendorAgeing } from '@/features/user/VendorAgeingSlice';
 import { formatRupees } from '@/lib/helperFunction';
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 
 const VendorAgeingReport = () => {
-  const [data, setData] = useState([]);
+  const dispatch = useAppDispatch();
+  const { data, loading } = useAppSelector((state) => state.vendorAgeingSlice);
+
+  useEffect(() => {
+    if (!data || data?.length === 0) {
+      dispatch(fetchVendorAgeing());
+    }
+  }, [dispatch, data]);
   const columns = useMemo(
     () => [
       {
@@ -14,72 +24,77 @@ const VendorAgeingReport = () => {
         cell: ({ row }: any) => <div className="font-semibold text-center">{row.index + 1}</div>,
       },
       {
-        accessorKey: 'capexOpex',
+        accessorKey: 'profitCentre',
         header: 'Profit Center',
         size: 140,
         enableSorting: false,
-        cell: ({ row }: any) => <div className="font-semibold">{row?.original?.capexOpex || '-'}</div>,
+        cell: ({ row }: any) => <div className="font-semibold tabular-nums">{row?.original?.profitCentre || '-'}</div>,
       },
       {
-        accessorKey: 'capexOpex',
+        accessorKey: 'unit',
         header: 'Unit',
-        size: 110,
+        size: 140,
         enableSorting: false,
-        cell: ({ row }: any) => <div className="font-semibold">{row?.original?.capexOpex || '-'}</div>,
+        cell: ({ row }: any) => <div className="font-semibold">{row?.original?.unit || '-'}</div>,
       },
       {
-        accessorKey: 'capexOpex',
+        accessorKey: 'vendorCode',
         header: 'Vendor Code',
         size: 140,
         enableSorting: false,
-        cell: ({ row }: any) => <div className="font-semibold">{row?.original?.capexOpex || '-'}</div>,
+        cell: ({ row }: any) => <div className="font-semibold">{row?.original?.vendorCode || '-'}</div>,
       },
       {
-        accessorKey: 'contractNo',
+        accessorKey: 'vendorName',
         header: 'Vendor Name',
-        size: 150,
+        size: 220,
         enableSorting: false,
-        cell: ({ row }: any) => <div className="font-semibold ">{row?.original?.contractNo || '-'}</div>,
+        cell: ({ row }: any) => <div className="font-semibold tabular-nums ">{row?.original?.vendorName || '-'}</div>,
       },
       {
-        accessorKey: 'poNo',
+        accessorKey: 'outstandingBalance',
         header: 'Outstanding Balance',
-        size: 160,
+        size: 220,
         enableSorting: true,
-        cell: ({ row }: any) => <span className="font-semibold">{formatRupees(row.original.poNo)}</span>,
+        cell: ({ row }: any) => <div className="font-semibold text-right tabular-nums">{formatRupees(row.original.outstandingBalance)}</div>,
       },
       {
-        accessorKey: 'glaccount',
+        accessorKey: 'lessThan1Year',
         header: 'Less than 1 Year',
         size: 150,
         enableSorting: false,
-        cell: ({ row }: any) => <div className="font-semibold tabular-nums">{row.original.glaccount || '-'}</div>,
+        cell: ({ row }: any) => <div className="font-semibold">{row.original.lessThan1Year || '-'}</div>,
       },
       {
-        accessorKey: 'glaccount',
+        accessorKey: 'oneToTwoYears',
         header: '1-2 Year',
         size: 150,
         enableSorting: false,
-        cell: ({ row }: any) => <div className="font-semibold tabular-nums">{row.original.glaccount || '-'}</div>,
+        cell: ({ row }: any) => <div className="font-semibold">{row.original.oneToTwoYears || '-'}</div>,
       },
       {
-        accessorKey: 'glaccount',
+        accessorKey: 'twoToThreeYears',
         header: '2-3 Year',
-        size: 150,
+        size: 140,
         enableSorting: false,
-        cell: ({ row }: any) => <div className="font-semibold tabular-nums">{row.original.glaccount || '-'}</div>,
+        cell: ({ row }: any) => <div className="font-semibold">{row.original.twoToThreeYears || '-'}</div>,
       },
       {
-        accessorKey: 'glaccount',
+        accessorKey: 'moreThan3Years',
         header: 'More than 3 Year',
-        size: 150,
+        size: 160,
         enableSorting: false,
-        cell: ({ row }: any) => <div className="font-semibold tabular-nums">{row.original.glaccount || '-'}</div>,
+        cell: ({ row }: any) => <div className="font-semibold">{row.original.moreThan3Years || '-'}</div>,
       },
     ],
     []
   );
-  return <ReportTable columns={columns} data={data} />;
+  return (
+    <div>
+      {loading && <Loader />}
+      <ReportTable columns={columns} data={data} />
+    </div>
+  );
 };
 
 export default VendorAgeingReport;

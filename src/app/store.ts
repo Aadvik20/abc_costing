@@ -11,6 +11,7 @@ import openItemSliceReducer from '@/features/user/OpenItemsSlice';
 import ParkItemSliceReducer from '@/features/user/ParkButNotPosted';
 import masterDatareducer from '@/features/masterData/masterSlice';
 import MsmeVendorSliceReducer from '@/features/user/MsmeVendorSlice';
+import VendorAgeingSliceReducer from '@/features/user/VendorAgeingSlice';
 
 const persistConfig = {
   key: 'root',
@@ -26,6 +27,7 @@ const rootReducer = combineReducers({
   openItemSlice: openItemSliceReducer,
   parkItemSlice: ParkItemSliceReducer,
   msmeVendorSlice: MsmeVendorSliceReducer,
+  vendorAgeingSlice: VendorAgeingSliceReducer,
   tokenData: tokenDataReduer,
   masterData: masterDatareducer,
 });

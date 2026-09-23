@@ -97,11 +97,11 @@ const AssetStatusReport = () => {
         cell: ({ row }: any) => <span className="font-semibold tabular-nums">{row.original.profitCentre || '-'}</span>,
       },
       {
-        accessorKey: 'unitName',
+        accessorKey: 'unit',
         header: 'Unit Name',
-        size: 120,
+        size: 160,
         enableSorting: false,
-        cell: ({ row }: any) => <div className="font-semibold">{row?.original?.unitName || '-'}</div>,
+        cell: ({ row }: any) => <div className="font-semibold">{row?.original?.unit || '-'}</div>,
       },
       {
         accessorKey: 'employeeCode',
@@ -127,7 +127,7 @@ const AssetStatusReport = () => {
       {
         accessorKey: 'dateOfPurchase',
         header: 'Date of Purchase',
-        size: 170,
+        size: 190,
         enableSorting: true,
         cell: ({ row }: any) => <div className="font-semibold tabular-nums">{formatDate(row?.original?.dateOfPurchase || '-')}</div>,
       },
@@ -141,14 +141,14 @@ const AssetStatusReport = () => {
       {
         accessorKey: 'wdvOfAssetsOnDateOfCessation',
         header: 'WDV of assets on date of cessation',
-        size: 290,
+        size: 300,
         enableSorting: false,
         cell: ({ row }: any) => <div className="font-semibold tabular-nums">{row?.original?.wdvOfAssetsOnDateOfCessation || '-'}</div>,
       },
       {
         accessorKey: 'statusOfAssets',
         header: 'Status of Assets ',
-        size: 150,
+        size: 180,
         enableSorting: false,
         cell: ({ row }: any) => <div className="font-semibold">{row.original.statusOfAssets || '-'}</div>,
       },
