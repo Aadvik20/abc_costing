@@ -63,14 +63,14 @@ const MsmeVendorReport = () => {
         header: 'Category of MSME',
         size: 170,
         enableSorting: false,
-        cell: ({ row }: any) => <span className="font-semibold">{row.original.categoryOfMsme || '-'}</span>,
+        cell: ({ row }: any) => <div className="font-semibold">{row.original.categoryOfMsme || '-'}</div>,
       },
       {
         accessorKey: 'outstandingBalance',
         header: 'Outstanding Balance',
         size: 220,
         enableSorting: true,
-        cell: ({ row }: any) => <span className="font-semibold tabular-nums">{formatRupees(row.original.outstandingBalance)}</span>,
+        cell: ({ row }: any) => <div className="text-right font-semibold tabular-nums">{formatRupees(row.original.outstandingBalance)}</div>,
       },
       {
         accessorKey: 'invoiceNumber',
