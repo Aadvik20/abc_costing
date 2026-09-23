@@ -120,7 +120,7 @@ const AdverseReport = () => {
     <div className="p-4 space-y-4">
       {/* {loading && <Loader />} */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-2">
-        <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">Adverse Report</h1>
+        <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">Corridor Master</h1>
       </div>
       <ReportTable data={data} columns={columns} showSearchInput={true} />
     </div>

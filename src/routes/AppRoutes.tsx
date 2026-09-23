@@ -23,7 +23,7 @@ import Payroll from '@/pages/user/Payroll/Payroll';
 import GrirLineItems from '@/pages/user/GrirLineItems';
 import VendorOutstandingReport from '@/pages/user/Vendor Outstanding/VendorOutstandingReport';
 import ParkButNotPosted from '@/pages/user/ParkButNotPosted';
-import OpenItem from '@/pages/user/OpenItem';
+import CorridorMaster from '@/pages/user/CorridorMaster';
 
 const AppRoutes = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -62,7 +62,7 @@ const AppRoutes = () => {
             <Route path="/grirLineItems" element={<GrirLineItems />} />
             <Route path="/vendorOutstandingReport" element={<VendorOutstandingReport />} />
             <Route path="/parkButNotPosted" element={<ParkButNotPosted />} />
-            <Route path="/openItem" element={<OpenItem />} />
+            <Route path="/corridormaster" element={<CorridorMaster />} />
           </Route>
         </Route>
         <Route element={<AppLayout isAdmin={true} />}>

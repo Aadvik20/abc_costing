@@ -15,6 +15,7 @@ export default defineConfig({
     port: 3001,
     https: {},
     host: 'localhost',
+    open: true,
   },
   resolve: { alias: { '@': path.resolve(__dirname, './src') } },
 });
