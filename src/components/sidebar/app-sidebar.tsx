@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { ChevronLeft, ChevronRight, LogOut, Hotel, AlertTriangle, PauseCircle, DollarSign, FileText, ListChecks, Users, Clock, FolderOpen } from 'lucide-react';
+import { ChevronsLeft, ChevronsRight, LogOut, Hotel, FileText, Clock } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import { NavMain } from '@/components/nav-main';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarMenu, SidebarMenuButton, SidebarRail, SidebarSeparator, useSidebar } from '@/components/ui/sidebar';
@@ -15,29 +15,50 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   const { state, toggleSidebar } = useSidebar();
   const { Roles } = useAppSelector((state: RootState) => state.user);
   const canAccessAdminDashboard = false;
+
   const allNavItems: NavItem[] = [
     {
-      title: 'Corridor',
-      url: '/corridormaster',
-      icon: FileText,
-      roles: ['User'], //user
+      title: 'Master',
+      icon: Clock,
+      roles: ['User'],
+      children: [
+        { title: 'corridormaster', url: '/corridormaster', roles: ['User'] },
+        { title: 'Project Office', url: '/projectoffice', roles: ['User'] },
+        { title: 'Department', url: '/departmentmaster', roles: ['User'] },
+        { title: 'Department Mapping', url: '/unitdepartments', roles: ['User'] },
+        { title: 'Cost Group', url: '/costgroup', roles: ['User'] },
+        { title: 'Daily Transactions', url: '/dailytransactions', roles: ['User'] },
+      ],
     },
-
+    {
+      title: 'Template',
+      url: '/ActivityBasedCosting', // add a route for this, or change the path
+      icon: FileText,
+      roles: ['User'],
+    },
   ];
 
-  const navMainItems = allNavItems.filter((item) => item.roles.some((role) => Roles?.includes(role)));
+  // keep only what this user's roles allow; hide a group if none of its links remain
+  const canSee = (x: { roles: string[] }) => x.roles.some((role) => Roles?.includes(role));
+  const navMainItems = allNavItems
+    .filter(canSee)
+    .map((item) => (item.children ? { ...item, children: item.children.filter(canSee) } : item))
+    .filter((item) => !item.children || item.children.length > 0);
+
   const handleLogout = () => {
     clearAllStorage();
     window.location.href = environment.exitUrl;
   };
-  const ToggleIcon = state === 'collapsed' ? ChevronRight : ChevronLeft;
+  const ToggleIcon = state === 'collapsed' ? ChevronsRight : ChevronsLeft;
   const menuButtonBaseClass =
     'transition-all duration-300 ease-in-out h-full w-full cursor-pointer active:bg-primary hover:bg-primary hover:text-white [&>svg]:size-7';
 
   return (
     <Sidebar collapsible="icon" {...props}>
       <div className="flex justify-end md:pt-[90px] px-2">
-        <ToggleIcon onClick={toggleSidebar} className="w-8 h-8 cursor-pointer" />
+        <button onClick={toggleSidebar} aria-label={state === 'collapsed' ? 'Expand sidebar' : 'Collapse sidebar'} className="rounded-md p-1 hover:bg-primary/10">
+          <ToggleIcon className="w-7 h-7 cursor-pointer" />
+        </button>
       </div>
       <SidebarSeparator />
       <SidebarContent className="flex justify-between">

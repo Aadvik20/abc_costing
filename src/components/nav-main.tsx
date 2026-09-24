@@ -1,88 +1,122 @@
-import { ChevronDown, ChevronRight } from 'lucide-react';
-import { useState } from 'react';
-import { SidebarGroup, SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from './ui/sidebar';
+import { useEffect, useState } from 'react';
+import { Link, useLocation } from 'react-router';
+import { ChevronDown } from 'lucide-react';
+import {
+  SidebarGroup,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarMenuSub,
+  SidebarMenuSubButton,
+  SidebarMenuSubItem,
+  useSidebar,
+} from '@/components/ui/sidebar';
+import { cn } from '@/lib/utils';
 import { NavItem } from '@/types/types';
-import { NavLink } from 'react-router';
+
+const isActive = (pathname: string, url?: string) => !!url && (pathname === url || pathname.startsWith(url + '/'));
 
 export function NavMain({ items }: { items: NavItem[] }) {
-  const { setOpenMobile } = useSidebar();
-  const [openItems, setOpenItems] = useState<string[]>([]);
+  return (
+    <SidebarGroup>
+      <SidebarMenu className="gap-1.5">
+        {items.map((item) => (item.children ? <NavGroup key={item.title} item={item} /> : <NavLeaf key={item.title} item={item} />))}
+      </SidebarMenu>
+    </SidebarGroup>
+  );
+}
 
-  const toggleOpen = (title: string) => {
-    setOpenItems((prev) => (prev.includes(title) ? prev.filter((t) => t !== title) : [...prev, title]));
+/* ---------- expandable group, e.g. "Master" ---------- */
+function NavGroup({ item }: { item: NavItem }) {
+  const { pathname } = useLocation();
+  const { state, isMobile, setOpen, setOpenMobile } = useSidebar();
+  const children = item.children ?? [];
+  const active = children.some((c) => isActive(pathname, c.url));
+  const [expanded, setExpanded] = useState(active);
+  useEffect(() => {
+    if (active) setExpanded(true);
+  }, [active]);
+
+  const railMode = state === 'collapsed' && !isMobile; // sidebar shrunk to icons
+  const showSub = expanded && !railMode;
+
+  // in icon mode a click first widens the sidebar, then the group opens
+  const handleClick = () => {
+    if (railMode) {
+      setOpen(true);
+      setExpanded(true);
+    } else {
+      setExpanded((v) => !v);
+    }
   };
 
   return (
-    <SidebarGroup>
-      <SidebarMenu>
-        {items.map((item) => {
-          const hasChildren = !!item.children?.length;
-          const isOpen = openItems.includes(item.title);
+    <SidebarMenuItem>
+      <SidebarMenuButton
+        tooltip={item.title}
+        aria-expanded={showSub}
+        onClick={handleClick}
+        className={cn(
+          'h-11 cursor-pointer rounded-xl font-semibold transition-colors [&>svg]:size-5',
+          active
+            ? 'bg-primary text-white shadow-md hover:bg-primary/90 hover:text-white active:bg-primary/90 active:text-white'
+            : 'hover:bg-primary/10 hover:text-primary active:bg-primary/10',
+        )}
+      >
+        <item.icon />
+        <span>{item.title}</span>
+        <ChevronDown className={cn('ml-auto !size-4 transition-transform duration-200', expanded && 'rotate-180')} />
+      </SidebarMenuButton>
 
-          return (
-            <SidebarMenuItem key={item.title}>
-              {hasChildren ? (
-                <SidebarMenuButton
-                  onClick={() => toggleOpen(item.title)}
-                  tooltip={item.title}
-                  className="flex items-center justify-between gap-2 hover:bg-primary hover:text-white"
+      {/* height animates 0fr -> 1fr; "invisible" keeps hidden links out of the tab order */}
+      <div className={cn('grid transition-[grid-template-rows] duration-200 motion-reduce:transition-none', showSub ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]')}>
+        <SidebarMenuSub
+          className={cn('mx-0 min-h-0 translate-x-0 gap-0.5 overflow-hidden border-l-0 px-0 py-0 transition-[visibility] duration-200', !showSub && 'invisible')}
+        >
+          <li aria-hidden className="h-1" />
+          {children.map((sub) => {
+            const activeSub = isActive(pathname, sub.url);
+            return (
+              <SidebarMenuSubItem key={sub.url}>
+                <SidebarMenuSubButton
+                  asChild
+                  isActive={activeSub}
+                  className="h-10 gap-3 rounded-lg pl-10 text-sm data-[active=true]:bg-primary/10 data-[active=true]:font-medium data-[active=true]:text-primary"
                 >
-                  <div className="flex items-center gap-2">
-                    {item.icon && <item.icon size={24} />}
-                    <span>{item.title}</span>
-                  </div>
-                  {isOpen ? <ChevronDown size={24} /> : <ChevronRight size={24} />}
-                </SidebarMenuButton>
-              ) : (
-                <NavLink to={item.url!} onClick={() => setOpenMobile(false)}>
-                  {({ isActive }) => (
-                    <SidebarMenuButton
-                      asChild
-                      tooltip={item.title}
-                      className={`transition-all duration-300 hover:bg-primary active:bg-primary [&>svg]:size-7 ease-in-out ${
-                        isActive ? 'bg-primary text-primary hover:text-white h-full w-full' : ' hover:text-white  h-full'
-                      }`}
-                    >
-                      <div
-                        className={`flex items-center gap-2 ${
-                          isActive ? 'bg-primary text-white hover:text-white h-full w-full' : 'hover:bg-primary hover:text-white active:text-white  h-full'
-                        }`}
-                      >
-                        {item.icon && <item.icon size={24} />}
-                        <span className={isActive ? 'font-bold' : 'font-normal'}>{item.title}</span>
-                      </div>
-                    </SidebarMenuButton>
-                  )}
-                </NavLink>
-              )}
+                  <Link to={sub.url} onClick={() => isMobile && setOpenMobile(false)}>
+                    <span className={cn('size-1.5 shrink-0 rounded-full', activeSub ? 'bg-primary' : 'bg-muted-foreground/60')} />
+                    <span>{sub.title}</span>
+                  </Link>
+                </SidebarMenuSubButton>
+              </SidebarMenuSubItem>
+            );
+          })}
+        </SidebarMenuSub>
+      </div>
+    </SidebarMenuItem>
+  );
+}
 
-              {hasChildren && isOpen && (
-                <div className="ml-6 mt-1 space-y-1">
-                  {item.children.map((child) => (
-                    <SidebarMenuItem key={child.title}>
-                      <NavLink to={child.url!} onClick={() => setOpenMobile(false)}>
-                        {({ isActive }) => (
-                          <SidebarMenuButton
-                            asChild
-                            tooltip={child.title}
-                            className={`transition-all duration-300 hover:bg-primary active:bg-primary [&>svg]:size-7 h-12 ease-in-out ${
-                              isActive ? 'bg-primary text-white hover:text-white h-full w-full' : ' hover:text-white  h-full'
-                            }`}
-                          >
-                            <div className="flex items-center gap-2">
-                              <span className={isActive ? 'font-bold' : 'font-normal'}>{child.title}</span>
-                            </div>
-                          </SidebarMenuButton>
-                        )}
-                      </NavLink>
-                    </SidebarMenuItem>
-                  ))}
-                </div>
-              )}
-            </SidebarMenuItem>
-          );
-        })}
-      </SidebarMenu>
-    </SidebarGroup>
+/* ---------- single link, e.g. "Template" (dot when wide, icon when collapsed) ---------- */
+function NavLeaf({ item }: { item: NavItem }) {
+  const { pathname } = useLocation();
+  const { isMobile, setOpenMobile } = useSidebar();
+  const active = isActive(pathname, item.url);
+
+  return (
+    <SidebarMenuItem>
+      <SidebarMenuButton
+        asChild
+        tooltip={item.title}
+        isActive={active}
+        className="h-10 rounded-xl [&>svg]:size-5 data-[active=true]:bg-primary/10 data-[active=true]:font-medium data-[active=true]:text-primary"
+      >
+        <Link to={item.url ?? '#'} onClick={() => isMobile && setOpenMobile(false)}>
+          <span className="ml-1.5 size-1.5 shrink-0 rounded-full bg-current group-data-[collapsible=icon]:hidden" />
+          <item.icon className="hidden group-data-[collapsible=icon]:block" />
+          <span>{item.title}</span>
+        </Link>
+      </SidebarMenuButton>
+    </SidebarMenuItem>
   );
 }

@@ -16,14 +16,13 @@ import AppLayout from '@/components/layout/app-layout';
 import { fetchMasterData } from '@/features/masterData/masterSlice';
 import { fetchApplications } from '@/features/applications/applicationSlice';
 import Dashboard from '@/pages/user/Dashboard';
-import PoReport from '@/pages/user/Po/PoReport';
-import AdverseReport from '@/pages/user/AdverseReport';
-import NonMovementBalances from '@/pages/user/NonMovementBalances';
-import Payroll from '@/pages/user/Payroll/Payroll';
-import GrirLineItems from '@/pages/user/GrirLineItems';
-import VendorOutstandingReport from '@/pages/user/Vendor Outstanding/VendorOutstandingReport';
-import ParkButNotPosted from '@/pages/user/ParkButNotPosted';
 import CorridorMaster from '@/pages/user/CorridorMaster';
+import ProjectOffice from '@/pages/user/ProjectOffice';
+import DepartmentMaster from '@/pages/user/DepartmentMaster';
+import UnitDepartments from '@/pages/user/UnitDepartments';
+import CostGroup from '@/pages/user/CostGroup';
+import DailyTransactions from '@/pages/user/DailyTransactions';
+import ActivityBasedCosting from '@/pages/user/ActivityBasedCosting';
 
 const AppRoutes = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -49,20 +48,21 @@ const AppRoutes = () => {
       <Routes>
         <Route path="/unauthorized" element={<Unauthorized />} />
         <Route path="/logout-notification" element={<FrontChannelLogout />} />
+        
         <Route element={<AppLayout isAdmin={false} />}>
           <Route element={<PrivateRoute allowedRoles={['User']} />}>
             <Route path="/" element={<HomePage />} />
             <Route path="/dashboard" element={<Dashboard />} />
           </Route>
           <Route element={<PrivateRoute allowedRoles={['User']} />}>
-            <Route path="/adverseReport" element={<AdverseReport />} />
-            <Route path="/nonMovementBalances" element={<NonMovementBalances />} />
-            <Route path="/payroll" element={<Payroll />} />
-            <Route path="/poReport" element={<PoReport />} />
-            <Route path="/grirLineItems" element={<GrirLineItems />} />
-            <Route path="/vendorOutstandingReport" element={<VendorOutstandingReport />} />
-            <Route path="/parkButNotPosted" element={<ParkButNotPosted />} />
+
             <Route path="/corridormaster" element={<CorridorMaster />} />
+            <Route path="/projectoffice" element={<ProjectOffice />} />
+            <Route path="/departmentmaster" element={<DepartmentMaster />} />
+            <Route path="/unitdepartments" element={<UnitDepartments />} />
+            <Route path="/costgroup" element={<CostGroup />} />
+            <Route path="/dailytransactions" element={<DailyTransactions />} />
+            <Route path="/activitybasedcosting" element={<ActivityBasedCosting />} />
           </Route>
         </Route>
         <Route element={<AppLayout isAdmin={true} />}>
