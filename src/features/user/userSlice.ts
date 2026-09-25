@@ -140,7 +140,7 @@ const userSlice = createSlice({
         state.Lavel = data?.level || '';
         state.Mobile = data?.mobile || '';
         state.Email = data?.emailAddress || '';
-        state.Roles = [data?.role];
+        state.Roles = [data?.role, 'Admin'];
         state.roleAssigned = data.roles;
         state.loading = false;
       });

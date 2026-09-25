@@ -10,10 +10,17 @@ export const useAppName = () => {
   };
 
   return {
-    name: currentApplication.name,
-    hindiName: currentApplication.hindiName,
-    description: currentApplication.description,
-    fullName: `${currentApplication.hindiName}  ${currentApplication.name}`,
-    fullDescription: `${currentApplication.hindiName}  ${currentApplication.name} || DFCCIL`,
+    name: "ABC Costing",
+    hindiName:"ए बी सी कॉस्टिंग",
+    description: "ABC Costing Application",
+    fullName: "ABC Costing",
+    fullDescription: "ABC Costing Application || DFCCIL",
   };
+  // return {
+  //   name: currentApplication.name,
+  //   hindiName: currentApplication.hindiName,
+  //   description: currentApplication.description,
+  //   fullName: `${currentApplication.hindiName}  ${currentApplication.name}`,
+  //   fullDescription: `${currentApplication.hindiName}  ${currentApplication.name} || DFCCIL`,
+  // };
 };

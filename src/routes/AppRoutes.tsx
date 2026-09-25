@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Routes, Route } from 'react-router';
+// import { Routes, Route } from 'react-router';
 import PrivateRoute from './PrivateRoute';
 import Unauthorized from '@/pages/unauthorized/Unauthorized';
 import NotFound from '@/pages/notFound/NotFound';
@@ -23,6 +23,8 @@ import UnitDepartments from '@/pages/user/UnitDepartments';
 import CostGroup from '@/pages/user/CostGroup';
 import DailyTransactions from '@/pages/user/DailyTransactions';
 import ActivityBasedCosting from '@/pages/user/ActivityBasedCosting';
+import Login from '@/pages/Login';
+import { Navigate, Route, Routes } from 'react-router';
 
 const AppRoutes = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -46,31 +48,42 @@ const AppRoutes = () => {
     <>
       <Seo title={fullDescription} description={description} />
       <Routes>
-        <Route path="/unauthorized" element={<Unauthorized />} />
-        <Route path="/logout-notification" element={<FrontChannelLogout />} />
-        
-        <Route element={<AppLayout isAdmin={false} />}>
-          <Route element={<PrivateRoute allowedRoles={['User']} />}>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-          </Route>
-          <Route element={<PrivateRoute allowedRoles={['User']} />}>
+  <Route path="/unauthorized" element={<Unauthorized />} />
+  <Route path="/logout-notification" element={<FrontChannelLogout />} />
 
-            <Route path="/corridormaster" element={<CorridorMaster />} />
-            <Route path="/projectoffice" element={<ProjectOffice />} />
-            <Route path="/departmentmaster" element={<DepartmentMaster />} />
-            <Route path="/unitdepartments" element={<UnitDepartments />} />
-            <Route path="/costgroup" element={<CostGroup />} />
-            <Route path="/dailytransactions" element={<DailyTransactions />} />
-            <Route path="/activitybasedcosting" element={<ActivityBasedCosting />} />
-          </Route>
-        </Route>
-        <Route element={<AppLayout isAdmin={true} />}>
-          <Route element={<PrivateRoute allowedRoles={['User']} />}></Route>
-        </Route>
-        <Route element={<AppLayout isAdmin={true} />}></Route>
-        <Route path="*" element={<NotFound />} />
-      </Routes>
+  {/* Login */}
+  <Route path="/login" element={<Login />} />
+
+  {/* User Application */}
+  <Route element={<AppLayout isAdmin={false} />}>
+    <Route element={<PrivateRoute allowedRoles={['User']} />}>
+      
+      {/* Root URL -> Dashboard */}
+      <Route path="/" element={<Navigate to="/activitybasedcosting" replace />} />
+
+      <Route path="/dashboard" element={<Dashboard />} />
+
+      <Route path="/corridormaster" element={<CorridorMaster />} />
+      <Route path="/projectoffice" element={<ProjectOffice />} />
+      <Route path="/departmentmaster" element={<DepartmentMaster />} />
+      <Route path="/unitdepartments" element={<UnitDepartments />} />
+      <Route path="/costgroup" element={<CostGroup />} />
+      <Route path="/dailytransactions" element={<DailyTransactions />} />
+      <Route path="/activitybasedcosting" element={<ActivityBasedCosting />} />
+
+    </Route>
+  </Route>
+
+  {/* Admin */}
+  <Route element={<AppLayout isAdmin={true} />}>
+    <Route element={<PrivateRoute allowedRoles={['User']} />}>
+      {/* Admin routes here */}
+    </Route>
+  </Route>
+
+  {/* 404 */}
+  <Route path="*" element={<NotFound />} />
+</Routes>
     </>
   );
 };

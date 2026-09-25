@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { ChevronsLeft, ChevronsRight, LogOut, Hotel, FileText, Clock } from 'lucide-react';
+import { ChevronsLeft, ChevronsRight, LogOut, Hotel, FileText, Clock, LayoutDashboard } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import { NavMain } from '@/components/nav-main';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarMenu, SidebarMenuButton, SidebarRail, SidebarSeparator, useSidebar } from '@/components/ui/sidebar';
@@ -17,26 +17,53 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   const canAccessAdminDashboard = false;
 
   const allNavItems: NavItem[] = [
-    {
-      title: 'Master',
-      icon: Clock,
-      roles: ['User'],
-      children: [
-        { title: 'corridormaster', url: '/corridormaster', roles: ['User'] },
-        { title: 'Project Office', url: '/projectoffice', roles: ['User'] },
-        { title: 'Department', url: '/departmentmaster', roles: ['User'] },
-        { title: 'Department Mapping', url: '/unitdepartments', roles: ['User'] },
-        { title: 'Cost Group', url: '/costgroup', roles: ['User'] },
-        { title: 'Daily Transactions', url: '/dailytransactions', roles: ['User'] },
-      ],
-    },
-    {
-      title: 'Template',
-      url: '/ActivityBasedCosting', // add a route for this, or change the path
-      icon: FileText,
-      roles: ['User'],
-    },
-  ];
+  
+
+  {
+    title: 'Master',
+    icon: Clock,
+    roles: ['User'],
+    children: [
+      {
+        title: 'Corridor Master',
+        url: '/corridormaster',
+        roles: ['User'],
+      },
+      {
+        title: 'Project Office',
+        url: '/projectoffice',
+        roles: ['User'],
+      },
+      {
+        title: 'Department',
+        url: '/departmentmaster',
+        roles: ['User'],
+      },
+      {
+        title: 'Department Mapping',
+        url: '/unitdepartments',
+        roles: ['User'],
+      },
+      {
+        title: 'Cost Group',
+        url: '/costgroup',
+        roles: ['User'],
+      },
+      {
+        title: 'Daily Transactions',
+        url: '/dailytransactions',
+        roles: ['User'],
+      },
+    ],
+  },
+
+  {
+    title: 'Templates',
+    url: '/activitybasedcosting',
+    icon: FileText,
+    roles: ['User'],
+  },
+];
 
   // keep only what this user's roles allow; hide a group if none of its links remain
   const canSee = (x: { roles: string[] }) => x.roles.some((role) => Roles?.includes(role));
@@ -55,7 +82,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
 
   return (
     <Sidebar collapsible="icon" {...props}>
-      <div className="flex justify-end md:pt-[90px] px-2">
+      <div className="flex justify-end md:pt-[110px] px-2">
         <button onClick={toggleSidebar} aria-label={state === 'collapsed' ? 'Expand sidebar' : 'Collapse sidebar'} className="rounded-md p-1 hover:bg-primary/10">
           <ToggleIcon className="w-7 h-7 cursor-pointer" />
         </button>

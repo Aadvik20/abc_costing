@@ -1,4 +1,4 @@
-export type UserRole = 'User';
+export type UserRole = 'User' | 'Admin';
 
 export interface UserClaims {
   name: string;
